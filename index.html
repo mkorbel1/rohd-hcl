@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="generator" content="made with love by dartdoc 6.1.5">
+  <meta name="generator" content="made with love by dartdoc 6.2.1">
   <meta name="description" content="rohd_hcl API docs, for the Dart programming language.">
   <title>rohd_hcl - Dart API docs</title>
 
@@ -38,8 +38,11 @@
   <div class="toggle" id="theme-button">
     <label for="theme">
       <input type="checkbox" id="theme" value="light-theme">
-      <span class="material-symbols-outlined">
+      <span id="dark-theme-button" class="material-symbols-outlined">
         brightness_4
+      </span>
+      <span id="light-theme-button" class="material-symbols-outlined">
+        brightness_5
       </span>
     </label>
   </div>
@@ -82,7 +85,7 @@
 <tbody>
 <tr>
 <td>No link</td>
-<td>Idea phase</td>
+<td>Idea phase / included in parent link</td>
 </tr>
 <tr>
 <td>Link <strong>(OPEN)</strong></td>
@@ -106,57 +109,78 @@
 <li>Gray to Binary</li>
 <li>Binary to Gray</li>
 <li>Priority</li>
+<li>PLAs</li>
 </ul>
 </li>
-<li>Arbiters
+<li><a href="./doc/arbiter.md">Arbiters</a>
 <ul>
-<li>Priority</li>
-<li>Round-robin</li>
+<li><a href="./doc/arbiter.md#priority-arbiter">Priority</a></li>
+<li><a href="https://github.com/intel/rohd-hcl/issues/11">Round-robin <strong>(WIP)</strong></a></li>
 </ul>
 </li>
-<li>FIFO
+<li><a href="./doc/fifo.md">FIFO</a>
 <ul>
 <li>Synchronous</li>
 <li>Asynchronous</li>
 <li>Bubble Generating</li>
+<li>Shift register</li>
 </ul>
 </li>
 <li>Find
 <ul>
-<li>Find N'th bit=X</li>
-<li>Find N'th bit=X from end</li>
+<li><a href="https://github.com/intel/rohd-hcl/issues/20">Find N'th bit (0 or 1) from the start/end <strong>(WIP)</strong></a></li>
 <li>Min</li>
 <li>Max</li>
+<li>Find pattern</li>
 </ul>
 </li>
 <li>Count
 <ul>
 <li>Count bit=X</li>
+<li>Count pattern</li>
 </ul>
 </li>
-<li>Sort</li>
+<li><a href="https://github.com/intel/rohd-hcl/issues/9">Sort <strong>(WIP)</strong></a></li>
 <li>Arithmetic
 <ul>
-<li>Prefix Trees</li>
+<li><a href="https://github.com/intel/rohd-hcl/issues/12">Prefix Trees <strong>(WIP)</strong></a></li>
 <li>Adders</li>
 <li>Subtractors</li>
 <li>Multipliers
 <ul>
-<li>Pipelined Integer Multiplier</li>
+<li><a href="https://github.com/intel/rohd-hcl/issues/10">Pipelined Integer Multiplier <strong>(WIP)</strong></a></li>
 </ul>
 </li>
 <li>Dividers</li>
 <li>Log</li>
-</ul>
-</li>
-<li>Rotate
+<li>Square root</li>
+<li>Inverse square root</li>
+<li>Floating point
 <ul>
-<li>Left</li>
-<li>Right</li>
+<li>Double (64-bit)</li>
+<li>Float (32-bit)</li>
+<li>BFloat16 (16-bit)</li>
+<li>BFloat8 (8-bit)</li>
+<li>BFloat4 (4-bit)</li>
+<li>Dot product</li>
 </ul>
 </li>
-<li>Counter</li>
-<li>LFSR</li>
+</ul>
+</li>
+<li><a href="./doc/rotate.md">Rotate</a>
+<ul>
+<li>Dynamic and fixed amounts</li>
+<li>Left and right</li>
+<li>Includes <code>extension</code>s on <code>Logic</code> and <code>LogicValue</code></li>
+</ul>
+</li>
+<li>Counters
+<ul>
+<li>Binary counter</li>
+<li>Gray counter</li>
+</ul>
+</li>
+<li><a href="https://github.com/intel/rohd-hcl/issues/8">LFSR <strong>(WIP)</strong></a></li>
 <li>Error checking
 <ul>
 <li>ECC</li>
@@ -179,9 +203,10 @@
 </li>
 </ul>
 </li>
-<li>Memory
+<li><a href="./doc/memory.md">Memory</a>
 <ul>
-<li>Register Files
+<li><a href="./doc/memory.md#masks">Masks</a></li>
+<li><a href="./doc/memory.md#register-files">Register Files</a>
 <ul>
 <li>Flop-based</li>
 <li>Latch-based</li>
@@ -192,6 +217,21 @@
 <li>LRU</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>Standard interfaces
+<ul>
+<li>AXI</li>
+<li>APB</li>
+<li>AHB</li>
+<li>SFI</li>
+<li>PCIe</li>
+<li>UCIe</li>
+<li>JTAG</li>
+<li>SPI</li>
+<li>UART</li>
+<li>DDR</li>
+<li>HBM</li>
 </ul>
 </li>
 </ul>
