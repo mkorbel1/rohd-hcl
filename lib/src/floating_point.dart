@@ -125,6 +125,31 @@ class FloatingPointValue {
     }
     return doubleVal;
   }
+
+  FloatingPointValue _performOp(
+      FloatingPointValue other, double Function(double a, double b) op) {
+    // make sure multiplicand has the same sizes as this
+    if (mantissa.width != other.mantissa.width ||
+        exponent.width != other.exponent.width) {
+      throw RohdHclException('FloatingPointValue: '
+          'multiplicand must have the same mantissa and exponent widths');
+    }
+
+    return FloatingPointValue.fromDouble(op(toDouble(), other.toDouble()),
+        mantissaWidth: mantissa.width, exponentWidth: exponent.width);
+  }
+
+  FloatingPointValue operator *(FloatingPointValue multiplicand) =>
+      _performOp(multiplicand, (a, b) => a * b);
+
+  FloatingPointValue operator +(FloatingPointValue addend) =>
+      _performOp(addend, (a, b) => a + b);
+
+  FloatingPointValue operator /(FloatingPointValue divisor) =>
+      _performOp(divisor, (a, b) => a / b);
+
+  FloatingPointValue operator -(FloatingPointValue subend) =>
+      _performOp(subend, (a, b) => a - b);
 }
 
 class FloatingPoint32Value extends FloatingPointValue {
@@ -228,11 +253,17 @@ class FloatingPoint extends LogicStructure {
 /// Single floating point representation
 class FloatingPoint32 extends FloatingPoint {
   /// Construct a 32-bit (single-precision) floating point number
-  FloatingPoint32() : super(exponentWidth: 8, mantissaWidth: 23);
+  FloatingPoint32()
+      : super(
+            exponentWidth: FloatingPoint32Value._exponentWidth,
+            mantissaWidth: FloatingPoint32Value._mantissaWidth);
 }
 
 /// Double floating point representation
 class FloatingPoint64 extends FloatingPoint {
   /// Construct a 64-bit (double-precision) floating point number
-  FloatingPoint64() : super(exponentWidth: 11, mantissaWidth: 52);
+  FloatingPoint64()
+      : super(
+            exponentWidth: FloatingPoint64Value._exponentWidth,
+            mantissaWidth: FloatingPoint64Value._mantissaWidth);
 }
