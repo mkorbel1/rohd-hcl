@@ -11,6 +11,7 @@
 //
 import 'dart:math';
 
+import 'dart:typed_data';
 import 'package:rohd/rohd.dart';
 
 /// Flexible floating point representation
@@ -56,7 +57,6 @@ class FloatingPoint extends LogicStructure {
     var doubleVal = double.nan;
     if (value.isValid) {
       if (exponent.value.toInt() == 0) {
-        print('SubNormal');
         doubleVal = (sign.value.toBool() ? -1.0 : 1.0) *
             pow(2, _eMin()) *
             mantissa.value.toBigInt().toDouble() /
@@ -73,7 +73,6 @@ class FloatingPoint extends LogicStructure {
 
   /// Convert a floating point number into a [FloatingPoint] representation
   void fromDouble(double inDouble) {
-    print('Input: $inDouble');
     var doubleVal = inDouble;
     if (inDouble < 0.0) {
       doubleVal = -doubleVal;
@@ -82,36 +81,48 @@ class FloatingPoint extends LogicStructure {
       sign.put(LogicValue.zero);
     }
     // If we are dealing with a really small number we need to scale it up
-    final scaleForSmall = (-log(doubleVal) / log(2)).ceil();
-    var delta = scaleForSmall;
-    var scale = mantissa.width + delta;
+    final scaleToWhole = (-log(doubleVal) / log(2)).ceil();
+    final scale = mantissa.width + scaleToWhole;
 
     final scaledValue = BigInt.from(doubleVal * pow(2.0, scale));
-    print('$scaledValue scaledValue of $inDouble');
     final fullLength = scaledValue.bitLength;
     var fullValue = LogicValue.ofBigInt(scaledValue, fullLength);
-    print('${fullValue.toString(includeWidth: false)} fullValue');
 
-    var e = fullLength - mantissa.width - delta;
+    var e = fullLength - mantissa.width - scaleToWhole;
 
-    if (e <= -127) {
-      print('Warning: this number will be subnormal ${-e - 127}');
-      final x = -(e + 127);
-      fullValue = fullValue >>> x;
-      e = -127;
+    if (e <= -_bias()) {
+      fullValue = fullValue >>> (-(e + _bias()));
+      e = -_bias();
     } else {
       e -= 1;
       fullValue = fullValue << 1; // Chop the first '1'
-      print('${fullValue.toString(includeWidth: false)} fullValue chopped');
     }
     fullValue = fullValue.reversed;
+    final exponentVal = LogicValue.ofInt(e + _bias(), exponent.width);
     var mantissaVal = LogicValue.ofBigInt(fullValue.toBigInt(), mantissa.width);
     mantissaVal = mantissaVal.reversed;
-    final exponentVal = LogicValue.ofInt(e + _bias(), exponent.width);
-    print('${exponentVal.toString(includeWidth: false)} '
-        '${mantissaVal.toString(includeWidth: false)} Full Floating Point Rep');
-    mantissa.put(mantissaVal);
+
     exponent.put(exponentVal);
+    mantissa.put(mantissaVal);
+
+    print('${sign.value.toString(includeWidth: false)}'
+        ' ${exponentVal.toString(includeWidth: false)}'
+        ' ${mantissaVal.toString(includeWidth: false)} Full Floating Rep');
+  }
+
+  /// Directly copies a floating point number into a [FloatingPoint]
+  ///  representation
+  void copyDouble(double inDouble) {
+    final byteData = ByteData(4);
+    byteData.setFloat32(0, inDouble);
+    final bytes = byteData.buffer.asUint8List();
+    final lv = bytes.map((b) => LogicValue.ofInt(b, 32));
+
+    final accum = lv.reduce((accum, v) => (accum << 8) | v);
+
+    sign.put(accum.slice(31, 31));
+    exponent.put(accum.slice(30, 23));
+    mantissa.put(accum.slice(22, 0));
   }
 }
 
@@ -129,18 +140,19 @@ class FloatingPoint32 extends FloatingPoint {
 
 void main() {
 // Going through examples on Wikipedia
-  // final values = [0.15625, 12.375, 1.0, 0.25, 0.375];
-  const smallestPositiveSubnormal = 1.4012984643e-45;
-  const largestPositiveSubnormal = 1.1754942107e-38;
+  final values = [0.15625, 12.375, -1.0, 0.25, 0.375];
   const smallestPositiveNormal = 1.1754943508e-38;
-  final values = [
-    smallestPositiveNormal,
-    largestPositiveSubnormal,
-    smallestPositiveSubnormal
-  ];
+  const largestPositiveSubnormal = 1.1754942107e-38;
+  const smallestPositiveSubnormal = 1.4012984643e-45;
+  // final values = [
+  //   smallestPositiveNormal,
+  //   largestPositiveSubnormal,
+  //   smallestPositiveSubnormal,
+  // ];
   for (final val in values) {
     final fp = FloatingPoint32();
-    fp.fromDouble(val);
+    fp.copyDouble(val);
+    // fp.fromDouble(val);
     print('Converted $val to ${fp.toDouble()}');
     // assert(val == fp.toDouble(), 'mismatch');
   }
