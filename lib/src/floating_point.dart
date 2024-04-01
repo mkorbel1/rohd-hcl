@@ -35,7 +35,7 @@ class FloatingPoint extends LogicStructure {
 
   FloatingPoint._(this.sign, this.exponent, this.mantissa, {String? name})
       : super([mantissa, exponent, sign], name: name ?? 'FloatingPoint');
-
+  
   @override
   FloatingPoint clone({String? name}) => FloatingPoint(
         exponentWidth: exponent.width,
