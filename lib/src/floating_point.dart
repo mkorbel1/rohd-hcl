@@ -56,13 +56,15 @@ class FloatingPoint extends LogicStructure {
     var doubleVal = double.nan;
     if (value.isValid) {
       if (exponent.value.toInt() == 0) {
+        print('SubNormal');
         doubleVal = (sign.value.toBool() ? -1.0 : 1.0) *
             pow(2, _eMin()) *
-            mantissa.value.toInt().toDouble() /
-            pow(2, mantissa.width - 1);
+            mantissa.value.toBigInt().toDouble() /
+            pow(2, mantissa.width);
       } else if (exponent.value.toInt() != _eMax() + _bias() + 1) {
         doubleVal = (sign.value.toBool() ? -1.0 : 1.0) *
-            (1.0 + mantissa.value.toInt().toDouble() / pow(2, mantissa.width)) *
+            (1.0 +
+                mantissa.value.toBigInt().toDouble() / pow(2, mantissa.width)) *
             pow(2, exponent.value.toInt() - _bias());
       }
     }
@@ -71,6 +73,7 @@ class FloatingPoint extends LogicStructure {
 
   /// Convert a floating point number into a [FloatingPoint] representation
   void fromDouble(double inDouble) {
+    print('Input: $inDouble');
     var doubleVal = inDouble;
     if (inDouble < 0.0) {
       doubleVal = -doubleVal;
@@ -78,37 +81,36 @@ class FloatingPoint extends LogicStructure {
     } else {
       sign.put(LogicValue.zero);
     }
-    final scaledValue = BigInt.from(doubleVal * pow(2, mantissa.width - 1));
-    final binaryRepresentation = scaledValue.toRadixString(2);
+    // If we are dealing with a really small number we need to scale it up
+    final scaleForSmall = (-log(doubleVal) / log(2)).ceil();
+    var delta = scaleForSmall;
+    var scale = mantissa.width + delta;
 
-    final e = binaryRepresentation.length - mantissa.width;
+    final scaledValue = BigInt.from(doubleVal * pow(2.0, scale));
+    print('$scaledValue scaledValue of $inDouble');
+    final fullLength = scaledValue.bitLength;
+    var fullValue = LogicValue.ofBigInt(scaledValue, fullLength);
+    print('${fullValue.toString(includeWidth: false)} fullValue');
 
-    // TODO(desmonddak): will this work for very large floats.
-    var fractionVal = doubleVal - doubleVal.toInt();
+    var e = fullLength - mantissa.width - delta;
 
-    var mantissaVal = LogicValue.ofInt(0, mantissa.width);
-    for (var i = mantissa.width - 1; i > 0; --i) {
-      fractionVal *= 2.0;
-      final bitVal = fractionVal.toInt();
-      if (bitVal != 0) {
-        mantissaVal = mantissaVal | LogicValue.ofInt(1 << i, mantissa.width);
-      }
-      fractionVal -= bitVal;
-    }
-    // TODO(desmonddak): When to chop the first bit, we do it on both parts.
-    if (e > 0) {
-      mantissaVal = mantissaVal >> e;
+    if (e <= -127) {
+      print('Warning: this number will be subnormal ${-e - 127}');
+      final x = -(e + 127);
+      fullValue = fullValue >>> x;
+      e = -127;
     } else {
-      mantissaVal = mantissaVal << -e;
+      e -= 1;
+      fullValue = fullValue << 1; // Chop the first '1'
+      print('${fullValue.toString(includeWidth: false)} fullValue chopped');
     }
-    final wholeVal = (doubleVal - fractionVal).toInt();
-    final l = wholeVal.toRadixString(2).length;
-    // This chops off the leading bit
-    var wholeBinary =
-        LogicValue.ofInt(wholeVal << mantissa.width - l + 1, mantissa.width);
-    final mergedMantissa = wholeBinary | mantissaVal;
+    fullValue = fullValue.reversed;
+    var mantissaVal = LogicValue.ofBigInt(fullValue.toBigInt(), mantissa.width);
+    mantissaVal = mantissaVal.reversed;
     final exponentVal = LogicValue.ofInt(e + _bias(), exponent.width);
-    mantissa.put(mergedMantissa);
+    print('${exponentVal.toString(includeWidth: false)} '
+        '${mantissaVal.toString(includeWidth: false)} Full Floating Point Rep');
+    mantissa.put(mantissaVal);
     exponent.put(exponentVal);
   }
 }
@@ -127,10 +129,26 @@ class FloatingPoint32 extends FloatingPoint {
 
 void main() {
 // Going through examples on Wikipedia
-  final values = [12.375, 1.0, 0.25, 0.375];
+  // final values = [0.15625, 12.375, 1.0, 0.25, 0.375];
+  const smallestPositiveSubnormal = 1.4012984643e-45;
+  const largestPositiveSubnormal = 1.1754942107e-38;
+  const smallestPositiveNormal = 1.1754943508e-38;
+  final values = [
+    smallestPositiveNormal,
+    largestPositiveSubnormal,
+    smallestPositiveSubnormal
+  ];
   for (final val in values) {
     final fp = FloatingPoint32();
     fp.fromDouble(val);
     print('Converted $val to ${fp.toDouble()}');
+    // assert(val == fp.toDouble(), 'mismatch');
+  }
+  return;
+  for (var i = 0; i < 63; i++) {
+    final x = pow(2.0, i).toDouble();
+    final fp = FloatingPoint32();
+    fp.fromDouble(x);
+    print("converted $x to ${fp.toDouble()}");
   }
 }
