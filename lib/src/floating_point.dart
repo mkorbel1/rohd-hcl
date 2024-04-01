@@ -109,10 +109,16 @@ class FloatingPoint extends LogicStructure {
         ' ${exponentVal.toString(includeWidth: false)}'
         ' ${mantissaVal.toString(includeWidth: false)} Full Floating Rep');
   }
+}
 
-  /// Directly copies a floating point number into a [FloatingPoint]
+/// Single floating point representation
+class FloatingPoint32 extends FloatingPoint {
+  /// Construct a 32-bit (single-precision) floating point number
+  FloatingPoint32() : super(exponentWidth: 8, mantissaWidth: 23);
+
+  /// Directly copies a floating point number into a [FloatingPoint32]
   ///  representation
-  void copyDouble(double inDouble) {
+  void copyDouble(double inDouble, {bool debug = true}) {
     final byteData = ByteData(4);
     byteData.setFloat32(0, inDouble);
     final bytes = byteData.buffer.asUint8List();
@@ -123,6 +129,11 @@ class FloatingPoint extends LogicStructure {
     sign.put(accum.slice(31, 31));
     exponent.put(accum.slice(30, 23));
     mantissa.put(accum.slice(22, 0));
+    if (debug) {
+      print('${sign.value.toString(includeWidth: false)}'
+          ' ${exponent.value.toString(includeWidth: false)}'
+          ' ${mantissa.value.toString(includeWidth: false)} copyDouble');
+    }
   }
 }
 
@@ -130,37 +141,106 @@ class FloatingPoint extends LogicStructure {
 class FloatingPoint64 extends FloatingPoint {
   /// Construct a 64-bit (double-precision) floating point number
   FloatingPoint64() : super(exponentWidth: 11, mantissaWidth: 52);
+
+  /// Directly copies a floating point number into a [FloatingPoint64]
+  ///  representation
+  void copyDouble(double inDouble, {bool debug = true}) {
+    final byteData = ByteData(8);
+    byteData.setFloat64(0, inDouble);
+    final bytes = byteData.buffer.asUint8List();
+    final lv = bytes.map((b) => LogicValue.ofInt(b, 64));
+
+    final accum = lv.reduce((accum, v) => (accum << 8) | v);
+
+    sign.put(accum.slice(63, 63));
+    exponent.put(accum.slice(62, 52));
+    mantissa.put(accum.slice(51, 0));
+    if (debug) {
+      print('${sign.value.toString(includeWidth: false)}'
+          ' ${exponent.value.toString(includeWidth: false)}'
+          ' ${mantissa.value.toString(includeWidth: false)} copyDouble');
+    }
+  }
 }
 
-/// Single floating point representation
-class FloatingPoint32 extends FloatingPoint {
-  /// Construct a 32-bit (single-precision) floating point number
-  FloatingPoint32() : super(exponentWidth: 8, mantissaWidth: 23);
-}
-
-void main() {
-// Going through examples on Wikipedia
+void testCopy32Simple() {
+  print('testCopy32Simple');
   final values = [0.15625, 12.375, -1.0, 0.25, 0.375];
+  for (final val in values) {
+    final fp = FloatingPoint32();
+    fp.copyDouble(val, debug: true);
+    print('Converted32 $val to ${fp.toDouble()}');
+    assert(val == fp.toDouble(), 'mismatch');
+  }
+}
+
+void testCopy64Simple() {
+  print('testCopy64Simple');
+  final values = [0.15625, 12.375, -1.0, 0.25, 0.375];
+  for (final val in values) {
+    final fp = FloatingPoint64();
+    fp.copyDouble(val, debug: true);
+    print('Converted64 $val to ${fp.toDouble()}');
+    assert(val == fp.toDouble(), 'mismatch');
+  }
+}
+
+void testCopy32Corner() {
+  print('testCopy32Corner');
   const smallestPositiveNormal = 1.1754943508e-38;
   const largestPositiveSubnormal = 1.1754942107e-38;
   const smallestPositiveSubnormal = 1.4012984643e-45;
-  // final values = [
-  //   smallestPositiveNormal,
-  //   largestPositiveSubnormal,
-  //   smallestPositiveSubnormal,
-  // ];
+  const largestNormalNumber = 3.4028234664e38; // currently fails->0.0
+  const largestNumberLessThanOne = 0.999999940395355225;
+  const smallestNumberLargerThanOne = 1.00000011920928955;
+  const oneThird = 0.333333343267440796;
+  final values = [
+    smallestPositiveNormal,
+    largestPositiveSubnormal,
+    smallestPositiveSubnormal,
+    largestNormalNumber,
+    largestNumberLessThanOne,
+    smallestNumberLargerThanOne,
+    oneThird
+  ];
   for (final val in values) {
     final fp = FloatingPoint32();
-    fp.copyDouble(val);
-    // fp.fromDouble(val);
+    fp.copyDouble(val, debug: true);
     print('Converted $val to ${fp.toDouble()}');
     // assert(val == fp.toDouble(), 'mismatch');
   }
-  return;
-  for (var i = 0; i < 63; i++) {
-    final x = pow(2.0, i).toDouble();
-    final fp = FloatingPoint32();
-    fp.fromDouble(x);
-    print("converted $x to ${fp.toDouble()}");
+}
+
+void testCopy64Corner() {
+  print('testCopy64Corner');
+  const smallestPositiveNormal = 2.2250738585072014e-308;
+  const largestPositiveSubnormal = 2.2250738585072009e-308;
+  const smallestPositiveSubnormal = 4.9406564584124654e-324;
+  const largestNormalNumber = 1.7976931348623157e308; // fails to 0.0
+  // const largestNumberLessThanOne = 0.999999940395355225;
+  const smallestNumberLargerThanOne = 1.0000000000000002;
+  const oneThird = 0.33333333333333333;
+  final values = [
+    smallestPositiveNormal,
+    largestPositiveSubnormal,
+    smallestPositiveSubnormal,
+    largestNormalNumber,
+    // largestNumberLessThanOne,
+    smallestNumberLargerThanOne,
+    oneThird
+  ];
+  for (final val in values) {
+    final fp = FloatingPoint64();
+    fp.copyDouble(val, debug: true);
+    print('Converted $val to ${fp.toDouble()}');
+    // assert(val == fp.toDouble(), 'mismatch');
   }
+}
+
+void main() {
+  testCopy32Simple();
+  testCopy64Simple();
+
+  testCopy32Corner();
+  testCopy64Corner();
 }
