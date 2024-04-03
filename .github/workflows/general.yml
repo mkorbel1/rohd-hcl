@@ -98,7 +98,7 @@ jobs:
   deploy-documentation:
     name: Deploy Documentation
     needs: run-checks
-    if: github.event_name == 'push'
+    # if: github.event_name == 'push' #TODO: TEMPORARY
     permissions:
       contents: write # required for "JamesIves/github-pages-deploy-action"
     timeout-minutes: 30
@@ -136,7 +136,7 @@ jobs:
   deploy-site:
     name: Deploy ROHD-HCL Generator site
     needs: [run-checks, run-flutter-checks, deploy-documentation]
-    if: github.event_name == 'push'
+    # if: github.event_name == 'push' #TODO: TEMPORARY
     permissions:
       contents: write # required for "JamesIves/github-pages-deploy-action"
     timeout-minutes: 30
@@ -154,7 +154,7 @@ jobs:
           version: 3.16.3
       
       - name: Build static site
-        run: tool/gh_actions/hcl_site_generation_build.sh
+        run: tool/gh_actions/hcl_site_generation_build.sh # TODO https://github.com/flutter/flutter/issues/145796
 
       - name: Deploy the generated site to website branch
         uses: JamesIves/github-pages-deploy-action@v4
