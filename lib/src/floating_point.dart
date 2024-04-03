@@ -155,7 +155,6 @@ class FloatingPointValue {
     return doubleVal;
   }
 
-
   @override
   String toString() => '${sign.toString(includeWidth: false)}'
       ' ${exponent.toString(includeWidth: false)}'
@@ -174,15 +173,19 @@ class FloatingPointValue {
         mantissaWidth: mantissa.width, exponentWidth: exponent.width);
   }
 
+  /// Multiply operation for [FloatingPointValue]
   FloatingPointValue operator *(FloatingPointValue multiplicand) =>
       _performOp(multiplicand, (a, b) => a * b);
 
+  /// Addition operation for [FloatingPointValue]
   FloatingPointValue operator +(FloatingPointValue addend) =>
       _performOp(addend, (a, b) => a + b);
 
+  /// Divide operation for [FloatingPointValue]
   FloatingPointValue operator /(FloatingPointValue divisor) =>
       _performOp(divisor, (a, b) => a / b);
 
+  /// Subtract operation for [FloatingPointValue]
   FloatingPointValue operator -(FloatingPointValue subend) =>
       _performOp(subend, (a, b) => a - b);
 }
