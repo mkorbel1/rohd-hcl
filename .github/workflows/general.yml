@@ -135,7 +135,7 @@ jobs:
 
   deploy-site:
     name: Deploy ROHD-HCL Generator site
-    needs: [run-checks, run-flutter-checks, deploy-documentation]
+    # needs: [run-checks, run-flutter-checks, deploy-documentation] #TODO TEMPORARY
     # if: github.event_name == 'push' #TODO: TEMPORARY
     permissions:
       contents: write # required for "JamesIves/github-pages-deploy-action"
@@ -162,4 +162,5 @@ jobs:
           folder: confapp/build/web
           target-folder: confapp
           branch: website
-          clean: false  # goes in after the documentation, which does a clean
+          # clean: false  # goes in after the documentation, which does a clean #TODO TEMP
+          clean: true
