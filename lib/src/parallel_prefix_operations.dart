@@ -190,25 +190,21 @@ class ParallelPrefixPriorityEncoder extends Module {
 }
 
 /// Adder based on ParallelPrefix tree
-class ParallelPrefixAdder extends Module {
-  /// Output [out] the arithmetic sum of the two Logic inputs
-  Logic get out => output('out');
-
+class ParallelPrefixAdder extends Adder {
   /// Adder constructor
-  ParallelPrefixAdder(Logic a, Logic b,
-      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen,
-      {super.definitionName}) {
-    a = addInput('a', a, width: a.width);
-    b = addInput('b', b, width: b.width);
+  ParallelPrefixAdder(super.a, super.b,
+      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen)
+      : super(name: 'ParallelPrefixAdder') {
     final u = ppGen(
-        //                                    generate,    propagate or generate
         List<Logic>.generate(
             a.width, (i) => [a[i] & b[i], a[i] | b[i]].swizzle()),
         (lhs, rhs) => [rhs[1] | rhs[0] & lhs[1], rhs[0] & lhs[0]].swizzle());
-    addOutput('out', width: a.width) <=
+    carryOut <= u.val[a.width - 1][1];
+    out <=
         List<Logic>.generate(a.width,
                 (i) => (i == 0) ? a[i] ^ b[i] : a[i] ^ b[i] ^ u.val[i - 1][1])
             .rswizzle();
+    sum <= [carryOut, out].swizzle();
   }
 }
 

@@ -7,10 +7,11 @@
 // 2023 Sep 29
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
-import 'dart:math';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
+import 'package:rohd_hcl/src/ripple_carry_adder.dart';
 import 'package:test/test.dart';
+import './adder_test.dart';
 
 void testOrScan(int n, ParallelPrefixOrScan Function(Logic a) fn) {
   test('or_scan_$n', () async {
@@ -65,56 +66,6 @@ void testPriorityEncoder(
       inp.put(j);
       final result = mod.out.value.toInt();
       // print("priority_encoder: $j ${result} ${golden}");
-      expect(result, equals(golden));
-    }
-  });
-}
-
-void testAdder(int n, ParallelPrefixAdder Function(Logic a, Logic b) fn) {
-  test('adder_$n', () async {
-    final a = Logic(name: 'a', width: n);
-    final b = Logic(name: 'b', width: n);
-
-    final mod = fn(a, b);
-    await mod.build();
-
-    int computeAdder(int aa, int bb) => (aa + bb) & ((1 << n) - 1);
-
-    // put/expect testing
-
-    for (var aa = 0; aa < (1 << n); ++aa) {
-      for (var bb = 0; bb < (1 << n); ++bb) {
-        final golden = computeAdder(aa, bb);
-        a.put(aa);
-        b.put(bb);
-        final result = mod.out.value.toInt();
-        //print("adder: $aa $bb $result $golden");
-        expect(result, equals(golden));
-      }
-    }
-  });
-}
-
-void testAdderRandom(
-    int n, int nSamples, ParallelPrefixAdder Function(Logic a, Logic b) fn) {
-  test('adder_$n', () async {
-    final a = Logic(name: 'a', width: n);
-    final b = Logic(name: 'b', width: n);
-
-    final mod = fn(a, b);
-    await mod.build();
-
-    LogicValue computeAdder(LogicValue aa, LogicValue bb) =>
-        (aa + bb) & LogicValue.ofBigInt(BigInt.from((1 << n) - 1), n);
-    // put/expect testing
-
-    for (var i = 0; i < nSamples; ++i) {
-      final aa = Random().nextLogicValue(width: n);
-      final bb = Random().nextLogicValue(width: n);
-      final golden = computeAdder(aa, bb);
-      a.put(aa);
-      b.put(bb);
-      final result = mod.out.value;
       expect(result, equals(golden));
     }
   });
@@ -194,6 +145,7 @@ void main() {
 
   group('adder', () {
     for (final n in [3, 4, 5]) {
+      testAdder(n, RippleCarryAdder.new);
       for (final ppGen in generators) {
         testAdder(n, (a, b) => ParallelPrefixAdder(a, b, ppGen));
       }
@@ -202,6 +154,7 @@ void main() {
 
   group('adderRandom', () {
     for (final n in [127, 128, 129]) {
+      testAdder(n, RippleCarryAdder.new);
       for (final ppGen in generators) {
         testAdderRandom(n, 10, (a, b) => ParallelPrefixAdder(a, b, ppGen));
       }

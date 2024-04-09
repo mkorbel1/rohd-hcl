@@ -21,6 +21,12 @@ abstract class Adder extends Module {
   @protected
   late final Logic b;
 
+  /// The addition results [out].
+  Logic get out => output('out');
+
+  /// The carry results [carryOut].
+  Logic get carryOut => output('carryOut');
+
   /// The addition results [sum].
   Logic get sum => output('sum');
 
@@ -32,6 +38,8 @@ abstract class Adder extends Module {
     }
     this.a = addInput('a', a, width: a.width);
     this.b = addInput('b', b, width: b.width);
+    addOutput('out', width: a.width);
+    addOutput('carryOut');
     addOutput('sum', width: a.width + 1);
   }
 }
@@ -64,5 +72,37 @@ class FullAdder extends Module {
 
     sum <= (a ^ b) ^ carryIn;
     carryOut <= and1 | and2;
+  }
+}
+
+/// An Adder which performs one's complement arithmetic using an unsigned
+/// adder that is passed in using a functor
+///    -- Requires that if the larger magnitude number is negative it
+///       must be the first 'a' argument
+///       We cannot enforce because this may be a smaller mantissa in
+///       a larger magnitude negative number (no asserts please)
+class OnesComplementAdder extends Adder {
+  /// The sign of the result
+  Logic get sign => output('sign');
+
+  /// [OnesComplementAdder] constructor with an unsigned adder functor
+  OnesComplementAdder(Logic aSign, super.a, Logic bSign, super.b,
+      Adder Function(Logic, Logic) adderGen)
+      : super(name: 'Ones Complement Adder') {
+    final aOnesComplement = Logic(width: a.width);
+    final bOnesComplement = Logic(width: b.width);
+    final sign = addOutput('sign');
+
+    aOnesComplement <= mux(aSign, ~a, a);
+    bOnesComplement <= mux(bSign, ~b, b);
+
+    final adder = adderGen(aOnesComplement, bOnesComplement);
+    final endAround = adder.carryOut & (aSign | bSign);
+    final localOut = mux(endAround, adder.sum + 1, adder.sum);
+
+    sum <= (mux(aSign, ~localOut, localOut));
+    out <= sum.slice(sum.width - 2, 0);
+    carryOut <= sum.slice(sum.width - 1, sum.width - 1);
+    sign <= aSign;
   }
 }
