@@ -172,6 +172,23 @@ class ParallelPrefixOrScan extends Module {
   }
 }
 
+/// Priority Finder based on ParallelPrefix tree
+class ParallelPrefixPriorityFinder extends Module {
+  /// Output [out] is the one-hot reduction to the first '1' in the Logic input
+  /// Search is from the LSB
+  Logic get out => output('out');
+
+  /// Priority Finder constructor
+  ParallelPrefixPriorityFinder(
+      Logic inp,
+      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic))
+          ppGen) {
+    inp = addInput('inp', inp, width: inp.width);
+    final u = ParallelPrefixOrScan(inp, ppGen);
+    addOutput('out', width: inp.width) <= (u.out & ~(u.out << Const(1)));
+  }
+}
+
 /// Priority Encoder based on ParallelPrefix tree
 class ParallelPrefixPriorityEncoder extends Module {
   /// Output [out] is the bit position of the first '1' in the Logic input
@@ -184,8 +201,9 @@ class ParallelPrefixPriorityEncoder extends Module {
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic))
           ppGen) {
     inp = addInput('inp', inp, width: inp.width);
-    final u = ParallelPrefixOrScan(inp, ppGen);
-    addOutput('out', width: inp.width) <= (u.out & ~(u.out << Const(1)));
+    addOutput('out', width: log2Ceil(inp.width));
+    final u = ParallelPrefixPriorityFinder(inp, ppGen);
+    out <= OneHotToBinary(u.out).binary;
   }
 }
 

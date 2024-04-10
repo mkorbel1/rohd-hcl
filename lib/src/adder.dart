@@ -97,12 +97,25 @@ class OnesComplementAdder extends Adder {
     bOnesComplement <= mux(bSign, ~b, b);
 
     final adder = adderGen(aOnesComplement, bOnesComplement);
+    // print('\tA  ${aOnesComplement.value.toString(includeWidth: false)}');
+    // print('\tb  ${b.value.toString(includeWidth: false)}');
+    // print('\tB  ${bOnesComplement.value.toString(includeWidth: false)}');
+    // print('\to ${adder.sum.value.toString(includeWidth: false)}');
+
     final endAround = adder.carryOut & (aSign | bSign);
+    // final endAround = adder.carryOut & aSign;
     final localOut = mux(endAround, adder.sum + 1, adder.sum);
+
+    // print('\tl ${localOut.value.toString(includeWidth: false)}');
+    // print('EndAround ${endAround.value.toString()}');
 
     sum <= (mux(aSign, ~localOut, localOut));
     out <= sum.slice(sum.width - 2, 0);
     carryOut <= sum.slice(sum.width - 1, sum.width - 1);
     sign <= aSign;
+    // print('\tS ${sum.value.toString(includeWidth: false)}');
+    //   print('\tO  ${out.value.toString(includeWidth: false)}');
+    //   print('\tC  ${carryOut.value.toString(includeWidth: false)}');
+    //   print('\ts  ${sign.value.toString(includeWidth: false)}');
   }
 }

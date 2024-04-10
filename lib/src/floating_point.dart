@@ -12,10 +12,8 @@
 
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
-import 'package:rohd_hcl/src/adder.dart';
-import 'package:rohd_hcl/src/exceptions.dart';
+import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:rohd_hcl/src/floating_point_value.dart';
-import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 
 /// Flexible floating point logic representation
 class FloatingPoint extends LogicStructure {
@@ -108,32 +106,57 @@ class FloatingPointAdder extends Module {
     addOutput('out', width: _out.width) <= _out;
 
     // Ensure that the larger number is wired as 'a'
-    (a, b) = swap(a.exponent.lt(b.exponent), (a, b));
+    final doSwap = a.exponent.lt(b.exponent) |
+        (a.exponent.eq(b.exponent) & a.mantissa.lt(b.mantissa)) |
+        ((a.exponent.eq(b.exponent) & a.mantissa.eq(b.mantissa)) & b.sign);
+
+    (a, b) = swap(doSwap, (a, b));
+
+    final aNormal = a.exponent.neq(LogicValue.zero.zeroExtend(exponentWidth));
+    final bNormal = b.exponent.neq(LogicValue.zero.zeroExtend(exponentWidth));
+
+    final aExp = a.exponent +
+        mux(aNormal, Const(LogicValue.zero).zeroExtend(exponentWidth),
+            Const(LogicValue.one).zeroExtend(exponentWidth));
+    final bExp = b.exponent +
+        mux(bNormal, Const(LogicValue.zero).zeroExtend(exponentWidth),
+            Const(LogicValue.one).zeroExtend(exponentWidth));
 
     // Align and add mantissas
-    final expDiff = a.exponent - b.exponent;
+    final expDiff = aExp - bExp;
+    print('${expDiff.value.toInt()} exponent diff');
     final adder = OnesComplementAdder(
         a.sign,
-        [Const(LogicValue.one), a.mantissa].swizzle(),
+        [aNormal, a.mantissa].swizzle(),
         b.sign,
-        [Const(LogicValue.one), b.mantissa].swizzle() >>> expDiff,
+        [bNormal, b.mantissa].swizzle() >>> expDiff,
         (a, b) => ParallelPrefixAdder(a, b, KoggeStone.new));
 
+    final leadOneE =
+        ParallelPrefixPriorityEncoder(adder.out.reversed, KoggeStone.new).out;
+    final leadOne = leadOneE.zeroExtend(exponentWidth);
+
+    print('${adder.out.value.toString(includeWidth: false)} out');
+    print(
+        '${leadOne.value.toInt()} leading one versus ${a.exponent.value.toInt()}');
+    print('${a.exponent.value.toInt()} a exp');
+    print('${adder.carryOut.value.toInt()} a carry');
     // Assemble the output FloatingPoint
     _out.sign <= adder.sign;
     Combinational([
       If.block([
         Iff(adder.carryOut & a.sign.eq(b.sign), [
-          _out.mantissa < (adder.sum >> 1).slice(mantissaWidth - 1, 0),
+          _out.mantissa < (adder.out >> 1).slice(mantissaWidth - 1, 0),
           _out.exponent < a.exponent + 1
         ]),
-        ElseIf(adder.carryOut, [
-          _out.mantissa < (adder.sum << 1).slice(mantissaWidth - 1, 0),
-          _out.exponent < a.exponent - 1
+        ElseIf(a.exponent.gt(leadOne), [
+          _out.mantissa < (adder.out << leadOne).slice(mantissaWidth - 1, 0),
+          _out.exponent < a.exponent - leadOne
         ]),
         Else([
-          _out.mantissa < adder.sum.slice(mantissaWidth - 1, 0),
-          _out.exponent < a.exponent
+          // subnormal result
+          _out.mantissa < adder.out.slice(mantissaWidth - 1, 0),
+          _out.exponent < Const(LogicValue.zero).zeroExtend(exponentWidth)
         ])
       ])
     ]);

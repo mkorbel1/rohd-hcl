@@ -13,8 +13,31 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:rohd/rohd.dart';
+import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:rohd_hcl/src/exceptions.dart';
 
+// TODO(desmonddak): create an abstract class extending Comparable to create a
+//    base floating point type and add these
+// @override
+// int get hashCode => _hashCode;
+// int get _hashCode;
+
+// /// Returns true iff the width and all bits of `this` are equal to [other].
+// @override
+// bool operator ==(Object other) {
+//   if (other is! FloatingPointValue) {
+//     return false;
+//   }
+
+//   if ((exponent.width != other.exponent.width) ||
+//       (mantissa.width != other.mantissa.width)) {
+//     return false;
+//   }
+
+//   return (sign == other.sign) &&
+//       (exponent == other.exponent) &&
+//       (mantissa == other.mantissa);
+// }
 /// A flexible representation of floating point values
 class FloatingPointValue {
   /// The full floating point value bit storage
@@ -116,6 +139,18 @@ class FloatingPointValue {
       FloatingPointValue.ofStrings(
           '0', '0${'1' * (exponentWidth - 1)}', '0' * mantissaWidth);
 
+  /// Return the [FloatingPointValue] representing positive zero
+  factory FloatingPointValue.positiveZero(
+          int exponentWidth, int mantissaWidth) =>
+      FloatingPointValue.ofStrings(
+          '0', '0' * exponentWidth, '0' * mantissaWidth);
+
+  /// Return the [FloatingPointValue] representing negative zero
+  factory FloatingPointValue.negativeZero(
+          int exponentWidth, int mantissaWidth) =>
+      FloatingPointValue.ofStrings(
+          '1', '0' * exponentWidth, '0' * mantissaWidth);
+
   /// Return the [FloatingPointValue] representing the largest number
   /// less than one
   factory FloatingPointValue.largestLessThanOne(
@@ -155,7 +190,8 @@ class FloatingPointValue {
     }
 
     // If we are dealing with a really small number we need to scale it up
-    final scaleToWhole = (-log(doubleVal) / log(2)).floor();
+    final scaleToWhole =
+        (doubleVal != 0) ? (-log(doubleVal) / log(2)).ceil() : 0;
     final scale = mantissaWidth + scaleToWhole;
     var s = scale;
 
@@ -172,15 +208,20 @@ class FloatingPointValue {
     final scaledValue = BigInt.from(sVal);
     final fullLength = scaledValue.bitLength;
     var fullValue = LogicValue.ofBigInt(scaledValue, fullLength);
-    var e = fullLength - mantissaWidth - scaleToWhole;
+    var e = (fullLength > 0)
+        ? fullLength - mantissaWidth - scaleToWhole
+        : FloatingPointValue._eMin(exponentWidth);
 
     if (e < -FloatingPointValue._bias(exponentWidth)) {
       fullValue = fullValue >>>
           (scaleToWhole - FloatingPointValue._bias(exponentWidth));
       e = -FloatingPointValue._bias(exponentWidth);
     } else {
+      // Could be just one away from subnormal
       e -= 1;
-      fullValue = fullValue << 1; // Chop the first '1'
+      if (e > -FloatingPointValue._bias(exponentWidth)) {
+        fullValue = fullValue << 1; // Chop the first '1'
+      }
     }
     // We reverse so that we fit into a shorter BigInt, we keep the MSB.
     // The conversion fills leftward.
@@ -203,6 +244,27 @@ class FloatingPointValue {
 
   // TODO(desmonddak): what about floating point representations >> 64 bits?
   // more BigInt stuff?
+  @override
+  int compareTo(Object other) {
+    if (other is! FloatingPointValue) {
+      throw Exception('Input must be of type FloatingPointValue ');
+    }
+    if ((exponent.width != other.exponent.width) |
+        (mantissa.width != other.mantissa.width)) {
+      throw Exception('FloatingPointValue widths must match for comparison');
+    }
+    final signCompare = sign.compareTo(other.sign);
+    if (signCompare != 0) {
+      return signCompare;
+    } else {
+      final expCompare = exponent.compareTo(other.exponent);
+      if (expCompare != 0) {
+        return expCompare;
+      } else {
+        return mantissa.compareTo(other.mantissa);
+      }
+    }
+  }
 
   /// Return the value of the floating point number in a Dart [double] type.
   double toDouble() {
@@ -256,6 +318,12 @@ class FloatingPointValue {
   /// Subtract operation for [FloatingPointValue]
   FloatingPointValue operator -(FloatingPointValue subend) =>
       _performOp(subend, (a, b) => a - b);
+
+  /// Negate operation for [FloatingPointValue]
+  FloatingPointValue negate() => FloatingPointValue(
+      sign: sign.isZero ? LogicValue.one : LogicValue.zero,
+      exponent: exponent,
+      mantissa: mantissa);
 }
 
 /// A representation of a single precision floating point value
@@ -275,10 +343,12 @@ class FloatingPoint32Value extends FloatingPointValue {
       : super._() {
     // throw exceptions if widths don't match expectations
     if (exponent.width != _exponentWidth) {
-      throw RohdHclException('FloatingPoint32Value: exponent width must be 8');
+      throw RohdHclException(
+          'FloatingPoint32Value: exponent width must be $_exponentWidth');
     }
     if (mantissa.width != _mantissaWidth) {
-      throw RohdHclException('FloatingPoint32Value: mantissa width must be 23');
+      throw RohdHclException(
+          'FloatingPoint32Value: mantissa width must be $_mantissaWidth');
     }
   }
 
@@ -312,6 +382,16 @@ class FloatingPoint32Value extends FloatingPointValue {
       FloatingPoint32Value._exponentWidth,
       FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
 
+  /// Return the [FloatingPoint32Value] representing positive zero
+  factory FloatingPoint32Value.positiveZero() =>
+      FloatingPointValue.positiveZero(FloatingPoint32Value._exponentWidth,
+          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+
+  /// Return the [FloatingPoint32Value] representing negative zero
+  factory FloatingPoint32Value.negativeZero() =>
+      FloatingPointValue.negativeZero(FloatingPoint32Value._exponentWidth,
+          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+
   /// Return the [FloatingPoint32Value] representing the largest number
   /// less than one
   factory FloatingPoint32Value.largestLessThanOne() =>
@@ -334,6 +414,23 @@ class FloatingPoint32Value extends FloatingPointValue {
   factory FloatingPoint32Value.negativeInfinity() =>
       FloatingPointValue.negativeInfinity(FloatingPoint32Value._exponentWidth,
           FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+
+  /// [FloatingPointValue] constructor from string representation of
+  /// individual bitfields
+  factory FloatingPoint32Value.ofStrings(
+          String sign, String exponent, String mantissa) =>
+      FloatingPoint32Value(
+          sign: LogicValue.of(sign),
+          exponent: LogicValue.of(exponent),
+          mantissa: LogicValue.of(mantissa));
+
+  /// [FloatingPointValue] constructor from a single string representing
+  /// space-separated bitfields
+  factory FloatingPoint32Value.ofString(String fp) {
+    final s = fp.split(' ');
+    assert(s.length == 3, 'Wrong FloatingPointValue string length ${s.length}');
+    return FloatingPoint32Value.ofStrings(s[0], s[1], s[2]);
+  }
 
   /// Numeric conversion of a [FloatingPoint32Value] from a host double
   factory FloatingPoint32Value.fromDouble(double inDouble) {
@@ -372,10 +469,12 @@ class FloatingPoint64Value extends FloatingPointValue {
       : super._() {
     // throw exceptions if widths don't match expectations
     if (exponent.width != _exponentWidth) {
-      throw RohdHclException('FloatingPoint64Value: exponent width must be 11');
+      throw RohdHclException(
+          'FloatingPoint64Value: exponent width must be $_exponentWidth');
     }
     if (mantissa.width != _mantissaWidth) {
-      throw RohdHclException('FloatingPoint64Value: mantissa width must be 52');
+      throw RohdHclException(
+          'FloatingPoint64Value: mantissa width must be $_mantissaWidth');
     }
   }
 
@@ -408,6 +507,16 @@ class FloatingPoint64Value extends FloatingPointValue {
   factory FloatingPoint64Value.one() => FloatingPointValue.one(
       FloatingPoint64Value._exponentWidth,
       FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+
+  /// Return the [FloatingPoint64Value] representing positive zero
+  factory FloatingPoint64Value.positiveZero() =>
+      FloatingPointValue.positiveZero(FloatingPoint64Value._exponentWidth,
+          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+
+  /// Return the [FloatingPoint64Value] representing negative zero
+  factory FloatingPoint64Value.negativeZero() =>
+      FloatingPointValue.negativeZero(FloatingPoint64Value._exponentWidth,
+          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing the largest number
   /// less than one

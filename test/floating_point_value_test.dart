@@ -18,7 +18,7 @@ import 'package:test/test.dart';
 void main() {
   test('FloatingPointValue string conversions', () {
     const str = '0 10000001 01000100000000000000000'; // 5.0625
-    final fp = FloatingPointValue.ofString(str);
+    final fp = FloatingPoint32Value.ofString(str);
     expect(fp.toString(), str);
     expect(fp.toDouble(), 5.0625);
   });
