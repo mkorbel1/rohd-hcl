@@ -10,6 +10,8 @@
 //  Desmond A Kirkpatrick <desmond.a.kirkpatrick@intel.com
 //
 
+// ignore_for_file: avoid_print
+
 import 'dart:math';
 import 'package:rohd_hcl/src/floating_point.dart';
 import 'package:rohd_hcl/src/floating_point_value.dart';
@@ -38,7 +40,7 @@ void main() {
         ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -59,13 +61,13 @@ void main() {
     print('Adding ${fp1.floatingPointValue.toDouble()}'
         ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue.toString()}'
+    print('${fp1.floatingPointValue}'
         ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue.toString()}'
+    print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -92,7 +94,7 @@ void main() {
         ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -122,7 +124,7 @@ void main() {
           ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2);
-      print('${out}'
+      print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'
           ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -152,7 +154,7 @@ void main() {
           ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2);
-      print('${out}'
+      print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'
           ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -175,7 +177,7 @@ void main() {
     final out = FloatingPoint32Value.fromDouble(
         fp1.floatingPointValue.toDouble() + fp2.floatingPointValue.toDouble());
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -202,7 +204,7 @@ void main() {
     final out = FloatingPointValue.fromDouble(outDouble,
         exponentWidth: ew, mantissaWidth: mw);
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -228,7 +230,7 @@ void main() {
     final out = FloatingPointValue.fromDouble(pair.$1 + pair.$2,
         exponentWidth: ew, mantissaWidth: mw);
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected from ${pair.$1 + pair.$2}');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -249,7 +251,7 @@ void main() {
     final out = fp2.floatingPointValue + fp1.floatingPointValue;
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');

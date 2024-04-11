@@ -7,6 +7,8 @@
 // 2024 April 4
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
+// ignore_for_file: avoid_print, unnecessary_parenthesis
+
 import 'dart:math';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';

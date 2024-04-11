@@ -191,7 +191,7 @@ class FloatingPointValue {
 
     // If we are dealing with a really small number we need to scale it up
     final scaleToWhole =
-        (doubleVal != 0) ? (-log(doubleVal) / log(2)).ceil() : 0;
+        (doubleVal != 0) ? (-log(doubleVal) / log(2)).floor() : 0;
     final scale = mantissaWidth + scaleToWhole;
     var s = scale;
 
@@ -244,7 +244,7 @@ class FloatingPointValue {
 
   // TODO(desmonddak): what about floating point representations >> 64 bits?
   // more BigInt stuff?
-  @override
+  /// Future compareTo function for floating point comparisons
   int compareTo(Object other) {
     if (other is! FloatingPointValue) {
       throw Exception('Input must be of type FloatingPointValue ');
@@ -356,64 +356,61 @@ class FloatingPoint32Value extends FloatingPointValue {
   /// subnormal number
   factory FloatingPoint32Value.smallestPositiveSubnormal() =>
       FloatingPointValue.smallestPositiveSubnormal(
-          FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+          _exponentWidth, _mantissaWidth) as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing the largest
   /// subnormal number
   factory FloatingPoint32Value.largestSubnormal() =>
-      FloatingPointValue.largestSubnormal(FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.largestSubnormal(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing the smallest
   /// positive normal number
   factory FloatingPoint32Value.smallestPositiveNormal() =>
-      FloatingPointValue.smallestPositiveNormal(
-          FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.smallestPositiveNormal(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing the largest normal number
   factory FloatingPoint32Value.largestNormal() =>
-      FloatingPointValue.largestNormal(FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.largestNormal(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing one
-  factory FloatingPoint32Value.one() => FloatingPointValue.one(
-      FloatingPoint32Value._exponentWidth,
-      FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+  factory FloatingPoint32Value.one() =>
+      FloatingPointValue.one(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing positive zero
   factory FloatingPoint32Value.positiveZero() =>
-      FloatingPointValue.positiveZero(FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.positiveZero(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing negative zero
   factory FloatingPoint32Value.negativeZero() =>
-      FloatingPointValue.negativeZero(FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.negativeZero(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing the largest number
   /// less than one
   factory FloatingPoint32Value.largestLessThanOne() =>
-      FloatingPointValue.largestLessThanOne(FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.largestLessThanOne(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing the smallest number
   /// greater than one
   factory FloatingPoint32Value.smallestGreaterThanOne() =>
-      FloatingPointValue.smallestGreaterThanOne(
-          FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.smallestGreaterThanOne(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing infinity
-  factory FloatingPoint32Value.infinity() => FloatingPointValue.infinity(
-      FloatingPoint32Value._exponentWidth,
-      FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+  factory FloatingPoint32Value.infinity() =>
+      FloatingPointValue.infinity(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// Return the [FloatingPoint32Value] representing negative infinity
   factory FloatingPoint32Value.negativeInfinity() =>
-      FloatingPointValue.negativeInfinity(FloatingPoint32Value._exponentWidth,
-          FloatingPoint32Value._mantissaWidth) as FloatingPoint32Value;
+      FloatingPointValue.negativeInfinity(_exponentWidth, _mantissaWidth)
+          as FloatingPoint32Value;
 
   /// [FloatingPointValue] constructor from string representation of
   /// individual bitfields
@@ -482,64 +479,61 @@ class FloatingPoint64Value extends FloatingPointValue {
   /// subnormal number
   factory FloatingPoint64Value.smallestPositiveSubnormal() =>
       FloatingPointValue.smallestPositiveSubnormal(
-          FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+          _exponentWidth, _mantissaWidth) as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing the largest
   /// subnormal number
   factory FloatingPoint64Value.largestSubnormal() =>
-      FloatingPointValue.largestSubnormal(FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.largestSubnormal(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing the smallest
   /// positive normal number
   factory FloatingPoint64Value.smallestPositiveNormal() =>
-      FloatingPointValue.smallestPositiveNormal(
-          FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.smallestPositiveNormal(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing the largest normal number
   factory FloatingPoint64Value.largestNormal() =>
-      FloatingPointValue.largestNormal(FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.largestNormal(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing one
-  factory FloatingPoint64Value.one() => FloatingPointValue.one(
-      FloatingPoint64Value._exponentWidth,
-      FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+  factory FloatingPoint64Value.one() =>
+      FloatingPointValue.one(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing positive zero
   factory FloatingPoint64Value.positiveZero() =>
-      FloatingPointValue.positiveZero(FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.positiveZero(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing negative zero
   factory FloatingPoint64Value.negativeZero() =>
-      FloatingPointValue.negativeZero(FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.negativeZero(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing the largest number
   /// less than one
   factory FloatingPoint64Value.largestLessThanOne() =>
-      FloatingPointValue.largestLessThanOne(FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.largestLessThanOne(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing the smallest number
   /// greater than one
   factory FloatingPoint64Value.smallestGreaterThanOne() =>
-      FloatingPointValue.smallestGreaterThanOne(
-          FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.smallestGreaterThanOne(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing infinity
-  factory FloatingPoint64Value.infinity() => FloatingPointValue.infinity(
-      FloatingPoint64Value._exponentWidth,
-      FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+  factory FloatingPoint64Value.infinity() =>
+      FloatingPointValue.infinity(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Return the [FloatingPoint64Value] representing negative infinity
   factory FloatingPoint64Value.negativeInfinity() =>
-      FloatingPointValue.negativeInfinity(FloatingPoint64Value._exponentWidth,
-          FloatingPoint64Value._mantissaWidth) as FloatingPoint64Value;
+      FloatingPointValue.negativeInfinity(_exponentWidth, _mantissaWidth)
+          as FloatingPoint64Value;
 
   /// Numeric conversion of a [FloatingPoint64Value] from a host double
   factory FloatingPoint64Value.fromDouble(double inDouble) {

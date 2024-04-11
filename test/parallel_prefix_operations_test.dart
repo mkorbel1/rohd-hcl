@@ -7,6 +7,8 @@
 // 2023 Sep 29
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
+// ignore_for_file: avoid_print
+
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:rohd_hcl/src/ripple_carry_adder.dart';
@@ -65,7 +67,7 @@ void testPriorityEncoder(
       final golden = computePriorityEncoding(j);
       inp.put(j);
       final result = mod.out.value.toInt();
-      print("priority_encoder: $j ${result} ${golden}");
+      print('priority_encoder: $j $result $golden');
       expect(result, equals(golden));
     }
   });

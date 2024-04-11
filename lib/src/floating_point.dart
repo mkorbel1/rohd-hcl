@@ -10,6 +10,8 @@
 //  Desmond A Kirkpatrick <desmond.a.kirkpatrick@intel.com
 //
 
+// ignore_for_file: avoid_print
+
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
@@ -138,7 +140,7 @@ class FloatingPointAdder extends Module {
 
     print('${adder.out.value.toString(includeWidth: false)} out');
     print(
-        '${leadOne.value.toInt()} leading one versus ${a.exponent.value.toInt()}');
+        '${leadOne.value.toInt()} leading one vs ${a.exponent.value.toInt()}');
     print('${a.exponent.value.toInt()} a exp');
     print('${adder.carryOut.value.toInt()} a carry');
     // Assemble the output FloatingPoint

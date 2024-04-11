@@ -10,6 +10,8 @@
 //  Desmond A Kirkpatrick <desmond.a.kirkpatrick@intel.com
 //
 
+// ignore_for_file: avoid_print, unnecessary_parenthesis
+
 import 'dart:math';
 import 'package:rohd_hcl/src/floating_point.dart';
 import 'package:rohd_hcl/src/floating_point_value.dart';
@@ -50,7 +52,7 @@ void main() {
 
   test('corner 32', () {
     final x = FloatingPoint32Value.smallestPositiveSubnormal();
-    print((x + x).toString());
+    print((x + x));
     const smallestPositiveSubnormal = 1.4012984643e-45; // now this one fails
     const smallestPositiveNormal = 1.1754943508e-38;
     const largestPositiveSubnormal = 1.1754942107e-38;
@@ -132,7 +134,7 @@ void main() {
         ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -153,13 +155,13 @@ void main() {
     print('Adding ${fp1.floatingPointValue.toDouble()}'
         ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue.toString()}'
+    print('${fp1.floatingPointValue}'
         ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue.toString()}'
+    print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -180,13 +182,13 @@ void main() {
     print('Adding ${fp1.floatingPointValue.toDouble()}'
         ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue.toString()}'
+    print('${fp1.floatingPointValue}'
         ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue.toString()}'
+    print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2);
-    print('${out}'
+    print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -216,7 +218,7 @@ void main() {
           ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2);
-      print('${out}'
+      print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'
           ' ${adder.out.floatingPointValue.toDouble()} computed ');
@@ -253,7 +255,7 @@ void main() {
           ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2);
-      print('${out}'
+      print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'
           ' ${adder.out.floatingPointValue.toDouble()} computed ');
