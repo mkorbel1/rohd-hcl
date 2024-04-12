@@ -51,7 +51,8 @@ void main() {
   });
 
   test('corner 32', () {
-    final x = FloatingPoint32Value.smallestPositiveSubnormal();
+    final x = FloatingPoint32Value.getFloatingPointConstant(
+        FloatingPointConstants.smallestPositiveSubnormal);
     print((x + x));
     const smallestPositiveSubnormal = 1.4012984643e-45; // now this one fails
     const smallestPositiveNormal = 1.1754943508e-38;
@@ -234,36 +235,5 @@ void main() {
     final fp = FloatingPointValue.ofString(str);
     expect(fp.toString(), str);
     expect(fp.toDouble(), 5.0625);
-  });
-
-// if you name two tests the same they get run together
-// RippleCarryAdder: cannot access inputs from outside -- super.a issue
-  test('basic loop adder test2', () {
-    final input = [(4.5, 3.75), (9.0, -3.75), (-9.0, 3.9375), (-3.9375, 9.0)];
-
-    for (final pair in input) {
-      final fp1 = FloatingPoint32()
-        ..put(FloatingPoint32Value.fromDouble(pair.$1).value);
-      final fp2 = FloatingPoint32()
-        ..put(FloatingPoint32Value.fromDouble(pair.$2).value);
-      final out = FloatingPoint32Value.fromDouble(pair.$1 + pair.$2);
-      print('Adding ${fp1.floatingPointValue.toDouble()}'
-          ' and ${fp2.floatingPointValue.toDouble()}:');
-      print('${fp1.floatingPointValue}'
-          ' ${fp1.floatingPointValue.toDouble()}');
-      print('${fp2.floatingPointValue}'
-          ' ${fp2.floatingPointValue.toDouble()}');
-
-      final adder = FloatingPointAdder(fp1, fp2);
-      print('$out'
-          ' ${out.toDouble()} expected ');
-      print('${adder.out.floatingPointValue}'
-          ' ${adder.out.floatingPointValue.toDouble()} computed ');
-
-      final fpSuper = adder.out.floatingPointValue;
-      final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
-      final valStr = out.toDouble().toStringAsPrecision(7);
-      expect(fpStr, valStr);
-    }
   });
 }

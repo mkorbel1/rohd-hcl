@@ -126,7 +126,7 @@ class FloatingPointAdder extends Module {
 
     // Align and add mantissas
     final expDiff = aExp - bExp;
-    print('${expDiff.value.toInt()} exponent diff');
+    // print('${expDiff.value.toInt()} exponent diff');
     final adder = OnesComplementAdder(
         a.sign,
         [aNormal, a.mantissa].swizzle(),
@@ -138,11 +138,11 @@ class FloatingPointAdder extends Module {
         ParallelPrefixPriorityEncoder(adder.out.reversed, KoggeStone.new).out;
     final leadOne = leadOneE.zeroExtend(exponentWidth);
 
-    print('${adder.out.value.toString(includeWidth: false)} out');
-    print(
-        '${leadOne.value.toInt()} leading one vs ${a.exponent.value.toInt()}');
-    print('${a.exponent.value.toInt()} a exp');
-    print('${adder.carryOut.value.toInt()} a carry');
+    // print('${adder.out.value.toString(includeWidth: false)} out');
+    // print(
+    //     '${leadOne.value.toInt()} lead one vs ${a.exponent.value.toInt()}');
+    // print('${a.exponent.value.toInt()} a exp');
+    // print('${adder.carryOut.value.toInt()} a carry');
     // Assemble the output FloatingPoint
     _out.sign <= adder.sign;
     Combinational([

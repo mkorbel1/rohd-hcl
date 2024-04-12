@@ -51,11 +51,18 @@ void main() {
   });
 
   test('small numbers adder test', () {
-    final val = FloatingPoint32Value.smallestPositiveSubnormal().toDouble();
+    final val = FloatingPoint32Value.getFloatingPointConstant(
+            FloatingPointConstants.smallestPositiveSubnormal)
+        .toDouble();
     final fp1 = FloatingPoint32()
-      ..put(FloatingPoint32Value.smallestPositiveSubnormal().value);
+      ..put(FloatingPoint32Value.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveSubnormal)
+          .value);
     final fp2 = FloatingPoint32()
-      ..put(FloatingPoint32Value.smallestPositiveSubnormal().negate().value);
+      ..put(FloatingPoint32Value.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveSubnormal)
+          .negate()
+          .value);
     final out = FloatingPoint32Value.fromDouble(val - val);
 
     print('Adding ${fp1.floatingPointValue.toDouble()}'
@@ -168,9 +175,14 @@ void main() {
 
   test('basic subnormal test', () {
     final fp1 = FloatingPoint32()
-      ..put(FloatingPoint32Value.smallestPositiveNormal().value);
+      ..put(FloatingPoint32Value.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveNormal)
+          .value);
     final fp2 = FloatingPoint32()
-      ..put(FloatingPoint32Value.smallestPositiveSubnormal().negate().value);
+      ..put(FloatingPoint32Value.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveSubnormal)
+          .negate()
+          .value);
     print('adding');
     print('${fp1.floatingPointValue}');
     print('${fp2.floatingPointValue}');
@@ -191,10 +203,14 @@ void main() {
     const ew = 4;
     const mw = 4;
     final fp1 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
-      ..put(FloatingPointValue.smallestPositiveNormal(ew, mw).value);
+      ..put(FloatingPointValue.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveNormal, ew, mw)
+          .value);
     final fp2 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
-      ..put(
-          FloatingPointValue.smallestPositiveSubnormal(ew, mw).negate().value);
+      ..put(FloatingPointValue.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
+          .negate()
+          .value);
     print('adding');
     print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
     print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
@@ -208,6 +224,9 @@ void main() {
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    if (adder.out.floatingPointValue == out) {
+      print('match');
+    }
     expect(adder.out.floatingPointValue.compareTo(out), 0);
   });
 
@@ -241,10 +260,14 @@ void main() {
     const ew = 4;
     const mw = 4;
     final fp1 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
-      ..put(
-          FloatingPointValue.smallestPositiveSubnormal(ew, mw).negate().value);
+      ..put(FloatingPointValue.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
+          .negate()
+          .value);
     final fp2 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
-      ..put(FloatingPointValue.smallestPositiveSubnormal(ew, mw).value);
+      ..put(FloatingPointValue.getFloatingPointConstant(
+              FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
+          .value);
     print('adding');
     print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
     print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
@@ -256,5 +279,36 @@ void main() {
     print('${adder.out.floatingPointValue}'
         ' ${adder.out.floatingPointValue.toDouble()} computed ');
     // expect(adder.out.floatingPointValue.compareTo(out), 0);
+  });
+
+  // if you name two tests the same they get run together
+// RippleCarryAdder: cannot access inputs from outside -- super.a issue
+  test('basic loop adder test2', () {
+    final input = [(4.5, 3.75), (9.0, -3.75), (-9.0, 3.9375), (-3.9375, 9.0)];
+
+    for (final pair in input) {
+      final fp1 = FloatingPoint32()
+        ..put(FloatingPoint32Value.fromDouble(pair.$1).value);
+      final fp2 = FloatingPoint32()
+        ..put(FloatingPoint32Value.fromDouble(pair.$2).value);
+      final out = FloatingPoint32Value.fromDouble(pair.$1 + pair.$2);
+      print('Adding ${fp1.floatingPointValue.toDouble()}'
+          ' and ${fp2.floatingPointValue.toDouble()}:');
+      print('${fp1.floatingPointValue}'
+          ' ${fp1.floatingPointValue.toDouble()}');
+      print('${fp2.floatingPointValue}'
+          ' ${fp2.floatingPointValue.toDouble()}');
+
+      final adder = FloatingPointAdder(fp1, fp2);
+      print('$out'
+          ' ${out.toDouble()} expected ');
+      print('${adder.out.floatingPointValue}'
+          ' ${adder.out.floatingPointValue.toDouble()} computed ');
+
+      final fpSuper = adder.out.floatingPointValue;
+      final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
+      final valStr = out.toDouble().toStringAsPrecision(7);
+      expect(fpStr, valStr);
+    }
   });
 }

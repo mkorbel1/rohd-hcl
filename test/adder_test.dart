@@ -75,47 +75,15 @@ void testAdderRandom(int n, int nSamples, Adder Function(Logic a, Logic b) fn) {
 }
 
 void testOnesComplementAdder(int n, Adder Function(Logic a, Logic b) fn) {
-  test('ones_complement_adder_$n', () async {
-    final a = Logic(name: 'a', width: n);
-    final b = Logic(name: 'b', width: n);
-
-    final aSign = Logic();
-    final bSign = Logic();
-    final onesComplementAdder = OnesComplementAdder(aSign, a, bSign, b, fn);
-    await onesComplementAdder.build();
-    final carryOut = onesComplementAdder.sign;
-    final out = onesComplementAdder.out;
-
-    final input = [(-10, -5), (-10, 5), (10, -5), (10, 5), (4, -2)];
-
-    for (final i in input) {
-      final lvA = i.$1;
-      final lvB = i.$2;
-
-      aSign.put((lvA < 0) ? LogicValue.one : LogicValue.zero);
-      bSign.put((lvB < 0) ? LogicValue.one : LogicValue.zero);
-      a.put(lvA.abs());
-      b.put(lvB.abs());
-
-      final carryVal = carryOut.value.toBool();
-      final val = carryVal ? -out.value.toInt() : out.value.toInt();
-      print('$val versus ${lvA + lvB}  $carryVal');
-      expect(val, equals(lvA + lvB));
-    }
-  });
-}
-
-void testOnesComplementAdder2(int n, Adder Function(Logic a, Logic b) fn) {
   test('ones_complement_adder2_$n', () async {
     final a = Logic(name: 'a', width: n);
     final b = Logic(name: 'b', width: n);
 
-    final input = [(15, 1), (15, -1), (-15, -1), (-15, 1)];
+    final input = [(15, 1), (15, -1), (-1, -15), (-15, 1)];
 
     for (final i in input) {
       final lvA = i.$1;
       final lvB = i.$2;
-      print('testing $lvA + $lvB');
       final aSign = Logic();
       final bSign = Logic();
       aSign.put((lvA < 0) ? LogicValue.one : LogicValue.zero);
@@ -124,15 +92,18 @@ void testOnesComplementAdder2(int n, Adder Function(Logic a, Logic b) fn) {
       b.put(lvB.abs());
       final onesComplementAdder = OnesComplementAdder(aSign, a, bSign, b, fn);
       await onesComplementAdder.build();
-      final carryOut = onesComplementAdder.carryOut;
       final out = onesComplementAdder.out;
-
-      final carryVal = carryOut.value.toBool();
       final val = onesComplementAdder.sign.value.toBool()
           ? -out.value.toInt()
           : out.value.toInt();
-      print('h $val versus ${(lvA + lvB)}  $carryVal');
-      // expect(val, equals(lvA + lvB));
+
+      final expectedSign = (lvA + lvB).sign;
+      // Special modular arithmetic for 1's complement negative numbers
+      //   Remember that there are two zeros in 1's complement
+      final expectedMag = (lvA + lvB).abs() %
+          ((expectedSign == -1) ? pow(2, n) - 1 : pow(2, n));
+      final expectedVal = expectedSign == -1 ? -expectedMag : expectedMag;
+      expect(val, equals(expectedVal));
     }
   });
 }
@@ -161,24 +132,40 @@ void main() {
   tearDown(() async {
     await Simulator.reset();
   });
-  // test('9 - 3', () async {
-  //   final a = Logic(name: 'a', width: 5);
-  //   final b = Logic(name: 'b', width: 5);
 
-  //   a.put(3);
-  //   b.put(9);
-  //   final adder = OnesComplementAdder(Const(LogicValue.zero), a,
-  //       Const(LogicValue.one), b, RippleCarryAdder.new);
-  //   await adder.build();
-  //   final out = adder.out;
-  //   final val = out.value.toInt();
-  //   print(val);
-  // });
-//
-  testOnesComplementAdder2(4, RippleCarryAdder.new);
-  // testExhaustive(4, RippleCarryAdder.new);
-  // testExhaustive(
-  //     4,
-  //     (a, b) => OnesComplementAdder(Const(LogicValue.zero), a,
-  //         Const(LogicValue.zero), b, RippleCarryAdder.new));
+  final generators = [Ripple.new, Sklansky.new, KoggeStone.new, BrentKung.new];
+  group('adder', () {
+    for (final n in [3, 4, 5]) {
+      testAdder(n, RippleCarryAdder.new);
+      for (final ppGen in generators) {
+        testAdder(n, (a, b) => ParallelPrefixAdder(a, b, ppGen));
+      }
+    }
+  });
+
+  group('adderRandom', () {
+    for (final n in [127, 128, 129]) {
+      testAdder(n, RippleCarryAdder.new);
+      for (final ppGen in generators) {
+        testAdderRandom(n, 10, (a, b) => ParallelPrefixAdder(a, b, ppGen));
+      }
+    }
+  });
+
+  group('onesComplement', () {
+    testOnesComplementAdder(4, RippleCarryAdder.new);
+
+    for (final ppGen in generators) {
+      testOnesComplementAdder(4, (a, b) => ParallelPrefixAdder(a, b, ppGen));
+    }
+  });
+
+  group('exhaustive', () {
+    testExhaustive(4, RippleCarryAdder.new);
+    for (final ppGen in generators) {
+      testExhaustive(4, (a, b) => ParallelPrefixAdder(a, b, ppGen));
+    }
+  });
+  // TODO(desmonddak): need exhaustive test of OnesComplement which requires
+  // operand a be larger than operand b
 }

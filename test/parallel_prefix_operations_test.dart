@@ -45,14 +45,14 @@ void testOrScan(int n, ParallelPrefixOrScan Function(Logic a) fn) {
   });
 }
 
-void testPriorityEncoder(
-    int n, ParallelPrefixPriorityEncoder Function(Logic a) fn) {
+void testPriorityFinder(
+    int n, ParallelPrefixPriorityFinder Function(Logic a) fn) {
   test('priority_encoder_$n', () async {
     final inp = Logic(name: 'inp', width: n);
     final mod = fn(inp);
     await mod.build();
 
-    int computePriorityEncoding(int j) {
+    int computePriorityLocation(int j) {
       for (var i = 0; i < n; ++i) {
         if (((1 << i) & j) != 0) {
           return 1 << i;
@@ -64,10 +64,38 @@ void testPriorityEncoder(
     // put/expect testing
 
     for (var j = 0; j < (1 << n); ++j) {
+      final golden = computePriorityLocation(j);
+      inp.put(j);
+      final result = mod.out.value.toInt();
+      // print('priority_encoder: $j $result $golden');
+      expect(result, equals(golden));
+    }
+  });
+}
+
+void testPriorityEncoder(
+    int n, ParallelPrefixPriorityEncoder Function(Logic a) fn) {
+  test('priority_encoder_$n', () async {
+    final inp = Logic(name: 'inp', width: n);
+    final mod = fn(inp);
+    await mod.build();
+
+    int computePriorityEncoding(int j) {
+      for (var i = 0; i < n; ++i) {
+        if (((1 << i) & j) != 0) {
+          return i;
+        }
+      }
+      return 0;
+    }
+
+    // put/expect testing
+
+    for (var j = 0; j < (1 << n); ++j) {
       final golden = computePriorityEncoding(j);
       inp.put(j);
       final result = mod.out.value.toInt();
-      print('priority_encoder: $j $result $golden');
+      // print('priority_encoder: $j $result $golden');
       expect(result, equals(golden));
     }
   });
@@ -136,29 +164,20 @@ void main() {
     }
   });
 
+  group('priority_finder', () {
+    for (final n in [7, 8, 9]) {
+      for (final ppGen in generators) {
+        testPriorityFinder(
+            n, (inp) => ParallelPrefixPriorityFinder(inp, ppGen));
+      }
+    }
+  });
+
   group('priority_encoder', () {
     for (final n in [7, 8, 9]) {
       for (final ppGen in generators) {
         testPriorityEncoder(
             n, (inp) => ParallelPrefixPriorityEncoder(inp, ppGen));
-      }
-    }
-  });
-
-  group('adder', () {
-    for (final n in [3, 4, 5]) {
-      testAdder(n, RippleCarryAdder.new);
-      for (final ppGen in generators) {
-        testAdder(n, (a, b) => ParallelPrefixAdder(a, b, ppGen));
-      }
-    }
-  });
-
-  group('adderRandom', () {
-    for (final n in [127, 128, 129]) {
-      testAdder(n, RippleCarryAdder.new);
-      for (final ppGen in generators) {
-        testAdderRandom(n, 10, (a, b) => ParallelPrefixAdder(a, b, ppGen));
       }
     }
   });
@@ -178,4 +197,6 @@ void main() {
       }
     }
   });
+
+  // Note:  all ParallelPrefixAdders are tested in adder_test.dart
 }
