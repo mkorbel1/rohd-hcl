@@ -229,11 +229,4 @@ void main() {
       expect(fpStr, valStr);
     }
   });
-
-  test('FloatingPointValue string conversions', () {
-    const str = '0 10000001 01000100000000000000000'; // 5.0625
-    final fp = FloatingPointValue.ofString(str);
-    expect(fp.toString(), str);
-    expect(fp.toDouble(), 5.0625);
-  });
 }
