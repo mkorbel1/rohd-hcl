@@ -311,4 +311,6 @@ void main() {
       expect(fpStr, valStr);
     }
   });
+
+  // TODO(desmonddak):  we need floating point comparison tests
 }

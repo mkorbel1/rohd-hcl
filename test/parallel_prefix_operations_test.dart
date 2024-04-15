@@ -11,9 +11,7 @@
 
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
-import 'package:rohd_hcl/src/ripple_carry_adder.dart';
 import 'package:test/test.dart';
-import './adder_test.dart';
 
 void testOrScan(int n, ParallelPrefixOrScan Function(Logic a) fn) {
   test('or_scan_$n', () async {

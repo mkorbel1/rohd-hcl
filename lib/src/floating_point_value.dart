@@ -8,10 +8,10 @@
 // Authors:
 //  Max Korbel <max.korbel@intel.com>
 //  Desmond A Kirkpatrick <desmond.a.kirkpatrick@intel.com
-//
 
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:rohd_hcl/src/exceptions.dart';
@@ -51,10 +51,9 @@ enum FloatingPointConstants {
   /// Largest possible number
   infinity,
 }
-// TODO(desmonddak): create an abstract class extending Comparable to create a
-//    base floating point type and add these
 
 /// A flexible representation of floating point values
+@immutable
 class FloatingPointValue implements Comparable<FloatingPointValue> {
   /// The full floating point value bit storage
   final LogicValue value;
@@ -256,6 +255,9 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
   // TODO(desmonddak): what about floating point representations >> 64 bits?
   // more BigInt stuff?
 
+  @override
+  int get hashCode => sign.hashCode ^ exponent.hashCode ^ mantissa.hashCode;
+
   /// Future compareTo function for floating point comparisons
   /// This is setting up for Comparable<>
   @override
@@ -280,23 +282,21 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
     }
   }
 
-  // // This wants to be overridden and in an immutable class
-  // // Also _hashCode is needed.
-  // // @override
-  // bool operator ==(Object other) {
-  //   if (other is! FloatingPointValue) {
-  //     return false;
-  //   }
+  @override
+  bool operator ==(Object other) {
+    if (other is! FloatingPointValue) {
+      return false;
+    }
 
-  //   if ((exponent.width != other.exponent.width) ||
-  //       (mantissa.width != other.mantissa.width)) {
-  //     return false;
-  //   }
+    if ((exponent.width != other.exponent.width) ||
+        (mantissa.width != other.mantissa.width)) {
+      return false;
+    }
 
-  //   return (sign == other.sign) &&
-  //       (exponent == other.exponent) &&
-  //       (mantissa == other.mantissa);
-  // }
+    return (sign == other.sign) &&
+        (exponent == other.exponent) &&
+        (mantissa == other.mantissa);
+  }
 
   /// Return the value of the floating point number in a Dart [double] type.
   double toDouble() {
