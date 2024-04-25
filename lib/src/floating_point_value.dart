@@ -84,8 +84,8 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
       {required LogicValue sign,
       required LogicValue exponent,
       required LogicValue mantissa}) {
-    if (exponent.width == FloatingPoint32Value._exponentWidth &&
-        mantissa.width == FloatingPoint32Value._mantissaWidth) {
+    if (exponent.width == FloatingPoint32Value.exponentWidth &&
+        mantissa.width == FloatingPoint32Value.mantissaWidth) {
       return FloatingPoint32Value(
           sign: sign, mantissa: mantissa, exponent: exponent);
     } else if (exponent.width == FloatingPoint64Value._exponentWidth &&
@@ -360,27 +360,24 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
 
 /// A representation of a single precision floating point value
 class FloatingPoint32Value extends FloatingPointValue {
-  static const int _exponentWidth = 8;
-  static const int _mantissaWidth = 23;
+  /// The exponent width
+  static const int exponentWidth = 8;
 
-  /// return the exponent width
-  static int get exponentWidth => _exponentWidth;
-
-  /// return the mantissa width
-  static int get mantissaWidth => _mantissaWidth;
+  /// The mantissa width
+  static const int mantissaWidth = 23;
 
   /// Constructor for a single precision floating point value
   FloatingPoint32Value(
       {required super.sign, required super.exponent, required super.mantissa})
       : super._() {
     // throw exceptions if widths don't match expectations
-    if (exponent.width != _exponentWidth) {
+    if (exponent.width != exponentWidth) {
       throw RohdHclException(
-          'FloatingPoint32Value: exponent width must be $_exponentWidth');
+          'FloatingPoint32Value: exponent width must be $exponentWidth');
     }
-    if (mantissa.width != _mantissaWidth) {
+    if (mantissa.width != mantissaWidth) {
       throw RohdHclException(
-          'FloatingPoint32Value: mantissa width must be $_mantissaWidth');
+          'FloatingPoint32Value: mantissa width must be $mantissaWidth');
     }
   }
 
@@ -388,7 +385,7 @@ class FloatingPoint32Value extends FloatingPointValue {
   factory FloatingPoint32Value.getFloatingPointConstant(
           FloatingPointConstants constantFloatingPoint) =>
       FloatingPointValue.getFloatingPointConstant(
-              constantFloatingPoint, _exponentWidth, _mantissaWidth)
+              constantFloatingPoint, exponentWidth, mantissaWidth)
           as FloatingPoint32Value;
 
   /// [FloatingPointValue] constructor from string representation of
@@ -420,8 +417,8 @@ class FloatingPoint32Value extends FloatingPointValue {
 
     final sign = accum[-1];
     final exponent =
-        accum.slice(_exponentWidth + _mantissaWidth - 1, _mantissaWidth);
-    final mantissa = accum.slice(_mantissaWidth - 1, 0);
+        accum.slice(exponentWidth + mantissaWidth - 1, mantissaWidth);
+    final mantissa = accum.slice(mantissaWidth - 1, 0);
 
     return FloatingPoint32Value(
         sign: sign, exponent: exponent, mantissa: mantissa);

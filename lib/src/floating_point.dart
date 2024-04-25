@@ -48,6 +48,15 @@ class FloatingPoint extends LogicStructure {
   /// Return the [FloatingPointValue]
   FloatingPointValue get floatingPointValue => FloatingPointValue(
       sign: sign.value, exponent: exponent.value, mantissa: mantissa.value);
+
+  /// Return a Logic true if this FloatingPoint contains a normal number
+  Logic isNormal() => exponent.neq(LogicValue.zero.zeroExtend(exponent.width));
+
+  /// Return the zero exponent representation for this type of FloatingPoint
+  Logic zeroExponent() => Const(LogicValue.zero).zeroExtend(exponent.width);
+
+  /// Return the one  exponent representation for this type of FloatingPoint
+  Logic oneExponent() => Const(LogicValue.one).zeroExtend(exponent.width);
 }
 
 /// Single floating point representation
@@ -88,7 +97,7 @@ class FloatingPointAdder extends Module {
       FloatingPoint(exponentWidth: exponentWidth, mantissaWidth: mantissaWidth);
 
   /// Swapping two FloatingPoint structures based on a conditional
-  static (FloatingPoint, FloatingPoint) swap(
+  static (FloatingPoint, FloatingPoint) _swap(
           Logic swap, (FloatingPoint, FloatingPoint) toSwap) =>
       (
         toSwap.$1.clone()..gets(mux(swap, toSwap.$2, toSwap.$1)),
@@ -96,7 +105,9 @@ class FloatingPointAdder extends Module {
       );
 
   /// Add two floating point numbers [a] and [b], returning result in [out]
-  FloatingPointAdder(FloatingPoint a, FloatingPoint b, {super.name})
+  FloatingPointAdder(FloatingPoint a, FloatingPoint b,
+      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen,
+      {super.name})
       : exponentWidth = a.exponent.width,
         mantissaWidth = a.mantissa.width {
     if (b.exponent.width != exponentWidth ||
@@ -112,37 +123,27 @@ class FloatingPointAdder extends Module {
         (a.exponent.eq(b.exponent) & a.mantissa.lt(b.mantissa)) |
         ((a.exponent.eq(b.exponent) & a.mantissa.eq(b.mantissa)) & b.sign);
 
-    (a, b) = swap(doSwap, (a, b));
+    (a, b) = _swap(doSwap, (a, b));
 
-    final aNormal = a.exponent.neq(LogicValue.zero.zeroExtend(exponentWidth));
-    final bNormal = b.exponent.neq(LogicValue.zero.zeroExtend(exponentWidth));
-
-    final aExp = a.exponent +
-        mux(aNormal, Const(LogicValue.zero).zeroExtend(exponentWidth),
-            Const(LogicValue.one).zeroExtend(exponentWidth));
-    final bExp = b.exponent +
-        mux(bNormal, Const(LogicValue.zero).zeroExtend(exponentWidth),
-            Const(LogicValue.one).zeroExtend(exponentWidth));
+    final aExp =
+        a.exponent + mux(a.isNormal(), a.zeroExponent(), a.oneExponent());
+    final bExp =
+        b.exponent + mux(b.isNormal(), b.zeroExponent(), b.oneExponent());
 
     // Align and add mantissas
     final expDiff = aExp - bExp;
     // print('${expDiff.value.toInt()} exponent diff');
     final adder = OnesComplementAdder(
         a.sign,
-        [aNormal, a.mantissa].swizzle(),
+        [a.isNormal(), a.mantissa].swizzle(),
         b.sign,
-        [bNormal, b.mantissa].swizzle() >>> expDiff,
-        (a, b) => ParallelPrefixAdder(a, b, KoggeStone.new));
+        [b.isNormal(), b.mantissa].swizzle() >>> expDiff,
+        (a, b) => ParallelPrefixAdder(a, b, ppGen));
 
     final leadOneE =
-        ParallelPrefixPriorityEncoder(adder.out.reversed, KoggeStone.new).out;
+        ParallelPrefixPriorityEncoder(adder.out.reversed, ppGen).out;
     final leadOne = leadOneE.zeroExtend(exponentWidth);
 
-    // print('${adder.out.value.toString(includeWidth: false)} out');
-    // print(
-    //     '${leadOne.value.toInt()} lead one vs ${a.exponent.value.toInt()}');
-    // print('${a.exponent.value.toInt()} a exp');
-    // print('${adder.carryOut.value.toInt()} a carry');
     // Assemble the output FloatingPoint
     _out.sign <= adder.sign;
     Combinational([
@@ -158,7 +159,7 @@ class FloatingPointAdder extends Module {
         Else([
           // subnormal result
           _out.mantissa < adder.out.slice(mantissaWidth - 1, 0),
-          _out.exponent < Const(LogicValue.zero).zeroExtend(exponentWidth)
+          _out.exponent < _out.zeroExponent()
         ])
       ])
     ]);

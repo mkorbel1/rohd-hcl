@@ -15,6 +15,7 @@
 import 'dart:math';
 import 'package:rohd_hcl/src/floating_point.dart';
 import 'package:rohd_hcl/src/floating_point_value.dart';
+import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -134,7 +135,7 @@ void main() {
     print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -161,7 +162,7 @@ void main() {
     print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -188,7 +189,7 @@ void main() {
     print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -218,7 +219,7 @@ void main() {
       print('${fp2.floatingPointValue}'
           ' ${fp2.floatingPointValue.toDouble()}');
 
-      final adder = FloatingPointAdder(fp1, fp2);
+      final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
       print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'

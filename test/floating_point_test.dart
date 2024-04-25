@@ -15,6 +15,7 @@
 import 'dart:math';
 import 'package:rohd_hcl/src/floating_point.dart';
 import 'package:rohd_hcl/src/floating_point_value.dart';
+import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -39,7 +40,7 @@ void main() {
     print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -73,7 +74,7 @@ void main() {
     print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -100,7 +101,7 @@ void main() {
     print('${fp2.floatingPointValue}'
         ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -130,7 +131,7 @@ void main() {
       print('${fp2.floatingPointValue}'
           ' ${fp2.floatingPointValue.toDouble()}');
 
-      final adder = FloatingPointAdder(fp1, fp2);
+      final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
       print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'
@@ -160,7 +161,7 @@ void main() {
       print('${fp2.floatingPointValue}'
           ' ${fp2.floatingPointValue.toDouble()}');
 
-      final adder = FloatingPointAdder(fp1, fp2);
+      final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
       print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'
@@ -188,7 +189,7 @@ void main() {
     print('${fp2.floatingPointValue}');
     final out = FloatingPoint32Value.fromDouble(
         fp1.floatingPointValue.toDouble() + fp2.floatingPointValue.toDouble());
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -219,7 +220,7 @@ void main() {
     print('\t Computed separately $outDouble');
     final out = FloatingPointValue.fromDouble(outDouble,
         exponentWidth: ew, mantissaWidth: mw);
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -248,7 +249,7 @@ void main() {
     print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
     final out = FloatingPointValue.fromDouble(pair.$1 + pair.$2,
         exponentWidth: ew, mantissaWidth: mw);
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected from ${pair.$1 + pair.$2}');
     print('${adder.out.floatingPointValue}'
@@ -273,7 +274,7 @@ void main() {
     print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
     final out = fp2.floatingPointValue + fp1.floatingPointValue;
 
-    final adder = FloatingPointAdder(fp1, fp2);
+    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     print('$out'
         ' ${out.toDouble()} expected ');
     print('${adder.out.floatingPointValue}'
@@ -299,7 +300,7 @@ void main() {
       print('${fp2.floatingPointValue}'
           ' ${fp2.floatingPointValue.toDouble()}');
 
-      final adder = FloatingPointAdder(fp1, fp2);
+      final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
       print('$out'
           ' ${out.toDouble()} expected ');
       print('${adder.out.floatingPointValue}'

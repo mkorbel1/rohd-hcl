@@ -17,53 +17,18 @@ import 'package:rohd_hcl/rohd_hcl.dart';
 /// from the least significant bit (LSB) to most significant bit (MSB), the
 /// adder sequentially adds corresponding bits of two binary numbers.
 class RippleCarryAdder extends Adder {
-  // @protected
-  //  late final Logic a;
-  // @protected
-  // late final Logic b;
   /// Constructs an n-bit adder based on inputs List of inputs.
-  RippleCarryAdder(super.a, super.b, {super.name = 'ripple_carry_adder'}) {
-    Logic carry = Const(0);
-
-    // a = super.a;
-    // b = super.b;
+  RippleCarryAdder(super.a, super.b,
+      {super.name = 'ripple_carry_adder', Logic? carry}) {
     final sumList = <Logic>[];
     for (var i = 0; i < a.width; i++) {
-      final fullAdder = FullAdder(a: a[i], b: b[i], carryIn: carry);
+      final fullAdder = FullAdder(a: a[i], b: b[i], carryIn: carry ?? Const(0));
 
       carry = fullAdder.carryOut;
       sumList.add(fullAdder.sum);
     }
 
-    sumList.add(carry);
-
-    sum <= sumList.rswizzle();
-    carryOut <= sum[sum.width - 1];
-    out <= sum.slice(sum.width - 2, 0);
-  }
-}
-
-/// A ripple carry adder with a carry in
-class RippleCarryAdder2 extends Adder {
-  /// input carry
-
-  /// Constructs an n-bit adder based on inputs List of inputs.
-  RippleCarryAdder2(super.a, super.b, Logic carry,
-      {super.name = 'ripple_carry_adder'}) {
-    // Logic carry = Const(0);
-    carry = addInput('carry', carry);
-
-    // a = super.a;
-    // b = super.b;
-    final sumList = <Logic>[];
-    for (var i = 0; i < a.width; i++) {
-      final fullAdder = FullAdder(a: a[i], b: b[i], carryIn: carry);
-
-      carry = fullAdder.carryOut;
-      sumList.add(fullAdder.sum);
-    }
-
-    sumList.add(carry);
+    sumList.add(carry!);
 
     sum <= sumList.rswizzle();
     carryOut <= sum[sum.width - 1];

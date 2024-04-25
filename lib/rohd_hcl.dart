@@ -14,6 +14,7 @@ export 'src/exceptions.dart';
 export 'src/fifo.dart';
 export 'src/find.dart';
 export 'src/interfaces/interfaces.dart';
+export 'src/floating_point.dart';
 export 'src/memory/memories.dart';
 export 'src/models/models.dart';
 export 'src/multiplier.dart';

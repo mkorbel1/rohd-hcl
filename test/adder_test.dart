@@ -7,8 +7,6 @@
 // 2024 April 4
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
-// ignore_for_file: avoid_print, unnecessary_parenthesis
-
 import 'dart:math';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
@@ -23,8 +21,6 @@ void testAdder(int n, Adder Function(Logic a, Logic b) fn) {
     await mod.build();
 
     int computeAdder(int aa, int bb) => (aa + bb) & ((1 << n) - 1);
-    // LogicValue computeAdderSum(LogicValue aa, LogicValue bb) =>
-    //     LogicValue.ofBigInt(aa.toBigInt() + bb.toBigInt(), n + 1);
     int computeAdderSum(int aa, int bb) => aa + bb;
 
     // put/expect testing
@@ -37,7 +33,6 @@ void testAdder(int n, Adder Function(Logic a, Logic b) fn) {
         b.put(bb);
         final result = mod.out.value.toInt();
         final resultSum = mod.sum.value.toInt();
-        //print("adder: $aa $bb $result $golden");
         expect(result, equals(golden));
         expect(resultSum, equals(goldenSum));
       }
