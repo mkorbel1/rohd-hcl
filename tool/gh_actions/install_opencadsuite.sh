@@ -11,15 +11,15 @@
 
 set -euo pipefail
 
-sudo apt-get update
-sudo apt-get install -y \
+sudo -E apt-get update
+sudo -E apt-get install -y \
 	git \
 	npm \
 	python3-pip
 
 cd /
-sudo  wget -O oss-cad-suite-build.tgz https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-05-12/oss-cad-suite-linux-x64-20230512.tgz
+sudo -E wget -O oss-cad-suite-build.tgz https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-05-12/oss-cad-suite-linux-x64-20230512.tgz
 
-sudo tar -xzf oss-cad-suite-build.tgz
+sudo -E tar -xzf oss-cad-suite-build.tgz
 
 # Trim if needed
