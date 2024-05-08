@@ -21,14 +21,27 @@ abstract class Adder extends Module {
   @protected
   late final Logic b;
 
-  /// The addition results [out].
+  /// The addition results [out] including carry bit
   Logic get out => output('out');
 
   /// The carry results [carryOut].
   Logic get carryOut => output('carryOut');
 
-  /// The addition results [sum].
+  /// The addition results [sum] including carry bit
   Logic get sum => output('sum');
+
+  /// Implementation needs to provide a method for calculating the full sum
+  @protected
+  Logic calculateSum();
+
+  /// Implementation needs to provide a method for calculating the sum
+  /// without carry
+  @protected
+  Logic calculateOut();
+
+  /// Implementation needs to provide a method for calculating the carry out
+  @protected
+  Logic calculateCarry();
 
   /// Takes in input [a] and input [b] and return the [sum] of the addition
   /// result. The width of input [a] and [b] must be the same.
@@ -41,6 +54,10 @@ abstract class Adder extends Module {
     addOutput('out', width: a.width);
     addOutput('carryOut');
     addOutput('sum', width: a.width + 1);
+
+    out <= calculateOut();
+    carryOut <= calculateCarry();
+    sum <= calculateSum();
   }
 }
 
@@ -72,39 +89,5 @@ class FullAdder extends Module {
 
     sum <= (a ^ b) ^ carryIn;
     carryOut <= and1 | and2;
-  }
-}
-
-/// An Adder which performs one's complement arithmetic using an unsigned
-/// adder that is passed in using a functor
-///    -- Requires that if the larger magnitude number is negative it
-///       must be the first 'a' argument
-///       We cannot enforce because this may be a smaller mantissa in
-///       a larger magnitude negative number (no asserts please)
-class OnesComplementAdder extends Adder {
-  /// The sign of the result
-  Logic get sign => output('sign');
-
-  /// [OnesComplementAdder] constructor with an unsigned adder functor
-  OnesComplementAdder(Logic aSign, super.a, Logic bSign, super.b,
-      Adder Function(Logic, Logic) adderGen)
-      : super(name: 'Ones Complement Adder') {
-    aSign = addInput('aSign', aSign);
-    bSign = addInput('bSign', bSign);
-    final aOnesComplement = Logic(width: a.width);
-    final bOnesComplement = Logic(width: b.width);
-    final sign = addOutput('sign');
-
-    aOnesComplement <= mux(aSign, ~a, a);
-    bOnesComplement <= mux(bSign, ~b, b);
-
-    final adder = adderGen(aOnesComplement, bOnesComplement);
-    final endAround = adder.carryOut & (aSign | bSign);
-    final localOut = mux(endAround, adder.sum + 1, adder.sum);
-
-    sum <= (mux(aSign, ~localOut, localOut));
-    out <= sum.slice(sum.width - 2, 0);
-    carryOut <= sum.slice(sum.width - 1, sum.width - 1);
-    sign <= aSign;
   }
 }

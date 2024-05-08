@@ -11,6 +11,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
 
@@ -209,21 +210,35 @@ class ParallelPrefixPriorityEncoder extends Module {
 
 /// Adder based on ParallelPrefix tree
 class ParallelPrefixAdder extends Adder {
+  late final Logic _out;
+  late final Logic _carry = Logic();
+
   /// Adder constructor
   ParallelPrefixAdder(super.a, super.b,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen)
-      : super(name: 'ParallelPrefixAdder') {
+      : _out = Logic(width: a.width),
+        super(name: 'ParallelPrefixAdder') {
     final u = ppGen(
         List<Logic>.generate(
             a.width, (i) => [a[i] & b[i], a[i] | b[i]].swizzle()),
         (lhs, rhs) => [rhs[1] | rhs[0] & lhs[1], rhs[0] & lhs[0]].swizzle());
-    carryOut <= u.val[a.width - 1][1];
-    out <=
+    _carry <= u.val[a.width - 1][1];
+    _out <=
         List<Logic>.generate(a.width,
                 (i) => (i == 0) ? a[i] ^ b[i] : a[i] ^ b[i] ^ u.val[i - 1][1])
             .rswizzle();
-    sum <= [carryOut, out].swizzle();
   }
+  @override
+  @protected
+  Logic calculateOut() => _out;
+
+  @override
+  @protected
+  Logic calculateCarry() => _carry;
+
+  @override
+  @protected
+  Logic calculateSum() => [_carry, _out].swizzle();
 }
 
 /// Incrementer based on ParallelPrefix tree

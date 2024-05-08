@@ -91,7 +91,6 @@ class FloatingPointAdder extends Module {
         ..gets(output('out'));
 
   /// The result of [FloatingPoint] addition
-  // FloatingPoint get out => output('out');
   @protected
   late final FloatingPoint _out =
       FloatingPoint(exponentWidth: exponentWidth, mantissaWidth: mantissaWidth);
