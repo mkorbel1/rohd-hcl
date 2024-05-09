@@ -13,8 +13,9 @@
 // ignore_for_file: avoid_print
 
 import 'dart:math';
-import 'package:rohd_hcl/src/floating_point.dart';
-import 'package:rohd_hcl/src/floating_point_value.dart';
+
+import 'package:rohd_hcl/src/arithmetic/floating_point.dart';
+import 'package:rohd_hcl/src/arithmetic/floating_point_value.dart';
 import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:test/test.dart';
 
@@ -311,6 +312,19 @@ void main() {
       final valStr = out.toDouble().toStringAsPrecision(7);
       expect(fpStr, valStr);
     }
+    final aValue = 4.5;
+    final bValue = 3.75;
+    final aFloatingPoint = FloatingPoint32()
+      ..put(FloatingPoint32Value.fromDouble(aValue));
+    final bFloatingPoint = FloatingPoint32()
+      ..put(FloatingPoint32Value.fromDouble(bValue));
+
+    final fpAdder =
+        FloatingPointAdder(aFloatingPoint, bFloatingPoint, KoggeStone.new);
+
+    final fpSum = adder.out;
+
+    print('Sum is ${fpsum.toDouble()}');
   });
 
   // TODO(desmonddak):  we need floating point comparison tests
