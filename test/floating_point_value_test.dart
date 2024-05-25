@@ -13,8 +13,8 @@
 // ignore_for_file: avoid_print, unnecessary_parenthesis
 
 import 'dart:math';
-import 'package:rohd_hcl/src/floating_point.dart';
-import 'package:rohd_hcl/src/floating_point_value.dart';
+import 'package:rohd_hcl/src/arithmetic/floating_point.dart';
+import 'package:rohd_hcl/src/arithmetic/floating_point_value.dart';
 import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:test/test.dart';
 

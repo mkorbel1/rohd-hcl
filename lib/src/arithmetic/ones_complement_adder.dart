@@ -31,12 +31,10 @@ class OnesComplementAdder extends Adder {
         super(name: 'Ones Complement Adder') {
     aSign = addInput('aSign', aSign);
     bSign = addInput('bSign', bSign);
-    final aOnesComplement = Logic(width: a.width);
-    final bOnesComplement = Logic(width: b.width);
     final sign = addOutput('sign');
 
-    aOnesComplement <= mux(aSign, ~a, a);
-    bOnesComplement <= mux(bSign, ~b, b);
+    final aOnesComplement = mux(aSign, ~a, a);
+    final bOnesComplement = mux(bSign, ~b, b);
 
     final adder = adderGen(aOnesComplement, bOnesComplement);
     final endAround = adder.carryOut & (aSign | bSign);
