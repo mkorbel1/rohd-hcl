@@ -276,6 +276,9 @@ class PartialProductGenerator {
   /// Partial Products output
   late List<List<Logic>> partialProducts = [];
 
+  /// Make the 0th position the LSB
+  bool reversed = true;
+
   /// Encoder for the full multiply operand
   late final MultiplierEncoder encoder;
 
@@ -301,10 +304,14 @@ class PartialProductGenerator {
     rowShift.clear();
     for (var row = 0; row < encoder.rows; row++) {
       final encode = encoder.getEncoding(row);
-      partialProducts.add(
-          List.generate(selector.width, (i) => selector.select(i, encode))
-              .reversed
-              .toList());
+      if (reversed)
+        partialProducts.add(
+            List.generate(selector.width, (i) => selector.select(i, encode)));
+      else
+        partialProducts.add(
+            List.generate(selector.width, (i) => selector.select(i, encode))
+                .reversed
+                .toList());
     }
     for (var row = 0; row < rows; row++) {
       rowShift.add(row * shift);
@@ -319,20 +326,33 @@ class PartialProductGenerator {
     for (var row = 0; row < rows; row++) {
       // Perform full sign extension
       for (var col = 0; col < (rows - row) * shift; col++) {
-        partialProducts[row].insert(0, partialProducts[row][0]);
+        if (reversed)
+          partialProducts[row]
+              .add(partialProducts[row][partialProducts[row].length - 1]);
+        else
+          partialProducts[row].insert(0, partialProducts[row][0]);
       }
       if (row > 0) {
         // Insert the carry from previous row
         rowShift[row] = rowShift[row] - shift;
         for (var i = 0; i < shift - 1; i++) {
-          partialProducts[row].add(Const(0));
+          if (reversed)
+            partialProducts[row].insert(0, Const(0));
+          else
+            partialProducts[row].add(Const(0));
         }
-        partialProducts[row].add(signs[row - 1]);
+        if (reversed)
+          partialProducts[row].insert(0, signs[row - 1]);
+        else
+          partialProducts[row].add(signs[row - 1]);
       }
     }
     // If last row has a carry insert carry bit in extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[rows - 1].add(signs[rows - 2]);
+    if (reversed)
+      partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    else
+      partialProducts[rows - 1].add(signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
   }
 
@@ -347,31 +367,55 @@ class PartialProductGenerator {
       //    other rows filp the MSB (sign) followed by #shift-1 stop bits (1)
       if (row == 0) {
         for (var col = 0; col < shift - 1; col++) {
-          partialProducts[row].insert(0, partialProducts[row][0]);
+          if (reversed)
+            partialProducts[row].add(partialProducts[row].last);
+          else
+            partialProducts[row].insert(0, partialProducts[row][0]);
         }
-        partialProducts[row].insert(0, ~partialProducts[row][0]);
+        if (reversed)
+          partialProducts[row].add(~partialProducts[row].last);
+        else
+          partialProducts[row].insert(0, ~partialProducts[row][0]);
       } else {
-        partialProducts[row][0] = ~partialProducts[row][0];
+        if (reversed)
+          partialProducts[row].last = ~partialProducts[row].last;
+        else
+          partialProducts[row][0] = ~partialProducts[row][0];
         for (var col = 0; col < shift - 1; col++) {
-          partialProducts[row].insert(0, Const(1));
+          if (reversed)
+            partialProducts[row].add(Const(1));
+          else
+            partialProducts[row].insert(0, Const(1));
         }
 
         // Insert the carry from previous row
         rowShift[row] = rowShift[row] - shift;
         for (var i = 0; i < shift - 1; i++) {
-          partialProducts[row].add(Const(0));
+          if (reversed)
+            partialProducts[row].insert(0, Const(0));
+          else
+            partialProducts[row].add(Const(0));
         }
-        partialProducts[row].add(signs[row - 1]);
+        if (reversed)
+          partialProducts[row].insert(0, signs[row - 1]);
+        else
+          partialProducts[row].add(signs[row - 1]);
       }
     }
     // If last row has a carry, insert carry bit into extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[rows - 1].add(signs[rows - 2]);
+    if (reversed)
+      partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    else
+      partialProducts[rows - 1].add(signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
 
     // Hack for radix-2
     if (shift == 1) {
-      partialProducts[rows - 1][0] = ~partialProducts[rows - 1][0];
+      if (reversed)
+        partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
+      else
+        partialProducts[rows - 1][0] = ~partialProducts[rows - 1][0];
     }
   }
 
@@ -392,8 +436,11 @@ class PartialProductGenerator {
     final maxW = maxWidth();
     var accum = BigInt.from(0);
     for (var row = 0; row < rows; row++) {
-      final value = partialProducts[row].swizzle().value.zeroExtend(maxW) <<
-          rowShift[row];
+      final value = reversed
+          ? partialProducts[row].rswizzle().value.zeroExtend(maxW) <<
+              rowShift[row]
+          : partialProducts[row].swizzle().value.zeroExtend(maxW) <<
+              rowShift[row];
       accum += value.toBigInt();
     }
     final sum = LogicValue.ofBigInt(accum, maxW).toBigInt();
@@ -403,6 +450,7 @@ class PartialProductGenerator {
   /// Print out the partial product matrix
   void print() {
     final maxW = maxWidth();
+    final nonSignExtendedPad = _signExtended ? 0 : (shift > 1 ? shift - 1 : 1);
     for (var row = 0; row < rows; row++) {
       if (row < encoder.rows) {
         final encoding = encoder.getEncoding(row);
@@ -411,13 +459,16 @@ class PartialProductGenerator {
       } else {
         stdout.write('${'M='.padRight(2 + selector.radix ~/ 2)} S= : ');
       }
-      final entry = partialProducts[row];
-      final prefixCnt = maxW - (entry.length + rowShift[row]);
+      final entry = reversed
+          ? partialProducts[row].reversed.toList()
+          : partialProducts[row];
+      final prefixCnt =
+          maxW - (entry.length + rowShift[row]) + nonSignExtendedPad;
       stdout.write('   ' * prefixCnt);
       for (var col = 0; col < entry.length; col++) {
         stdout.write('${bitString(entry[col].value)}  ');
       }
-      final suffixCnt = maxW - prefixCnt - entry.length;
+      final suffixCnt = maxW - prefixCnt - entry.length + nonSignExtendedPad;
       final value = entry.swizzle().value.zeroExtend(maxW) << suffixCnt;
       stdout
         ..write('   ' * suffixCnt)
@@ -426,7 +477,8 @@ class PartialProductGenerator {
             ' = ${value.toBigInt()} (${value.toBigInt().toSigned(maxW)})\n');
     }
     final shortPrefix =
-        '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length;
+        '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +
+            3 * nonSignExtendedPad;
 
     // Compute and print binary representation from accumulated value
     stdout
