@@ -200,8 +200,8 @@ class MultiplicandSelector {
   /// The bit shift of the selector (typically overlaps 1)
   int shift;
 
-  /// New width of multiples of the multiplicand
-  late int width;
+  /// New width of partial products generated from the multiplicand
+  int get width => multiplicand.width + shift - 1;
 
   /// Access the multiplicand
   Logic multiplicand = Logic();
@@ -212,7 +212,7 @@ class MultiplicandSelector {
   /// Generate required multiples of multiplicand
   MultiplicandSelector(this.radix, this.multiplicand)
       : shift = log2Ceil(radix) {
-    width = multiplicand.width + shift;
+    final width = multiplicand.width + shift;
     final numMultiples = radix ~/ 2;
     multiples = LogicArray([numMultiples], width);
     final extendedMultiplicand = multiplicand.signExtend(width);
@@ -302,7 +302,7 @@ class PartialProductGenerator {
     for (var row = 0; row < encoder.rows; row++) {
       final encode = encoder.getEncoding(row);
       partialProducts.add(
-          List.generate(selector.width - 1, (i) => selector.select(i, encode))
+          List.generate(selector.width, (i) => selector.select(i, encode))
               .reversed
               .toList());
     }
@@ -331,7 +331,7 @@ class PartialProductGenerator {
       }
     }
     // If last row has a carry insert carry bit in extra row
-    partialProducts.add(List.generate(selector.width - 1, (i) => Const(0)));
+    partialProducts.add(List.generate(selector.width, (i) => Const(0)));
     partialProducts[rows - 1].add(signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
   }
@@ -365,7 +365,7 @@ class PartialProductGenerator {
       }
     }
     // If last row has a carry, insert carry bit into extra row
-    partialProducts.add(List.generate(selector.width - 1, (i) => Const(0)));
+    partialProducts.add(List.generate(selector.width, (i) => Const(0)));
     partialProducts[rows - 1].add(signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
 
