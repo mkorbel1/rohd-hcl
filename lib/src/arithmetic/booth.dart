@@ -312,6 +312,7 @@ class PartialProductGenerator {
   void bruteForceSignExtend() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
+    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform full sign extension
@@ -330,7 +331,7 @@ class PartialProductGenerator {
     }
     // If last row has a carry insert carry bit in extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    partialProducts[lastRow].insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
   }
 
@@ -338,6 +339,7 @@ class PartialProductGenerator {
   void signExtendWithStopBits() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
+    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform single sign extension:
@@ -365,12 +367,12 @@ class PartialProductGenerator {
     }
     // If last row has a carry, insert carry bit into extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    partialProducts[lastRow].insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
 
     // Hack for radix-2
     if (shift == 1) {
-      partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
+      partialProducts[lastRow].last = ~partialProducts[lastRow].last;
     }
   }
 
@@ -378,73 +380,73 @@ class PartialProductGenerator {
   void signExtendCompact() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
+    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
 
-    final remainders = [for (var i = 0; i < rows; i++) Logic()];
-    for (var r = 0; r < rows - 1; r++) {
-      remainders[r] = partialProducts[r][1] & partialProducts[r][0] & signs[r];
+    final propagate = <List<Logic>>[];
+    for (var r = 0; r < rows; r++) {
+      propagate.add(<Logic>[]);
+      propagate[r].add(signs[r]);
+      // last row uses 4 propagate, but first rows use only 3?
+      for (var c = 0; c < shift + 1; c++) {
+        propagate[r].add(partialProducts[r][c]);
+      }
+      for (var c = 1; c < propagate[r].length; c++) {
+        propagate[r][c] = propagate[r][c] & propagate[r][c - 1];
+      }
     }
 
-    // Compute new LSBs for each row
-    final m = [for (var i = 0; i < rows; i++) <Logic>[]];
-    for (var row = 0; row < rows; row++) {
-      m[row] = [
-        partialProducts[row][0] ^ signs[row],
-        partialProducts[row][1] & (~partialProducts[row][0] | ~signs[row]) |
-            (~partialProducts[row][1] & partialProducts[row][0] & signs[row]),
-        Logic(),
-        Logic(),
-      ];
-      if (row < rows - 1) {
-        m[row][3] <= Const(0);
-        m[row][2] <= Const(0);
-      }
-      Logic(width: shift);
+    final remainders = [for (var i = 0; i < rows; i++) Logic()];
+    for (var r = 0; r < lastRow; r++) {
+      remainders[r] = propagate[r][shift - 1];
     }
+    final m = <List<Logic>>[];
+    for (var r = 0; r < rows; r++) {
+      m.add(<Logic>[]);
+      for (var c = 0; c < shift - 1; c++) {
+        m[r].add(partialProducts[r][c] ^ propagate[r][c]);
+      }
+      for (var c = 0; c < shift - 1; c++) {
+        m[r].add(Logic());
+      }
+    }
+    // Compute new LSBs for each row
     final lastCarryProp = Logic();
     final carryProp = Logic();
     final locShift = shift - (selector.width - shift + 1) % shift;
-    carryProp <=
-        partialProducts[rows - 1][1] &
-            partialProducts[rows - 1][0] &
-            signs[rows - 1];
+    carryProp <= propagate[lastRow][shift - 1];
+
     stdout.write('LOCSHIFT is $locShift\n');
     switch (locShift) {
       case 2:
-        lastCarryProp <= partialProducts[rows - 1][0] & signs[rows - 1];
-        remainders[rows - 1] <= partialProducts[rows - 1][1] & lastCarryProp;
+        lastCarryProp <= propagate[lastRow][1];
+        remainders[lastRow] <= propagate[lastRow][2];
       case 1:
-        lastCarryProp <=
-            partialProducts[rows - 1][1] &
-                partialProducts[rows - 1][0] &
-                signs[rows - 1];
-        remainders[rows - 1] <= partialProducts[rows - 1][2] & lastCarryProp;
+        lastCarryProp <= propagate[lastRow][2];
+        remainders[lastRow] <= propagate[lastRow][3];
       case 3:
-        lastCarryProp <=
-            partialProducts[rows - 1][2] &
-                partialProducts[rows - 1][1] &
-                partialProducts[rows - 1][0] &
-                signs[rows - 1];
-        remainders[rows - 1] <= partialProducts[rows - 1][3] & lastCarryProp;
+        lastCarryProp <= propagate[lastRow][3];
+        remainders[lastRow] <= propagate[lastRow][4];
     }
-    stdout
-        .write('check:  N=${selector.width - shift + 1} lastRow=${rows - 1}\n');
-    if ((rows - 1) * 3 + 2 >= (selector.width - shift + 2)) {
-      m[rows - 1][2] <= partialProducts[rows - 1][2];
-      stdout.write('assigning m(${rows - 1}[2]): '
-          '${partialProducts[rows - 1][2].value}\n');
+    stdout.write('check:  N=${selector.width - shift + 1} lastRow=$lastRow\n');
+    if (lastRow * shift + 2 >= (selector.width - shift + 2)) {
+      m[lastRow][2] <= partialProducts[lastRow][2];
+      stdout.write('assigning m($lastRow[2]): '
+          '${partialProducts[lastRow][2].value}\n');
     } else {
-      m[rows - 1][2] <= partialProducts[rows - 1][2] ^ carryProp;
-      stdout.write('assigning2 m(${rows - 1}[2])\n');
+      m[lastRow][2] <= partialProducts[lastRow][2] ^ carryProp;
+      stdout.write('assigning2 m($lastRow[2])\n');
     }
 
-    if ((rows - 1) * 3 + 3 >= (selector.width - shift + 2)) {
-      m[rows - 1][3] <= partialProducts[rows - 1][3];
-      stdout.write('assigning m(${rows - 1}[3])\n');
+    if (lastRow * shift + 3 >= (selector.width - shift + 2)) {
+      m[lastRow][3] <= partialProducts[lastRow][3];
+      stdout.write('assigning m($lastRow[3])\n');
     } else {
-      m[rows - 1][3] <= partialProducts[rows - 1][3] ^ lastCarryProp;
-      stdout.write('assigning2 m(${rows - 1}[3])\n');
+      m[lastRow][3] <= partialProducts[lastRow][3] ^ lastCarryProp;
+      stdout.write('assigning2 m($lastRow[3])\n');
     }
+    // N = selector.width - shift + 1 or selector.multiplicand.width
+    // selector.width = partialProducts[0].length
 
     stdout.write('r=');
     for (final elem in remainders.reversed) {
@@ -453,21 +455,21 @@ class PartialProductGenerator {
     stdout.write('\n');
     // Compute Sign extension for row==0
     final q = [
-      partialProducts[0][partialProducts[0].length - 1] ^ remainders[rows - 1],
-      ~(partialProducts[0][partialProducts[0].length - 1] &
-          ~remainders[rows - 1]),
+      partialProducts[0].last ^ remainders[lastRow],
+      ~(partialProducts[0].last & ~remainders[lastRow]),
     ];
     final qLast = q[1];
-    q
-      ..insert(1, ~qLast)
-      ..insert(1, ~qLast);
+    for (var i = 0; i < shift - 1; i++) {
+      q.insert(1, ~qLast);
+    }
+
     stdout.write('q=');
     for (final elem in q.reversed) {
       stdout.write('${elem.value.toString(includeWidth: false)}  ');
     }
     stdout.write('\n');
-// print out m
 
+    // print out m
     for (var i = 0; i < m.length; i++) {
       stdout.write('m($i)=${bitString(m[i].rswizzle().value)}\n');
     }
@@ -477,22 +479,22 @@ class PartialProductGenerator {
       if (row > 0) {
         partialProducts[row].insert(0, remainders[row - 1]);
         rowShift[row] -= 1;
-        final mLimit = (row == rows - 1) ? 4 : 2;
+        final mLimit = (row == lastRow) ? 4 : 2;
         for (var i = 0; i < mLimit; i++) {
           partialProducts[row][i + 1] = m[row][i];
         }
         // Stop bits
-        partialProducts[row][partialProducts[row].length - 1] =
-            ~partialProducts[row][partialProducts[row].length - 1];
-        partialProducts[row].add(Const(1));
-        partialProducts[row].add(Const(1));
+        partialProducts[row].last = ~partialProducts[row].last;
+        for (var i = 0; i < shift - 1; i++) {
+          partialProducts[row].add(Const(1));
+        }
       } else {
-        for (var i = 0; i < 2; i++) {
+        for (var i = 0; i < shift - 1; i++) {
           partialProducts[0][i] = m[0][i];
         }
         for (var i = 0; i < q.length; i++) {
           if (i == 0) {
-            partialProducts[0][partialProducts[0].length - 1] = q[i];
+            partialProducts[0].last = q[i];
           } else {
             partialProducts[0].add(q[i]);
           }
