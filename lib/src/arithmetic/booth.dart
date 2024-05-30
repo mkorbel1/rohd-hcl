@@ -414,6 +414,7 @@ class PartialProductGenerator {
     final lastCarryProp = Logic();
     final carryProp = Logic();
     final locShift = shift - (selector.width - shift + 1) % shift;
+    // final locShift = shift - encoder.multiplier.width % shift;
     carryProp <= propagate[lastRow][shift - 1];
 
     stdout.write('LOCSHIFT is $locShift\n');
@@ -429,24 +430,28 @@ class PartialProductGenerator {
         remainders[lastRow] <= propagate[lastRow][4];
     }
     stdout.write('check:  N=${selector.width - shift + 1} lastRow=$lastRow\n');
-    if (lastRow * shift + 2 >= (selector.width - shift + 2)) {
-      m[lastRow][2] <= partialProducts[lastRow][2];
-      stdout.write('assigning m($lastRow[2]): '
-          '${partialProducts[lastRow][2].value}\n');
-    } else {
-      m[lastRow][2] <= partialProducts[lastRow][2] ^ carryProp;
-      stdout.write('assigning2 m($lastRow[2])\n');
-    }
+    // Where does the sign carry of the last row land?
+    stdout.write(
+        'last sign at pos ${lastRow * shift} vs ${selector.width - shift + 1}'
+        ' vs ${encoder.multiplier.width}\n');
 
-    if (lastRow * shift + 3 >= (selector.width - shift + 2)) {
-      m[lastRow][3] <= partialProducts[lastRow][3];
-      stdout.write('assigning m($lastRow[3])\n');
-    } else {
-      m[lastRow][3] <= partialProducts[lastRow][3] ^ lastCarryProp;
-      stdout.write('assigning2 m($lastRow[3])\n');
+    final row0SignPos = selector.width - 1;
+    final matchingPPos = row0SignPos - shift * lastRow;
+    final lastMPos = matchingPPos;
+    stdout.write('row0SignPos=$row0SignPos  matchingMPos=$matchingPPos'
+        ' lastMMpos=$lastMPos\n');
+
+    // New style of fixing m:
+    for (var i = 2; i < m[lastRow].length; i++) {
+      if (i < lastMPos) {
+        if (i == lastMPos - 1)
+          m[lastRow][i] <= partialProducts[lastRow][i] ^ lastCarryProp;
+        else
+          m[lastRow][i] <= partialProducts[lastRow][i] ^ carryProp;
+      } else {
+        m[lastRow][i] <= partialProducts[lastRow][i];
+      }
     }
-    // N = selector.width - shift + 1 or selector.multiplicand.width
-    // selector.width = partialProducts[0].length
 
     stdout.write('r=');
     for (final elem in remainders.reversed) {
@@ -474,6 +479,7 @@ class PartialProductGenerator {
       stdout.write('m($i)=${bitString(m[i].rswizzle().value)}\n');
     }
     stdout.write('\n');
+    stdout.write('REM0${remainders[lastRow - 1]}\n');
 
     for (var row = 0; row < rows; row++) {
       if (row > 0) {
