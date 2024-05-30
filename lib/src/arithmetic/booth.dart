@@ -312,7 +312,6 @@ class PartialProductGenerator {
   void bruteForceSignExtend() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
-    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform full sign extension
@@ -331,7 +330,7 @@ class PartialProductGenerator {
     }
     // If last row has a carry insert carry bit in extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[lastRow].insert(0, signs[rows - 2]);
+    partialProducts[rows - 1].insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
   }
 
@@ -339,7 +338,6 @@ class PartialProductGenerator {
   void signExtendWithStopBits() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
-    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform single sign extension:
@@ -367,12 +365,13 @@ class PartialProductGenerator {
     }
     // If last row has a carry, insert carry bit into extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[lastRow].insert(0, signs[rows - 2]);
+    // New last row
+    partialProducts[rows - 1].insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
 
     // Hack for radix-2
     if (shift == 1) {
-      partialProducts[lastRow].last = ~partialProducts[lastRow].last;
+      partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
     }
   }
 
@@ -417,7 +416,6 @@ class PartialProductGenerator {
     // final locShift = shift - encoder.multiplier.width % shift;
     carryProp <= propagate[lastRow][shift - 1];
 
-    stdout.write('LOCSHIFT is $locShift\n');
     switch (locShift) {
       case 2:
         lastCarryProp <= propagate[lastRow][1];
@@ -429,8 +427,13 @@ class PartialProductGenerator {
         lastCarryProp <= propagate[lastRow][3];
         remainders[lastRow] <= propagate[lastRow][4];
     }
+    stdout.write('LOCSHIFT is $locShift, '
+        'carryProp=${carryProp.value.toString(includeWidth: false)}\n'
+        'lastCarryProp=${lastCarryProp.value.toString(includeWidth: false)}\n');
+    // ignore: cascade_invocations
     stdout.write('check:  N=${selector.width - shift + 1} lastRow=$lastRow\n');
     // Where does the sign carry of the last row land?
+    // ignore: cascade_invocations
     stdout.write(
         'last sign at pos ${lastRow * shift} vs ${selector.width - shift + 1}'
         ' vs ${encoder.multiplier.width}\n');
@@ -441,15 +444,20 @@ class PartialProductGenerator {
     stdout.write('row0SignPos=$row0SignPos  matchingMPos=$matchingPPos'
         ' lastMMpos=$lastMPos\n');
 
+    stdout.write('before m:  partialProducts is'
+        '${partialProducts[lastRow].swizzle().value.slice(3, 0).toString(includeWidth: false)}\n');
     // New style of fixing m:
-    for (var i = 2; i < m[lastRow].length; i++) {
+    for (var i = 0; i < m[lastRow].length; i++) {
       if (i < lastMPos) {
+        stdout.write('xoring pp at $i\n');
         if (i == lastMPos - 1)
-          m[lastRow][i] <= partialProducts[lastRow][i] ^ lastCarryProp;
+          m[lastRow][i] = partialProducts[lastRow][i] ^ lastCarryProp;
         else
-          m[lastRow][i] <= partialProducts[lastRow][i] ^ carryProp;
+          m[lastRow][i] = partialProducts[lastRow][i] ^ carryProp;
       } else {
-        m[lastRow][i] <= partialProducts[lastRow][i];
+        stdout.write(
+            'copy pp ${partialProducts[lastRow][i].value.toString(includeWidth: false)} to m at $i\n');
+        m[lastRow][i] = partialProducts[lastRow][i];
       }
     }
 
@@ -479,7 +487,6 @@ class PartialProductGenerator {
       stdout.write('m($i)=${bitString(m[i].rswizzle().value)}\n');
     }
     stdout.write('\n');
-    stdout.write('REM0${remainders[lastRow - 1]}\n');
 
     for (var row = 0; row < rows; row++) {
       if (row > 0) {
