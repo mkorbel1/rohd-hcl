@@ -338,6 +338,7 @@ class PartialProductGenerator {
   void signExtendWithStopBits() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
+    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform single sign extension:
@@ -365,9 +366,75 @@ class PartialProductGenerator {
     }
     // If last row has a carry, insert carry bit into extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    // New last row
-    partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    partialProducts[lastRow].insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
+
+    // Hack for radix-2
+    if (shift == 1) {
+      partialProducts[lastRow].last = ~partialProducts[lastRow].last;
+    }
+  }
+
+  /// Sign extend the PP array using stop bits
+  /// If possible, fold the final carry into another row (only when rectangular
+  /// enough that carry bit lands outside another row).
+  /// This technique can then be combined with a first-row extension technique
+  /// for folding in the final carry.
+  void signExtendWithStopBitsRect() {
+    assert(!_signExtended, 'Partial Product array already sign-extended');
+    _signExtended = true;
+
+    final finalCarryPos = shift * (rows - 1);
+    final finalCarryRelPos = finalCarryPos - selector.width - shift;
+    final finalCarryRow =
+        ((encoder.multiplier.width > selector.multiplicand.width) &&
+                (finalCarryRelPos > 0))
+            ? (finalCarryRelPos / shift).floor()
+            : 0;
+    stdout.write(
+        'pos=$finalCarryPos, $finalCarryRelPos, predict row=$finalCarryRow');
+
+    final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
+    for (var row = 0; row < rows; row++) {
+      // Perform single sign extension:
+      //    first row uses sign * #shift-1, stopped with ~sign
+      //    other rows filp the MSB (sign) followed by #shift-1 stop bits (1)
+      final sign = partialProducts[row].last;
+      if (row == 0) {
+        for (var col = 0; col < shift - 1; col++) {
+          partialProducts[row].add(sign);
+        }
+        partialProducts[row].add(~sign);
+      } else {
+        partialProducts[row].last = ~sign;
+        for (var col = 0; col < shift - 1; col++) {
+          partialProducts[row].add(Const(1));
+        }
+        if (row > 0) {
+          // Insert the carry from previous row
+          rowShift[row] -= shift;
+          for (var i = 0; i < shift - 1; i++) {
+            partialProducts[row].insert(0, Const(0));
+          }
+          partialProducts[row].insert(0, signs[row - 1]);
+        }
+      }
+    }
+
+    if (finalCarryRow > 0) {
+      final extensionRow = partialProducts[finalCarryRow];
+
+      while (finalCarryPos > extensionRow.length + rowShift[finalCarryRow]) {
+        extensionRow.add(Const(0));
+      }
+      extensionRow.add(signs[rows - 1]);
+    } else {
+      // Create an extra row to hold the final carry bit
+      partialProducts.add(List.generate(selector.width, (i) => Const(0)));
+      // New last row
+      partialProducts[rows - 1].insert(0, signs[rows - 2]);
+      rowShift.add((rows - 2) * shift);
+    }
 
     // Hack for radix-2
     if (shift == 1) {
@@ -544,7 +611,23 @@ class PartialProductGenerator {
   /// Print out the partial product matrix
   void print() {
     final maxW = maxWidth();
-    final nonSignExtendedPad = _signExtended ? 0 : shift;
+    final nonSignExtendedPad = _signExtended ? 0 : 2;
+    // We will print encoding(1-hot multiples and sign) before each row
+    final shortPrefix =
+        '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +
+            3 * nonSignExtendedPad;
+
+    // print bit position header
+    stdout.write(' ' * shortPrefix);
+    for (var i = maxW - 1; i >= 0; i--) {
+      final bits = i > 9 ? 2 : 1;
+      stdout
+        ..write('$i')
+        ..write(' ' * (3 - bits));
+    }
+    stdout.write('\n');
+    // Partial product matrix:  rows of multiplicand multiples shift by
+    //    rowshift[row]
     for (var row = 0; row < rows; row++) {
       if (row < encoder.rows) {
         final encoding = encoder.getEncoding(row);
@@ -569,9 +652,7 @@ class PartialProductGenerator {
             ' = ${value.toBigInt()} (${value.toBigInt().toSigned(maxW)})\n');
     }
     // Compute and print binary representation from accumulated value
-    final shortPrefix =
-        '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +
-            3 * nonSignExtendedPad;
+    // Later: we will compare with a compression tree result
     stdout
       ..write('=' * (shortPrefix + 3 * maxW))
       ..write('\n')

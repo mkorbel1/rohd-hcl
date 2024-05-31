@@ -13,14 +13,20 @@ import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:test/test.dart';
 
+// TODO(desmonddak): test rectangular for radix2,4,16
+// TODO(desmonddak): test compact for square radix2,4,8,16
+// TODO(desmonddak): cleanup and check in
+// TODO(desmonddak): combine rectangular with compact
+// TODO(desmonddak): extend compact to radix4
 void main() {
   test('single partial product test', () async {
-    final encoder = Radix16Encoder();
-    const widthX = 5;
-    const widthY = 5;
-
+    final encoder = Radix2Encoder();
+    const widthX = 3; // 4/7:  64   4/10: 512
+    const widthY = 6;
+// 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
     const i = 0;
-    const j = 8;
+    var j = pow(2, widthY - 1).toInt();
+    j = 0;
     final X = BigInt.from(i).toSigned(widthX);
     final Y = BigInt.from(j).toSigned(widthY);
     final product = X * Y;
@@ -37,8 +43,10 @@ void main() {
 
     pp
       ..print()
-      ..bruteForceSignExtend()
+      // ..bruteForceSignExtend()
       // ..signExtendWithStopBits()
+      ..signExtendWithStopBitsRect()
+      // ..signExtendCompact()
       ..print();
     stdout.write(
         'Test: $i($X) * $j($Y) = $product vs ${pp.evaluate(signed: true)}\n');
@@ -51,16 +59,48 @@ void main() {
   });
   test('exhaustive partial product evaluate test', () async {
     final encoder = Radix2Encoder();
-    for (var width = 5; width < 6; width++) {
+    for (var width = 3; width < 4; width++) {
       final widthX = width;
-      final widthY = width;
+      final widthY = width + 3;
       final logicX = Logic(name: 'X', width: widthX);
       final logicY = Logic(name: 'Y', width: widthY);
       final pp = PartialProductGenerator(logicX, logicY, encoder);
       // ignore: cascade_invocations
       pp
-          // ..bruteForceSignExtend();
+          // ..bruteForceSignExtend()
           .signExtendWithStopBits();
+      // .signExtendWithStopBitsRect();
+      // ..signExtendCompact();
+
+      final limitX = pow(2, widthX);
+      final limitY = pow(2, widthY);
+      for (var j = 0; j < limitY; j++) {
+        for (var i = 0; i < limitX; i++) {
+          final X = BigInt.from(i).toSigned(widthX);
+          final Y = BigInt.from(j).toSigned(widthY);
+          final product = X * Y;
+
+          logicX.put(X);
+          logicY.put(Y);
+          stdout.write('$i($X) * $j($Y): should be $product\n');
+          if (pp.evaluate(signed: true) != product) {
+            stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
+                'vs expected $product\n');
+            pp.print();
+          }
+          expect(pp.evaluate(signed: true), equals(product));
+        }
+      }
+    }
+  });
+  test('slow exhaustive partial product evaluate test', () async {
+    final encoder = Radix8Encoder();
+    for (var width = 4; width < 5; width++) {
+      final widthX = width;
+      final widthY = width + 16;
+      final logicX = Logic(name: 'X', width: widthX);
+      final logicY = Logic(name: 'Y', width: widthY);
+      // ignore: cascade_invocationskjkjkkkkk
 
       final limitX = pow(2, widthX);
       final limitY = pow(2, widthY);
@@ -73,6 +113,12 @@ void main() {
           logicX.put(X);
           logicY.put(Y);
 
+          final pp = PartialProductGenerator(logicX, logicY, encoder);
+          pp
+            // ..bruteForceSignExtend()
+            // .signExtendWithStopBits();
+            ..signExtendWithStopBitsRect();
+          // ..signExtendCompact();
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
                 'vs expected $product\n');
@@ -115,7 +161,7 @@ void main() {
   });
 }
 // TODO(desmonddak): Generalize radix recoding using xor equations
-// TODO(desmonddak): Calculate the folding method for sign extension 
+// TODO(desmonddak): Calculate the folding method for sign extension
 //    using m() and q() vectors
-// TODO(desmonddak): Create the PP->PP logic change for sign extension 
+// TODO(desmonddak): Create the PP->PP logic change for sign extension
 //     rather than modifying in-situ:   PP function (PP);
