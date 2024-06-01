@@ -366,12 +366,12 @@ class PartialProductGenerator {
     }
     // If last row has a carry, insert carry bit into extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[lastRow].insert(0, signs[rows - 2]);
+    partialProducts[rows - 1].insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
 
     // Hack for radix-2
     if (shift == 1) {
-      partialProducts[lastRow].last = ~partialProducts[lastRow].last;
+      partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
     }
   }
 
@@ -408,37 +408,38 @@ class PartialProductGenerator {
       } else {
         partialProducts[row].last = ~sign;
         for (var col = 0; col < shift - 1; col++) {
+          stdout.write('adding 1 to row $row\n');
           partialProducts[row].add(Const(1));
         }
-        if (row > 0) {
-          // Insert the carry from previous row
-          rowShift[row] -= shift;
-          for (var i = 0; i < shift - 1; i++) {
-            partialProducts[row].insert(0, Const(0));
-          }
-          partialProducts[row].insert(0, signs[row - 1]);
+        // Insert the carry from previous row
+        rowShift[row] -= shift;
+        for (var i = 0; i < shift - 1; i++) {
+          partialProducts[row].insert(0, Const(0));
         }
+        partialProducts[row].insert(0, signs[row - 1]);
       }
     }
 
     if (finalCarryRow > 0) {
       final extensionRow = partialProducts[finalCarryRow];
+      stdout.write('we have a final carry row $finalCarryRow > 0\n');
 
       while (finalCarryPos > extensionRow.length + rowShift[finalCarryRow]) {
         extensionRow.add(Const(0));
       }
       extensionRow.add(signs[rows - 1]);
     } else {
+      stdout.write('we added a new row\n');
       // Create an extra row to hold the final carry bit
       partialProducts.add(List.generate(selector.width, (i) => Const(0)));
       // New last row
       partialProducts[rows - 1].insert(0, signs[rows - 2]);
       rowShift.add((rows - 2) * shift);
-    }
 
-    // Hack for radix-2
-    if (shift == 1) {
-      partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
+      // Hack for radix-2
+      if (shift == 1) {
+        partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
+      }
     }
   }
 

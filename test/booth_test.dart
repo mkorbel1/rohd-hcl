@@ -13,16 +13,15 @@ import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:test/test.dart';
 
-// TODO(desmonddak): test rectangular for radix2,4,16
+// TODO(desmonddak): extend compact to radix4
 // TODO(desmonddak): test compact for square radix2,4,8,16
 // TODO(desmonddak): cleanup and check in
 // TODO(desmonddak): combine rectangular with compact
-// TODO(desmonddak): extend compact to radix4
 void main() {
   test('single partial product test', () async {
     final encoder = Radix2Encoder();
-    const widthX = 3; // 4/7:  64   4/10: 512
-    const widthY = 6;
+    const widthX = 4; // 4/7:  64   4/10: 512
+    const widthY = 7;
 // 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
     const i = 0;
     var j = pow(2, widthY - 1).toInt();
@@ -59,7 +58,7 @@ void main() {
   });
   test('exhaustive partial product evaluate test', () async {
     final encoder = Radix2Encoder();
-    for (var width = 3; width < 4; width++) {
+    for (var width = 3; width < 5; width++) {
       final widthX = width;
       final widthY = width + 3;
       final logicX = Logic(name: 'X', width: widthX);
