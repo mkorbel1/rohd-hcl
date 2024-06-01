@@ -485,16 +485,6 @@ class PartialProductGenerator {
     stdout
         .write('carryProp=${carryProp.value.toString(includeWidth: false)}\n');
 
-    stdout.write(
-        'partialLast[0]=${partialProducts[lastRow][0].value.toString(includeWidth: false)}\n');
-    stdout.write(
-        'partialLast[1]=${partialProducts[lastRow][1].value.toString(includeWidth: false)}\n');
-
-    stdout.write(
-        'propLast[0]=${propagate[lastRow][0].value.toString(includeWidth: false)}\n');
-    stdout.write(
-        'propLast[1]=${propagate[lastRow][1].value.toString(includeWidth: false)}\n');
-
     // print out m
     for (var i = 0; i < m.length; i++) {
       stdout.write('mb($i)=${bitString(m[i].rswizzle().value)}\n');
@@ -540,11 +530,8 @@ class PartialProductGenerator {
     stdout.write('row0SignPos=$row0SignPos  matchingMPos=$matchingPPos'
         ' lastMMpos=$lastMPos\n');
 
-    if (shift == 3)
-      stdout.write('before m:  partialProducts is'
-          '${partialProducts[lastRow].swizzle().value.slice(3, 0).toString(includeWidth: false)}\n');
     // New style of fixing m:
-    for (var i = 0; i < m[lastRow].length; i++) {
+    for (var i = shift - 1; i < m[lastRow].length; i++) {
       if (i < lastMPos) {
         stdout.write(
             'xoring pp[$i]  ${partialProducts[lastRow][i].value.toString(includeWidth: false)}\n');
@@ -593,8 +580,7 @@ class PartialProductGenerator {
       if (row > 0) {
         partialProducts[row].insert(0, remainders[row - 1]);
         rowShift[row] -= 1;
-        final mLimit = (row == lastRow) ? 4 : 2;
-        // final mLimit = (row == lastRow) ? 2 * (shift - 1) : shift - 1;
+        final mLimit = (row == lastRow) ? 2 * (shift - 1) : shift - 1;
         for (var i = 0; i < mLimit; i++) {
           partialProducts[row][i + 1] = m[row][i];
         }

@@ -44,7 +44,7 @@ void main() {
       ..print()
       // ..bruteForceSignExtend()
       // ..signExtendWithStopBits()
-      ..signExtendWithStopBitsRect()
+      // ..signExtendWithStopBitsRect()
       // ..signExtendCompact()
       ..print();
     stdout.write(
@@ -57,19 +57,19 @@ void main() {
     expect(pp.evaluate(signed: true), equals(product));
   });
   test('exhaustive partial product evaluate test', () async {
-    final encoder = Radix2Encoder();
-    for (var width = 3; width < 5; width++) {
+    final encoder = Radix4Encoder();
+    for (var width = 4; width < 7; width++) {
       final widthX = width;
-      final widthY = width + 3;
+      final widthY = width;
       final logicX = Logic(name: 'X', width: widthX);
       final logicY = Logic(name: 'Y', width: widthY);
       final pp = PartialProductGenerator(logicX, logicY, encoder);
       // ignore: cascade_invocations
       pp
-          // ..bruteForceSignExtend()
-          .signExtendWithStopBits();
-      // .signExtendWithStopBitsRect();
-      // ..signExtendCompact();
+        // ..bruteForceSignExtend()
+        // .signExtendWithStopBits();
+        // .signExtendWithStopBitsRect();
+        ..signExtendCompact();
 
       final limitX = pow(2, widthX);
       final limitY = pow(2, widthY);
@@ -116,8 +116,8 @@ void main() {
           pp
             // ..bruteForceSignExtend()
             // .signExtendWithStopBits();
-            ..signExtendWithStopBitsRect();
-          // ..signExtendCompact();
+            // ..signExtendWithStopBitsRect();
+            ..signExtendCompact();
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
                 'vs expected $product\n');
