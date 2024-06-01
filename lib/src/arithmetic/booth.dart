@@ -338,7 +338,6 @@ class PartialProductGenerator {
   void signExtendWithStopBits() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
-    final lastRow = rows - 1;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform single sign extension:
@@ -483,17 +482,46 @@ class PartialProductGenerator {
     final locShift = shift - (selector.width - shift + 1) % shift;
     // final locShift = shift - encoder.multiplier.width % shift;
     carryProp <= propagate[lastRow][shift - 1];
+    stdout
+        .write('carryProp=${carryProp.value.toString(includeWidth: false)}\n');
 
-    switch (locShift) {
-      case 2:
-        lastCarryProp <= propagate[lastRow][1];
-        remainders[lastRow] <= propagate[lastRow][2];
-      case 1:
-        lastCarryProp <= propagate[lastRow][2];
-        remainders[lastRow] <= propagate[lastRow][3];
-      case 3:
-        lastCarryProp <= propagate[lastRow][3];
-        remainders[lastRow] <= propagate[lastRow][4];
+    stdout.write(
+        'partialLast[0]=${partialProducts[lastRow][0].value.toString(includeWidth: false)}\n');
+    stdout.write(
+        'partialLast[1]=${partialProducts[lastRow][1].value.toString(includeWidth: false)}\n');
+
+    stdout.write(
+        'propLast[0]=${propagate[lastRow][0].value.toString(includeWidth: false)}\n');
+    stdout.write(
+        'propLast[1]=${propagate[lastRow][1].value.toString(includeWidth: false)}\n');
+
+    // print out m
+    for (var i = 0; i < m.length; i++) {
+      stdout.write('mb($i)=${bitString(m[i].rswizzle().value)}\n');
+    }
+    stdout.write('\n');
+
+    if (shift == 3) {
+      switch (locShift) {
+        case 2:
+          lastCarryProp <= propagate[lastRow][1];
+          remainders[lastRow] <= propagate[lastRow][2];
+        case 1:
+          lastCarryProp <= propagate[lastRow][2];
+          remainders[lastRow] <= propagate[lastRow][3];
+        case 3:
+          lastCarryProp <= propagate[lastRow][3];
+          remainders[lastRow] <= propagate[lastRow][4];
+      }
+    } else if (shift == 2) {
+      switch (locShift) {
+        case 2:
+          lastCarryProp <= propagate[lastRow][1];
+          remainders[lastRow] <= propagate[lastRow][2];
+        case 1:
+          lastCarryProp <= propagate[lastRow][0];
+          remainders[lastRow] <= propagate[lastRow][1];
+      }
     }
     stdout.write('LOCSHIFT is $locShift, '
         'carryProp=${carryProp.value.toString(includeWidth: false)}\n'
@@ -512,16 +540,21 @@ class PartialProductGenerator {
     stdout.write('row0SignPos=$row0SignPos  matchingMPos=$matchingPPos'
         ' lastMMpos=$lastMPos\n');
 
-    stdout.write('before m:  partialProducts is'
-        '${partialProducts[lastRow].swizzle().value.slice(3, 0).toString(includeWidth: false)}\n');
+    if (shift == 3)
+      stdout.write('before m:  partialProducts is'
+          '${partialProducts[lastRow].swizzle().value.slice(3, 0).toString(includeWidth: false)}\n');
     // New style of fixing m:
     for (var i = 0; i < m[lastRow].length; i++) {
       if (i < lastMPos) {
-        stdout.write('xoring pp at $i\n');
+        stdout.write(
+            'xoring pp[$i]  ${partialProducts[lastRow][i].value.toString(includeWidth: false)}\n');
+        stdout.write('lastMPos - 1= ${lastMPos - 1}\n');
         if (i == lastMPos - 1)
           m[lastRow][i] = partialProducts[lastRow][i] ^ lastCarryProp;
         else
           m[lastRow][i] = partialProducts[lastRow][i] ^ carryProp;
+        stdout.write(
+            'set m[lastRow[$i]= ${m[lastRow][i].value.toString(includeWidth: false)}\n');
       } else {
         stdout.write(
             'copy pp ${partialProducts[lastRow][i].value.toString(includeWidth: false)} to m at $i\n');
@@ -561,6 +594,7 @@ class PartialProductGenerator {
         partialProducts[row].insert(0, remainders[row - 1]);
         rowShift[row] -= 1;
         final mLimit = (row == lastRow) ? 4 : 2;
+        // final mLimit = (row == lastRow) ? 2 * (shift - 1) : shift - 1;
         for (var i = 0; i < mLimit; i++) {
           partialProducts[row][i + 1] = m[row][i];
         }
@@ -612,7 +646,7 @@ class PartialProductGenerator {
   /// Print out the partial product matrix
   void print() {
     final maxW = maxWidth();
-    final nonSignExtendedPad = _signExtended ? 0 : 2;
+    final nonSignExtendedPad = _signExtended ? 0 : shift - 1;
     // We will print encoding(1-hot multiples and sign) before each row
     final shortPrefix =
         '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +
