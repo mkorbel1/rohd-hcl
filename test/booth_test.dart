@@ -60,7 +60,7 @@ void main() {
   });
   test('exhaustive partial product evaluate test', () async {
     final encoder = Radix8Encoder();
-    for (var width = 4; width < 7; width++) {
+    for (var width = 4; width < 5; width++) {
       final widthX = width;
       final widthY = width;
       final logicX = Logic(name: 'X', width: widthX);

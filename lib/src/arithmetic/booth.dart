@@ -111,10 +111,6 @@ class Radix8Encoder extends RadixEncoder {
           ~xor[2] & xor[0], // M
         ].swizzle(),
         multiplierSlice[multiplierSlice.width - 1]);
-    // stdout
-    //   ..write('X =${bitString(xor.value)}\n')
-    //   ..write('M =${bitString(enc.multiples.value)}\n')
-    //   ..write('S=${bitString(enc.sign.value)}\n');
     return enc;
   }
 }
@@ -143,10 +139,6 @@ class Radix16Encoder extends RadixEncoder {
           ~xor[3] & ~xor[2] & xor[0] // M
         ].swizzle(),
         multiplierSlice[multiplierSlice.width - 1]);
-    // stdout
-    //   ..write('X =${bitString(xor.value)}\n')
-    //   ..write('M =${bitString(enc.multiples.value)}\n')
-    //   ..write('S=${bitString(enc.sign.value)}\n');
     return enc;
   }
 }
@@ -170,9 +162,6 @@ class MultiplierEncoder {
     rows = (multiplier.width / log2Ceil(radixEncoder.radix)).ceil();
     // slices overlap by 1 and start at -1
     _extendedMultiplier = multiplier.signExtend(rows * (_sliceWidth - 1));
-    // stdout
-    //   ..write('Y =${bitString(multiplier.value)}\n')
-    //   ..write('EY=${bitString(_extendedMultiplier.value)}\n');
   }
 
   /// Retrieve the Booth encoding for the row
@@ -216,35 +205,21 @@ class MultiplicandSelector {
     final numMultiples = radix ~/ 2;
     multiples = LogicArray([numMultiples], width);
     final extendedMultiplicand = multiplicand.signExtend(width);
-    // stdout
-    // ..write('X =${bitString(multiplicand.value)}\n')
-    // ..write('EX =${bitString(extendedMultiplicand.value)}\n');
+
     for (var pos = 0; pos < numMultiples; pos++) {
       final ratio = pos + 1;
-      switch (ratio) {
-        case 1:
-          multiples.elements[pos] <= extendedMultiplicand;
-        case 2:
-          multiples.elements[pos] <= extendedMultiplicand << 1;
-        case 3:
-          multiples.elements[pos] <=
-              (extendedMultiplicand << 2) - extendedMultiplicand;
-        case 4:
-          multiples.elements[pos] <= extendedMultiplicand << 2;
-        case 5:
-          multiples.elements[pos] <=
-              (extendedMultiplicand << 2) + extendedMultiplicand;
-        case 6:
-          multiples.elements[pos] <=
-              (extendedMultiplicand << 3) - (extendedMultiplicand << 1);
-        case 7:
-          multiples.elements[pos] <=
-              (extendedMultiplicand << 3) - extendedMultiplicand;
-        case 8:
-          multiples.elements[pos] <= extendedMultiplicand << 3;
-      }
-      // stdout.write(
-      //     'M$pos(${ratio}X)=${bitString(multiples.elements[pos].value)}\n');
+      multiples.elements[pos] <=
+          switch (ratio) {
+            1 => extendedMultiplicand,
+            2 => extendedMultiplicand << 1,
+            3 => (extendedMultiplicand << 2) - extendedMultiplicand,
+            4 => extendedMultiplicand << 2,
+            5 => (extendedMultiplicand << 2) + extendedMultiplicand,
+            6 => (extendedMultiplicand << 3) - (extendedMultiplicand << 1),
+            7 => (extendedMultiplicand << 3) - extendedMultiplicand,
+            8 => extendedMultiplicand << 3,
+            _ => extendedMultiplicand
+          };
     }
   }
 
@@ -415,20 +390,20 @@ class PartialProductGenerator {
         for (var i = 0; i < shift - 1; i++) {
           partialProducts[row].insert(0, Const(0));
         }
+        // TODO(desmonddak): Try this
+        // partialProducts[row].addAll([Const(0) * (shift - 1)]);
         partialProducts[row].insert(0, signs[row - 1]);
       }
     }
 
     if (finalCarryRow > 0) {
       final extensionRow = partialProducts[finalCarryRow];
-      // stdout.write('we have a final carry row $finalCarryRow > 0\n');
 
       while (finalCarryPos > extensionRow.length + rowShift[finalCarryRow]) {
         extensionRow.add(Const(0));
       }
       extensionRow.add(signs[rows - 1]);
     } else {
-      // stdout.write('we added a new row\n');
       // Create an extra row to hold the final carry bit
       partialProducts.add(List.generate(selector.width, (i) => Const(0)));
       // New last row
@@ -475,107 +450,18 @@ class PartialProductGenerator {
       for (var c = 0; c < shift - 1; c++) {
         m[r].add(Logic());
       }
-      // stdout.write('mlen=${m[r].length} because 2 * ${shift - 1}\n');
     }
-    // Compute new LSBs for each row
-    final carryProp = Logic();
-    final locShift = shift - (selector.width - shift + 1) % shift;
-    // final locShift = shift - encoder.multiplier.width % shift;
-    carryProp <= propagate[lastRow][shift - 1];
-    // stdout
-    //     .write('carryProp=${bitString(carryProp.value)\n');
-
-    // // print out m
-    // for (var i = 0; i < m.length; i++) {
-    //   stdout.write('mb($i)=${bitString(m[i].rswizzle().value)}\n');
-    // }
-    // stdout.write('\n');
 
     final row0SignPos = selector.width - 1;
     final alignRow0Sign = row0SignPos - shift * lastRow;
-    // Alernate way of finding propgate length:
-    final propDist = (selector.width - 1) - (rows - 1) * shift;
-    final actualDist = switch ((shift, locShift)) {
-      (4, 1) => 5,
-      (4, 2) => 4,
-      (4, 3) => 3,
-      (4, 4) => 6,
-      (3, 1) => 3,
-      (3, 2) => 2,
-      (3, 3) => 4,
-      (2, 1) => 1,
-      (2, 2) => 2,
-      (1, 1) => 0,
-      _ => 0,
-    };
 
-    stdout.write('propDist=$propDist actual=$actualDist\n');
-
-    // if (shift == 4) {
-    //   switch (locShift) {
-    //     // radix-16
-    //     case 1: // N=7
-    //       remainders[lastRow] <= propagate[lastRow][5];
-    //     case 2: // N=6 PASS @4
-    //       remainders[lastRow] <= propagate[lastRow][4];
-    //     case 3: // N=5 pass
-    //       remainders[lastRow] <= propagate[lastRow][3];
-    //     case 4: // N=8
-    //       remainders[lastRow] <= propagate[lastRow][6];
-    //   }
-    // } else if (shift == 3) {
-    //   // radix-8 validated 3, 2, 4
-    //   switch (locShift) {
-    //     case 1: // W=5
-    //       remainders[lastRow] <= propagate[lastRow][3];
-    //     case 2: // W=4
-    //       remainders[lastRow] <= propagate[lastRow][2];
-    //     case 3: // W=6
-    //       remainders[lastRow] <= propagate[lastRow][4];
-    //   }
-    // } else if (shift == 2) {
-    //   // radix-4 validated 1, 2
-    //   switch (locShift) {
-    //     case 1: // W=5
-    //       remainders[lastRow] <= propagate[lastRow][1];
-    //     case 2: // W=4
-    //       remainders[lastRow] <= propagate[lastRow][2];
-    //   }
-    // } else if (shift == 1) {
-    //   // fails 16*16@5
-    //   switch (locShift) {
-    //     case 1: // All
-    //       remainders[lastRow] <= propagate[lastRow][0];
-    //   }
-    // }
     remainders[lastRow] <= propagate[lastRow][alignRow0Sign];
-    // stdout.write('LOCSHIFT is $locShift, '
-    //     'carryProp=${bitString(carryProp.value)}\n');
-    // // ignore: cascade_invocations
-    // stdout.write('check:  N=${selector.width - shift + 1} lastRow=$lastRow\n');
-    // // Where does the sign carry of the last row land?
-    // // ignore: cascade_invocations
-    // stdout.write(
-    //     'last sign @pos ${lastRow * shift} vs ${selector.width - shift + 1}'
-    //     ' vs ${encoder.multiplier.width}\n');
-
-    stdout.write('lastMPos=$alignRow0Sign\n');
-    assert(alignRow0Sign == propDist, 'prediction should equal mpos\n');
-    // stdout.write('row0SignPos=$row0SignPos'
-    //     ' lastMMpos=$lastMPos\n');
 
     // New style of fixing m:
-    // stdout.write('lastMPos - 1= ${lastMPos - 1}\n');
     for (var i = shift - 1; i < m[lastRow].length; i++) {
       if (i < alignRow0Sign) {
-        // stdout.write(
-        //     'm[$i]: pp[$i]=${bitString(partialProducts[lastRow][i].value)} '
-        //     'c=${bitString(carryProp.value)}\n');
         m[lastRow][i] = partialProducts[lastRow][i] ^ propagate[lastRow][i];
-        // stdout.write('set m[lastRow[$i]= ${bitString(m[lastRow][i].value)}\n');
       } else {
-        // stdout.write(
-        //     'cp pp ${bitString(partialProducts[lastRow][i].value)} to m[$i]\n');
         m[lastRow][i] = partialProducts[lastRow][i];
       }
     }
@@ -585,15 +471,6 @@ class PartialProductGenerator {
       partialProducts[rows - 1].add(Const(0));
     }
 
-    // stdout.write('p=');
-    // for (final elem in propagate[lastRow].reversed) {
-    //   stdout.write('${bitString(elem.value)}  ');
-    // }
-    // stdout.write('\nr=');
-    // for (final elem in remainders.reversed) {
-    //   stdout.write('${elem.value.toString(includeWidth: false)}  ');
-    // }
-    // stdout.write('\n');
     // Compute Sign extension for row==0
     final q = [
       partialProducts[0].last ^ remainders[lastRow],
@@ -603,18 +480,6 @@ class PartialProductGenerator {
     for (var i = 0; i < shift - 1; i++) {
       q.insert(1, ~qLast);
     }
-
-    // stdout.write('q=');
-    // for (final elem in q.reversed) {
-    //   stdout.write('${elem.value.toString(includeWidth: false)}  ');
-    // }
-    // stdout.write('\n');
-
-    // // print out m
-    // for (var i = 0; i < m.length; i++) {
-    //   stdout.write('m($i)=${bitString(m[i].rswizzle().value)}\n');
-    // }
-    // stdout.write('\n');
 
     for (var row = 0; row < rows; row++) {
       if (row > 0) {
