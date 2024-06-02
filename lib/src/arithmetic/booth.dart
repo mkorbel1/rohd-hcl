@@ -475,7 +475,7 @@ class PartialProductGenerator {
       for (var c = 0; c < shift - 1; c++) {
         m[r].add(Logic());
       }
-      stdout.write('mlen=${m[r].length} because 2 * ${shift - 1}\n');
+      // stdout.write('mlen=${m[r].length} because 2 * ${shift - 1}\n');
     }
     // Compute new LSBs for each row
     final carryProp = Logic();
@@ -485,77 +485,97 @@ class PartialProductGenerator {
     // stdout
     //     .write('carryProp=${bitString(carryProp.value)\n');
 
-    // print out m
-    for (var i = 0; i < m.length; i++) {
-      stdout.write('mb($i)=${bitString(m[i].rswizzle().value)}\n');
-    }
-    stdout.write('\n');
-
-    if (shift == 4) {
-      switch (locShift) {
-        // radix-16
-        case 1: // N=7
-          remainders[lastRow] <= propagate[lastRow][5];
-        case 2: // N=6 PASS @4
-          remainders[lastRow] <= propagate[lastRow][4];
-        case 3: // N=5 pass
-          remainders[lastRow] <= propagate[lastRow][3];
-        case 4: // N=8
-          remainders[lastRow] <= propagate[lastRow][6];
-      }
-    } else if (shift == 3) {
-      // radix-8 validated 3, 2, 4
-      switch (locShift) {
-        case 1: // W=5
-          remainders[lastRow] <= propagate[lastRow][3];
-        case 2: // W=4
-          remainders[lastRow] <= propagate[lastRow][2];
-        case 3: // W=6
-          remainders[lastRow] <= propagate[lastRow][4];
-      }
-    } else if (shift == 2) {
-      // radix-4 validated 1, 2
-      switch (locShift) {
-        case 1: // W=5
-          remainders[lastRow] <= propagate[lastRow][1];
-        case 2: // W=4
-          remainders[lastRow] <= propagate[lastRow][2];
-      }
-    } else if (shift == 1) {
-      // fails 16*16@5
-      switch (locShift) {
-        case 1: // All
-          remainders[lastRow] <= propagate[lastRow][0];
-      }
-    }
-    stdout.write('LOCSHIFT is $locShift, '
-        'carryProp=${bitString(carryProp.value)}\n');
-    // ignore: cascade_invocations
-    stdout.write('check:  N=${selector.width - shift + 1} lastRow=$lastRow\n');
-    // Where does the sign carry of the last row land?
-    // ignore: cascade_invocations
-    stdout.write(
-        'last sign @pos ${lastRow * shift} vs ${selector.width - shift + 1}'
-        ' vs ${encoder.multiplier.width}\n');
+    // // print out m
+    // for (var i = 0; i < m.length; i++) {
+    //   stdout.write('mb($i)=${bitString(m[i].rswizzle().value)}\n');
+    // }
+    // stdout.write('\n');
 
     final row0SignPos = selector.width - 1;
-    final matchingPPos = row0SignPos - shift * lastRow;
-    final lastMPos = matchingPPos;
-    // stdout.write('row0SignPos=$row0SignPos  matchingMPos=$matchingPPos'
+    final alignRow0Sign = row0SignPos - shift * lastRow;
+    // Alernate way of finding propgate length:
+    final propDist = (selector.width - 1) - (rows - 1) * shift;
+    final actualDist = switch ((shift, locShift)) {
+      (4, 1) => 5,
+      (4, 2) => 4,
+      (4, 3) => 3,
+      (4, 4) => 6,
+      (3, 1) => 3,
+      (3, 2) => 2,
+      (3, 3) => 4,
+      (2, 1) => 1,
+      (2, 2) => 2,
+      (1, 1) => 0,
+      _ => 0,
+    };
+
+    stdout.write('propDist=$propDist actual=$actualDist\n');
+
+    // if (shift == 4) {
+    //   switch (locShift) {
+    //     // radix-16
+    //     case 1: // N=7
+    //       remainders[lastRow] <= propagate[lastRow][5];
+    //     case 2: // N=6 PASS @4
+    //       remainders[lastRow] <= propagate[lastRow][4];
+    //     case 3: // N=5 pass
+    //       remainders[lastRow] <= propagate[lastRow][3];
+    //     case 4: // N=8
+    //       remainders[lastRow] <= propagate[lastRow][6];
+    //   }
+    // } else if (shift == 3) {
+    //   // radix-8 validated 3, 2, 4
+    //   switch (locShift) {
+    //     case 1: // W=5
+    //       remainders[lastRow] <= propagate[lastRow][3];
+    //     case 2: // W=4
+    //       remainders[lastRow] <= propagate[lastRow][2];
+    //     case 3: // W=6
+    //       remainders[lastRow] <= propagate[lastRow][4];
+    //   }
+    // } else if (shift == 2) {
+    //   // radix-4 validated 1, 2
+    //   switch (locShift) {
+    //     case 1: // W=5
+    //       remainders[lastRow] <= propagate[lastRow][1];
+    //     case 2: // W=4
+    //       remainders[lastRow] <= propagate[lastRow][2];
+    //   }
+    // } else if (shift == 1) {
+    //   // fails 16*16@5
+    //   switch (locShift) {
+    //     case 1: // All
+    //       remainders[lastRow] <= propagate[lastRow][0];
+    //   }
+    // }
+    remainders[lastRow] <= propagate[lastRow][alignRow0Sign];
+    // stdout.write('LOCSHIFT is $locShift, '
+    //     'carryProp=${bitString(carryProp.value)}\n');
+    // // ignore: cascade_invocations
+    // stdout.write('check:  N=${selector.width - shift + 1} lastRow=$lastRow\n');
+    // // Where does the sign carry of the last row land?
+    // // ignore: cascade_invocations
+    // stdout.write(
+    //     'last sign @pos ${lastRow * shift} vs ${selector.width - shift + 1}'
+    //     ' vs ${encoder.multiplier.width}\n');
+
+    stdout.write('lastMPos=$alignRow0Sign\n');
+    assert(alignRow0Sign == propDist, 'prediction should equal mpos\n');
+    // stdout.write('row0SignPos=$row0SignPos'
     //     ' lastMMpos=$lastMPos\n');
 
     // New style of fixing m:
-    stdout.write('lastMPos - 1= ${lastMPos - 1}\n');
+    // stdout.write('lastMPos - 1= ${lastMPos - 1}\n');
     for (var i = shift - 1; i < m[lastRow].length; i++) {
-      if (i < lastMPos) {
-        stdout.write(
-            'm[$i]: pp[$i]=${bitString(partialProducts[lastRow][i].value)} '
-            'c=${bitString(carryProp.value)}\n');
+      if (i < alignRow0Sign) {
+        // stdout.write(
+        //     'm[$i]: pp[$i]=${bitString(partialProducts[lastRow][i].value)} '
+        //     'c=${bitString(carryProp.value)}\n');
         m[lastRow][i] = partialProducts[lastRow][i] ^ propagate[lastRow][i];
-        stdout.write('set m[lastRow[$i]= ${bitString(m[lastRow][i].value)}\n');
+        // stdout.write('set m[lastRow[$i]= ${bitString(m[lastRow][i].value)}\n');
       } else {
-        stdout.write(
-            'cp pp ${bitString(partialProducts[lastRow][i].value)} to m[$i]\n');
+        // stdout.write(
+        //     'cp pp ${bitString(partialProducts[lastRow][i].value)} to m[$i]\n');
         m[lastRow][i] = partialProducts[lastRow][i];
       }
     }
@@ -565,15 +585,15 @@ class PartialProductGenerator {
       partialProducts[rows - 1].add(Const(0));
     }
 
-    stdout.write('p=');
-    for (final elem in propagate[lastRow].reversed) {
-      stdout.write('${bitString(elem.value)}  ');
-    }
-    stdout.write('\nr=');
-    for (final elem in remainders.reversed) {
-      stdout.write('${elem.value.toString(includeWidth: false)}  ');
-    }
-    stdout.write('\n');
+    // stdout.write('p=');
+    // for (final elem in propagate[lastRow].reversed) {
+    //   stdout.write('${bitString(elem.value)}  ');
+    // }
+    // stdout.write('\nr=');
+    // for (final elem in remainders.reversed) {
+    //   stdout.write('${elem.value.toString(includeWidth: false)}  ');
+    // }
+    // stdout.write('\n');
     // Compute Sign extension for row==0
     final q = [
       partialProducts[0].last ^ remainders[lastRow],
@@ -584,17 +604,17 @@ class PartialProductGenerator {
       q.insert(1, ~qLast);
     }
 
-    stdout.write('q=');
-    for (final elem in q.reversed) {
-      stdout.write('${elem.value.toString(includeWidth: false)}  ');
-    }
-    stdout.write('\n');
+    // stdout.write('q=');
+    // for (final elem in q.reversed) {
+    //   stdout.write('${elem.value.toString(includeWidth: false)}  ');
+    // }
+    // stdout.write('\n');
 
-    // print out m
-    for (var i = 0; i < m.length; i++) {
-      stdout.write('m($i)=${bitString(m[i].rswizzle().value)}\n');
-    }
-    stdout.write('\n');
+    // // print out m
+    // for (var i = 0; i < m.length; i++) {
+    //   stdout.write('m($i)=${bitString(m[i].rswizzle().value)}\n');
+    // }
+    // stdout.write('\n');
 
     for (var row = 0; row < rows; row++) {
       if (row > 0) {

@@ -19,9 +19,9 @@ import 'package:test/test.dart';
 // TODO(desmonddak): combine rectangular with compact
 void main() {
   test('single partial product test', () async {
-    final encoder = Radix2Encoder();
-    const widthX = 5; // 4/7:  64   4/10: 512
-    const widthY = 5;
+    final encoder = Radix4Encoder();
+    const widthX = 10; // 4/7:  64   4/10: 512
+    const widthY = 10;
 // 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
     const i = 16;
     var j = pow(2, widthY - 1).toInt();
@@ -59,8 +59,8 @@ void main() {
     expect(pp.evaluate(signed: true), equals(product));
   });
   test('exhaustive partial product evaluate test', () async {
-    final encoder = Radix16Encoder();
-    for (var width = 8; width < 9; width++) {
+    final encoder = Radix8Encoder();
+    for (var width = 4; width < 7; width++) {
       final widthX = width;
       final widthY = width;
       final logicX = Logic(name: 'X', width: widthX);
@@ -75,7 +75,7 @@ void main() {
 
       final limitX = pow(2, widthX);
       final limitY = pow(2, widthY);
-      for (var i = 0; i < 16; i++) {
+      for (var i = 0; i < limitX; i++) {
         for (var j = 0; j < limitY; j++) {
           final X = BigInt.from(i).toSigned(widthX);
           final Y = BigInt.from(j).toSigned(widthY);
