@@ -20,12 +20,14 @@ import 'package:test/test.dart';
 void main() {
   test('single partial product test', () async {
     final encoder = Radix2Encoder();
-    const widthX = 4; // 4/7:  64   4/10: 512
-    const widthY = 7;
+    const widthX = 5; // 4/7:  64   4/10: 512
+    const widthY = 5;
 // 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
-    const i = 0;
+    const i = 16;
     var j = pow(2, widthY - 1).toInt();
-    j = 0;
+    // j = 128; // r=16,N=8
+    j = 16; // r=16,N=9?
+    // j = 64; // r=8,N=7
     final X = BigInt.from(i).toSigned(widthX);
     final Y = BigInt.from(j).toSigned(widthY);
     final product = X * Y;
@@ -45,7 +47,7 @@ void main() {
       // ..bruteForceSignExtend()
       // ..signExtendWithStopBits()
       // ..signExtendWithStopBitsRect()
-      // ..signExtendCompact()
+      ..signExtendCompact()
       ..print();
     stdout.write(
         'Test: $i($X) * $j($Y) = $product vs ${pp.evaluate(signed: true)}\n');
@@ -57,8 +59,8 @@ void main() {
     expect(pp.evaluate(signed: true), equals(product));
   });
   test('exhaustive partial product evaluate test', () async {
-    final encoder = Radix4Encoder();
-    for (var width = 4; width < 7; width++) {
+    final encoder = Radix16Encoder();
+    for (var width = 8; width < 9; width++) {
       final widthX = width;
       final widthY = width;
       final logicX = Logic(name: 'X', width: widthX);
@@ -73,15 +75,15 @@ void main() {
 
       final limitX = pow(2, widthX);
       final limitY = pow(2, widthY);
-      for (var j = 0; j < limitY; j++) {
-        for (var i = 0; i < limitX; i++) {
+      for (var i = 0; i < 16; i++) {
+        for (var j = 0; j < limitY; j++) {
           final X = BigInt.from(i).toSigned(widthX);
           final Y = BigInt.from(j).toSigned(widthY);
           final product = X * Y;
 
           logicX.put(X);
           logicY.put(Y);
-          stdout.write('$i($X) * $j($Y): should be $product\n');
+          // stdout.write('$i($X) * $j($Y): should be $product\n');
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
                 'vs expected $product\n');
@@ -92,9 +94,13 @@ void main() {
       }
     }
   });
+
+  /// This slower test elaborates the multiplier each time, but any output
+  ///  during each elaboration will have valid logic values which can provide
+  /// valuable debug information.
   test('slow exhaustive partial product evaluate test', () async {
-    final encoder = Radix8Encoder();
-    for (var width = 4; width < 5; width++) {
+    final encoder = Radix16Encoder();
+    for (var width = 7; width < 8; width++) {
       final widthX = width;
       final widthY = width + 16;
       final logicX = Logic(name: 'X', width: widthX);
