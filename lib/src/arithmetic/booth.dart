@@ -164,15 +164,6 @@ class MultiplierEncoder {
         [_extendedMultiplier.slice(base + _sliceWidth - 2, base), Const(0)]
             .swizzle()
     ];
-    // final multiplierSlice = [
-    //   if (row > 0)
-    //     {_extendedMultiplier.slice(base + _sliceWidth - 2, base - 1)}
-    //   else
-    //     {
-    //       [_extendedMultiplier.slice(base + _sliceWidth - 2, base), Const(0)]
-    //           .swizzle()
-    //     }
-    // ];
     return _encoder.encode(multiplierSlice.first);
   }
 }
@@ -291,19 +282,17 @@ class PartialProductGenerator {
     _signExtended = true;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
-      // Perform full sign extension
       final addend = partialProducts[row];
       final sign = addend.last;
       addend.addAll(List.filled((rows - row) * shift, sign));
       if (row > 0) {
-        // Insert the carry from previous row
         addend
           ..insertAll(0, List.filled(shift - 1, Const(0)))
           ..insert(0, signs[row - 1]);
         rowShift[row] -= shift;
       }
     }
-    // If last row has a carry insert carry bit in extra row
+    // Insert carry bit in extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
     partialProducts.last.insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
@@ -315,9 +304,6 @@ class PartialProductGenerator {
     _signExtended = true;
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
-      // Perform single sign extension:
-      //    first row uses sign * #shift-1, stopped with ~sign
-      //    other rows filp the MSB (sign) followed by #shift-1 stop bits (1)
       final addend = partialProducts[row];
       final sign = addend.last;
       if (row == 0) {
@@ -364,9 +350,6 @@ class PartialProductGenerator {
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       final addend = partialProducts[row];
-      // Perform single sign extension:
-      //    first row uses sign * #shift-1, stopped with ~sign
-      //    other rows filp the MSB (sign) followed by #shift-1 stop bits (1)
       final sign = addend.last;
       if (row == 0) {
         addend
@@ -390,14 +373,10 @@ class PartialProductGenerator {
             finalCarryPos - (extensionRow.length + rowShift[finalCarryRow]),
             Const(0)))
         ..add(signs[rows - 1]);
-      // while (finalCarryPos > extensionRow.length + rowShift[finalCarryRow]) {
-      //   extensionRow.add(Const(0));
-      // }
     } else {
       // Create an extra row to hold the final carry bit
       partialProducts
           .add(List.filled(selector.width, Const(0), growable: true));
-      // New last row
       partialProducts.last.insert(0, signs[rows - 2]);
       rowShift.add((rows - 2) * shift);
 
@@ -422,7 +401,6 @@ class PartialProductGenerator {
     final propagate =
         List.generate(rows, (i) => List.filled(0, Logic(), growable: true));
     for (var row = 0; row < rows; row++) {
-      // propagate.add(<Logic>[]);
       propagate[row].add(signs[row]);
       for (var col = 0; col < 2 * (shift - 1); col++) {
         propagate[row].add(partialProducts[row][col]);
@@ -431,11 +409,9 @@ class PartialProductGenerator {
         propagate[row][col] = propagate[row][col] & propagate[row][col - 1];
       }
     }
-    // final m = <List<Logic>>[];
     final m =
         List.generate(rows, (i) => List.filled(0, Logic(), growable: true));
     for (var row = 0; row < rows; row++) {
-      // m.add(<Logic>[]);
       for (var c = 0; c < shift - 1; c++) {
         m[row].add(partialProducts[row][c] ^ propagate[row][c]);
       }
@@ -464,10 +440,6 @@ class PartialProductGenerator {
       ~(firstAddend.last & ~remainders[lastRow]),
     ];
     q.insertAll(1, List.filled(shift - 1, ~q[1]));
-    // final qLast = q[1];
-    // for (var i = 0; i < shift - 1; i++) {
-    //   q.insert(1, ~qLast);
-    // }
 
     for (var row = 0; row < rows; row++) {
       final addend = partialProducts[row];
@@ -489,14 +461,6 @@ class PartialProductGenerator {
         firstAddend
           ..last = q[0]
           ..addAll(q.getRange(1, q.length));
-
-        // for (var i = 0; i < q.length; i++) {
-        //   if (i == 0) {
-        //     firstAddend.last = q[i];
-        //   } else {
-        //     firstAddend.add(q[i]);
-        //   }
-        // }
       }
     }
   }
