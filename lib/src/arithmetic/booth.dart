@@ -65,10 +65,8 @@ class Radix2Encoder extends RadixEncoder {
   // multiple is in [0,1]  followed by sign
   @override
   RadixEncode encode(Logic multiplierSlice) {
-    final xor = Logic(width: multiplierSlice.width) - 1;
-    xor <=
-        (multiplierSlice ^ (multiplierSlice >>> 1))
-            .slice(multiplierSlice.width - 1, 0);
+    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
+        .slice(multiplierSlice.width - 1, 0);
     return RadixEncode._(xor[0], multiplierSlice[multiplierSlice.width - 1]);
   }
 }
@@ -80,14 +78,11 @@ class Radix4Encoder extends RadixEncoder {
 
   @override
   RadixEncode encode(Logic multiplierSlice) {
-    final xor = Logic(width: multiplierSlice.width) - 1;
-    xor <=
-        (multiplierSlice ^ (multiplierSlice >>> 1))
-            .slice(multiplierSlice.width - 1, 0);
+    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
+        .slice(multiplierSlice.width - 1, 0);
 
-    final enc = RadixEncode._([~xor[0] & xor[1], xor[0]].swizzle(),
+    return RadixEncode._([~xor[0] & xor[1], xor[0]].swizzle(),
         multiplierSlice[multiplierSlice.width - 1]);
-    return enc;
   }
 }
 
@@ -98,12 +93,10 @@ class Radix8Encoder extends RadixEncoder {
 
   @override
   RadixEncode encode(Logic multiplierSlice) {
-    final xor = Logic(width: multiplierSlice.width) - 1;
-    xor <=
-        (multiplierSlice ^ (multiplierSlice >>> 1))
-            .slice(multiplierSlice.width - 1, 0);
+    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
+        .slice(multiplierSlice.width - 1, 0);
 
-    final enc = RadixEncode._(
+    return RadixEncode._(
         [
           xor[2] & ~xor[1] & ~xor[0], // 4M
           xor[2] & xor[0], // 3M
@@ -111,7 +104,6 @@ class Radix8Encoder extends RadixEncoder {
           ~xor[2] & xor[0], // M
         ].swizzle(),
         multiplierSlice[multiplierSlice.width - 1]);
-    return enc;
   }
 }
 
@@ -122,12 +114,10 @@ class Radix16Encoder extends RadixEncoder {
 
   @override
   RadixEncode encode(Logic multiplierSlice) {
-    final xor = Logic(width: multiplierSlice.width) - 1;
-    xor <=
-        (multiplierSlice ^ (multiplierSlice >>> 1))
-            .slice(multiplierSlice.width - 1, 0);
+    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
+        .slice(multiplierSlice.width - 1, 0);
 
-    final enc = RadixEncode._(
+    return RadixEncode._(
         [
           xor[3] & ~xor[2] & ~xor[1] & ~xor[0], // 8M
           xor[3] & ~xor[2] & xor[0], // 7M
@@ -139,7 +129,6 @@ class Radix16Encoder extends RadixEncoder {
           ~xor[3] & ~xor[2] & xor[0] // M
         ].swizzle(),
         multiplierSlice[multiplierSlice.width - 1]);
-    return enc;
   }
 }
 
@@ -170,14 +159,21 @@ class MultiplierEncoder {
     final base = row * (_sliceWidth - 1);
     final multiplierSlice = [
       if (row > 0)
-        {_extendedMultiplier.slice(base + _sliceWidth - 2, base - 1)}
+        _extendedMultiplier.slice(base + _sliceWidth - 2, base - 1)
       else
-        {
-          [_extendedMultiplier.slice(base + _sliceWidth - 2, base), Const(0)]
-              .swizzle()
-        }
+        [_extendedMultiplier.slice(base + _sliceWidth - 2, base), Const(0)]
+            .swizzle()
     ];
-    return _encoder.encode(multiplierSlice.first.first);
+    // final multiplierSlice = [
+    //   if (row > 0)
+    //     {_extendedMultiplier.slice(base + _sliceWidth - 2, base - 1)}
+    //   else
+    //     {
+    //       [_extendedMultiplier.slice(base + _sliceWidth - 2, base), Const(0)]
+    //           .swizzle()
+    //     }
+    // ];
+    return _encoder.encode(multiplierSlice.first);
   }
 }
 
@@ -248,6 +244,12 @@ class PartialProductGenerator {
   /// rows of partial products
   int get rows => partialProducts.length;
 
+  /// The multiplicand term (X)
+  Logic get multiplicand => selector.multiplicand;
+
+  /// The multiplier term (Y)
+  Logic get multiplier => encoder.multiplier;
+
   /// Partial Products output
   late List<List<Logic>> partialProducts = [];
 
@@ -290,22 +292,20 @@ class PartialProductGenerator {
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       // Perform full sign extension
-      final sign = partialProducts[row].last;
-      for (var col = 0; col < (rows - row) * shift; col++) {
-        partialProducts[row].add(sign);
-      }
+      final addend = partialProducts[row];
+      final sign = addend.last;
+      addend.addAll(List.filled((rows - row) * shift, sign));
       if (row > 0) {
         // Insert the carry from previous row
+        addend
+          ..insertAll(0, List.filled(shift - 1, Const(0)))
+          ..insert(0, signs[row - 1]);
         rowShift[row] -= shift;
-        for (var i = 0; i < shift - 1; i++) {
-          partialProducts[row].insert(0, Const(0));
-        }
-        partialProducts[row].insert(0, signs[row - 1]);
       }
     }
     // If last row has a carry insert carry bit in extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    partialProducts.last.insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
   }
 
@@ -318,34 +318,29 @@ class PartialProductGenerator {
       // Perform single sign extension:
       //    first row uses sign * #shift-1, stopped with ~sign
       //    other rows filp the MSB (sign) followed by #shift-1 stop bits (1)
-      final sign = partialProducts[row].last;
+      final addend = partialProducts[row];
+      final sign = addend.last;
       if (row == 0) {
-        for (var col = 0; col < shift - 1; col++) {
-          partialProducts[row].add(sign);
-        }
-        partialProducts[row].add(~sign);
+        addend
+          ..addAll(List.filled(shift - 1, sign))
+          ..add(~sign);
       } else {
-        partialProducts[row].last = ~sign;
-        for (var col = 0; col < shift - 1; col++) {
-          partialProducts[row].add(Const(1));
-        }
-
-        // Insert the carry from previous row
+        addend
+          ..last = ~sign
+          ..addAll(List.filled(shift - 1, Const(1)))
+          ..insertAll(0, List.filled(shift - 1, Const(0)))
+          ..insert(0, signs[row - 1]);
         rowShift[row] -= shift;
-        for (var i = 0; i < shift - 1; i++) {
-          partialProducts[row].insert(0, Const(0));
-        }
-        partialProducts[row].insert(0, signs[row - 1]);
       }
     }
-    // If last row has a carry, insert carry bit into extra row
+    // Insert carry bit into extra row
     partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts[rows - 1].insert(0, signs[rows - 2]);
+    partialProducts.last.insert(0, signs[rows - 2]);
     rowShift.add((rows - 2) * shift);
 
     // Hack for radix-2
     if (shift == 1) {
-      partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
+      partialProducts.last.last = ~partialProducts.last.last;
     }
   }
 
@@ -365,54 +360,50 @@ class PartialProductGenerator {
                 (finalCarryRelPos > 0))
             ? (finalCarryRelPos / shift).floor()
             : 0;
-    stdout.write(
-        'pos=$finalCarryPos, $finalCarryRelPos, predict row=$finalCarryRow\n');
 
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
+      final addend = partialProducts[row];
       // Perform single sign extension:
       //    first row uses sign * #shift-1, stopped with ~sign
       //    other rows filp the MSB (sign) followed by #shift-1 stop bits (1)
-      final sign = partialProducts[row].last;
+      final sign = addend.last;
       if (row == 0) {
-        for (var col = 0; col < shift - 1; col++) {
-          partialProducts[row].add(sign);
-        }
-        partialProducts[row].add(~sign);
+        addend
+          ..addAll(List.filled(shift - 1, sign))
+          ..add(~sign);
       } else {
-        partialProducts[row].last = ~sign;
-        for (var col = 0; col < shift - 1; col++) {
-          stdout.write('adding 1 to row $row\n');
-          partialProducts[row].add(Const(1));
-        }
-        // Insert the carry from previous row
+        // sign extend and insert the carry from previous row
+        addend
+          ..last = ~sign
+          ..addAll(List.filled(shift - 1, Const(1)))
+          ..insertAll(0, List.filled(shift - 1, Const(0)))
+          ..insert(0, signs[row - 1]);
         rowShift[row] -= shift;
-        for (var i = 0; i < shift - 1; i++) {
-          partialProducts[row].insert(0, Const(0));
-        }
-        // TODO(desmonddak): Try this
-        // partialProducts[row].addAll([Const(0) * (shift - 1)]);
-        partialProducts[row].insert(0, signs[row - 1]);
       }
     }
 
     if (finalCarryRow > 0) {
       final extensionRow = partialProducts[finalCarryRow];
-
-      while (finalCarryPos > extensionRow.length + rowShift[finalCarryRow]) {
-        extensionRow.add(Const(0));
-      }
-      extensionRow.add(signs[rows - 1]);
+      extensionRow
+        ..addAll(List.filled(
+            finalCarryPos - (extensionRow.length + rowShift[finalCarryRow]),
+            Const(0)))
+        ..add(signs[rows - 1]);
+      // while (finalCarryPos > extensionRow.length + rowShift[finalCarryRow]) {
+      //   extensionRow.add(Const(0));
+      // }
     } else {
       // Create an extra row to hold the final carry bit
-      partialProducts.add(List.generate(selector.width, (i) => Const(0)));
+      partialProducts
+          .add(List.filled(selector.width, Const(0), growable: true));
       // New last row
-      partialProducts[rows - 1].insert(0, signs[rows - 2]);
+      partialProducts.last.insert(0, signs[rows - 2]);
       rowShift.add((rows - 2) * shift);
 
       // Hack for radix-2
       if (shift == 1) {
-        partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
+        partialProducts.last.last = ~partialProducts.last.last;
       }
     }
   }
@@ -422,89 +413,90 @@ class PartialProductGenerator {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
     final lastRow = rows - 1;
+    final firstAddend = partialProducts[0];
+    final lastAddend = partialProducts[lastRow];
+    final alignRow0Sign = selector.width - 1 - shift * lastRow;
+
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
 
-    final propagate = <List<Logic>>[];
-    for (var r = 0; r < rows; r++) {
-      propagate.add(<Logic>[]);
-      propagate[r].add(signs[r]);
-      // last row uses 4 propagate, but first rows use only 3?
-      for (var c = 0; c < 2 * (shift - 1); c++) {
-        propagate[r].add(partialProducts[r][c]);
+    final propagate =
+        List.generate(rows, (i) => List.filled(0, Logic(), growable: true));
+    for (var row = 0; row < rows; row++) {
+      // propagate.add(<Logic>[]);
+      propagate[row].add(signs[row]);
+      for (var col = 0; col < 2 * (shift - 1); col++) {
+        propagate[row].add(partialProducts[row][col]);
       }
-      for (var c = 1; c < propagate[r].length; c++) {
-        propagate[r][c] = propagate[r][c] & propagate[r][c - 1];
+      for (var col = 1; col < propagate[row].length; col++) {
+        propagate[row][col] = propagate[row][col] & propagate[row][col - 1];
       }
     }
-
-    final remainders = [for (var i = 0; i < rows; i++) Logic()];
-    for (var r = 0; r < lastRow; r++) {
-      remainders[r] = propagate[r][shift - 1];
-    }
-    final m = <List<Logic>>[];
-    for (var r = 0; r < rows; r++) {
-      m.add(<Logic>[]);
+    // final m = <List<Logic>>[];
+    final m =
+        List.generate(rows, (i) => List.filled(0, Logic(), growable: true));
+    for (var row = 0; row < rows; row++) {
+      // m.add(<Logic>[]);
       for (var c = 0; c < shift - 1; c++) {
-        m[r].add(partialProducts[r][c] ^ propagate[r][c]);
+        m[row].add(partialProducts[row][c] ^ propagate[row][c]);
       }
-      for (var c = 0; c < shift - 1; c++) {
-        m[r].add(Logic());
-      }
+      m[row].addAll(List.filled(shift - 1, Logic()));
     }
 
-    final row0SignPos = selector.width - 1;
-    final alignRow0Sign = row0SignPos - shift * lastRow;
-
-    remainders[lastRow] <= propagate[lastRow][alignRow0Sign];
-
-    // New style of fixing m:
     for (var i = shift - 1; i < m[lastRow].length; i++) {
-      if (i < alignRow0Sign) {
-        m[lastRow][i] = partialProducts[lastRow][i] ^ propagate[lastRow][i];
-      } else {
-        m[lastRow][i] = partialProducts[lastRow][i];
-      }
+      m[lastRow][i] = lastAddend[i] ^
+          (i < alignRow0Sign ? propagate[lastRow][i] : Const(0));
     }
+    final remainders = List.filled(rows, Logic());
+    for (var row = 0; row < lastRow; row++) {
+      remainders[row] = propagate[row][shift - 1];
+    }
+    remainders[lastRow] <= propagate[lastRow][alignRow0Sign];
     // Hack for radix-2
     if (shift == 1) {
-      partialProducts[rows - 1].last = ~partialProducts[rows - 1].last;
-      partialProducts[rows - 1].add(Const(0));
+      lastAddend
+        ..last = ~lastAddend.last
+        ..add(Const(0));
     }
 
     // Compute Sign extension for row==0
     final q = [
-      partialProducts[0].last ^ remainders[lastRow],
-      ~(partialProducts[0].last & ~remainders[lastRow]),
+      firstAddend.last ^ remainders[lastRow],
+      ~(firstAddend.last & ~remainders[lastRow]),
     ];
-    final qLast = q[1];
-    for (var i = 0; i < shift - 1; i++) {
-      q.insert(1, ~qLast);
-    }
+    q.insertAll(1, List.filled(shift - 1, ~q[1]));
+    // final qLast = q[1];
+    // for (var i = 0; i < shift - 1; i++) {
+    //   q.insert(1, ~qLast);
+    // }
 
     for (var row = 0; row < rows; row++) {
+      final addend = partialProducts[row];
       if (row > 0) {
-        partialProducts[row].insert(0, remainders[row - 1]);
-        rowShift[row] -= 1;
         final mLimit = (row == lastRow) ? 2 * (shift - 1) : shift - 1;
         for (var i = 0; i < mLimit; i++) {
-          partialProducts[row][i + 1] = m[row][i];
+          addend[i] = m[row][i];
         }
         // Stop bits
-        partialProducts[row].last = ~partialProducts[row].last;
-        for (var i = 0; i < shift - 1; i++) {
-          partialProducts[row].add(Const(1));
-        }
+        addend
+          ..insert(0, remainders[row - 1])
+          ..last = ~partialProducts[row].last
+          ..addAll(List.filled(shift - 1, Const(1)));
+        rowShift[row] -= 1;
       } else {
         for (var i = 0; i < shift - 1; i++) {
-          partialProducts[0][i] = m[0][i];
+          firstAddend[i] = m[0][i];
         }
-        for (var i = 0; i < q.length; i++) {
-          if (i == 0) {
-            partialProducts[0].last = q[i];
-          } else {
-            partialProducts[0].add(q[i]);
-          }
-        }
+        firstAddend
+          ..last = q[0]
+          ..addAll(q.getRange(1, q.length));
+
+        // for (var i = 0; i < q.length; i++) {
+        //   if (i == 0) {
+        //     firstAddend.last = q[i];
+        //   } else {
+        //     firstAddend.add(q[i]);
+        //   }
+        // }
       }
     }
   }
@@ -527,8 +519,7 @@ class PartialProductGenerator {
     var accum = BigInt.from(0);
     for (var row = 0; row < rows; row++) {
       final pp = partialProducts[row].rswizzle().value;
-      final value = partialProducts[row].rswizzle().value.zeroExtend(maxW) <<
-          rowShift[row];
+      final value = pp.zeroExtend(maxW) << rowShift[row];
       if (pp.isValid) {
         accum += value.toBigInt();
       }

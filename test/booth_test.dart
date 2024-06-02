@@ -11,22 +11,48 @@ import 'dart:io';
 import 'dart:math';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
+import 'package:rohd_hcl/src/utils.dart';
 import 'package:test/test.dart';
 
-// TODO(desmonddak): extend compact to radix4
-// TODO(desmonddak): test compact for square radix2,4,8,16
+enum SignExtension { brute, stop, stopRect, compact }
 // TODO(desmonddak): cleanup and check in
 // TODO(desmonddak): combine rectangular with compact
+
+void testPartialProductExhaustive(PartialProductGenerator pp) {
+  final widthX = pp.selector.multiplicand.width;
+  final widthY = pp.encoder.multiplier.width;
+
+  final limitX = pow(2, widthX);
+  final limitY = pow(2, widthY);
+  for (var i = 0; i < limitX; i++) {
+    for (var j = 0; j < limitY; j++) {
+      final X = BigInt.from(i).toSigned(widthX);
+      final Y = BigInt.from(j).toSigned(widthY);
+      final product = X * Y;
+
+      pp.multiplicand.put(X);
+      pp.multiplier.put(Y);
+      // stdout.write('$i($X) * $j($Y): should be $product\n');
+      if (pp.evaluate(signed: true) != product) {
+        stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
+            'vs expected $product\n');
+        pp.print();
+      }
+      expect(pp.evaluate(signed: true), equals(product));
+    }
+  }
+}
+
 void main() {
   test('single partial product test', () async {
     final encoder = Radix4Encoder();
     const widthX = 10; // 4/7:  64   4/10: 512
     const widthY = 10;
 // 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
-    const i = 16;
+    const i = 1;
     var j = pow(2, widthY - 1).toInt();
     // j = 128; // r=16,N=8
-    j = 16; // r=16,N=9?
+    j = 3; // r=16,N=9?
     // j = 64; // r=8,N=7
     final X = BigInt.from(i).toSigned(widthX);
     final Y = BigInt.from(j).toSigned(widthY);
@@ -58,38 +84,109 @@ void main() {
     }
     expect(pp.evaluate(signed: true), equals(product));
   });
-  test('exhaustive partial product evaluate test', () async {
+
+  // TODO(dakdesmond): Why cannot radix8 handle Y width 3
+  test('exhaustive rectangular partial product evaluate test', () async {
     final encoder = Radix8Encoder();
-    for (var width = 4; width < 5; width++) {
+    for (var width = 5; width < 6; width++) {
       final widthX = width;
-      final widthY = width;
-      final logicX = Logic(name: 'X', width: widthX);
-      final logicY = Logic(name: 'Y', width: widthY);
-      final pp = PartialProductGenerator(logicX, logicY, encoder);
+      stdout.write('Testing widthX=$widthX\n');
+      for (var skew = -1; skew < 2; skew++) {
+        final widthY = width + skew;
+        stdout.write('\tTesting widthY=$widthY\n');
+
+        final pp = PartialProductGenerator(Logic(name: 'X', width: widthX),
+            Logic(name: 'Y', width: widthY), encoder);
+        // ignore: cascade_invocations
+        pp.signExtendWithStopBitsRect();
+
+        testPartialProductExhaustive(pp);
+      }
+    }
+  });
+
+  test('exhaustive partial product evaluate single test', () async {
+    final encoder = Radix8Encoder();
+    for (var width = 5; width < 6; width++) {
+      final pp = PartialProductGenerator(Logic(name: 'X', width: width),
+          Logic(name: 'Y', width: width), encoder);
       // ignore: cascade_invocations
-      pp
-        // ..bruteForceSignExtend()
-        // .signExtendWithStopBits();
-        // .signExtendWithStopBitsRect();
-        ..signExtendCompact();
+      pp..bruteForceSignExtend();
+      // pp.signExtendWithStopBits();
+      // pp.signExtendWithStopBitsRect();
+      // ignore: cascade_invocations
+      // pp.signExtendCompact();
 
-      final limitX = pow(2, widthX);
-      final limitY = pow(2, widthY);
-      for (var i = 0; i < limitX; i++) {
-        for (var j = 0; j < limitY; j++) {
-          final X = BigInt.from(i).toSigned(widthX);
-          final Y = BigInt.from(j).toSigned(widthY);
-          final product = X * Y;
+      testPartialProductExhaustive(pp);
+    }
+  });
 
-          logicX.put(X);
-          logicY.put(Y);
-          // stdout.write('$i($X) * $j($Y): should be $product\n');
-          if (pp.evaluate(signed: true) != product) {
-            stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
-                'vs expected $product\n');
-            pp.print();
+  // This is a two-minute exhaustive but quick test
+  test(
+      'exhaustive partial product evaluate: square all radix, all SignExtension',
+      () async {
+    for (var radix = 2; radix < 32; radix *= 2) {
+      final encoder = switch (radix) {
+        2 => Radix2Encoder(),
+        4 => Radix4Encoder(),
+        8 => Radix8Encoder(),
+        16 => Radix16Encoder(),
+        _ => Radix2Encoder(),
+      };
+      stdout.write('encoding with $encoder\n');
+      final shift = log2Ceil(encoder.radix);
+      for (var width = shift + 1; width < shift + 2; width++) {
+        stdout.write('\tTesting width=$width\n');
+        for (final signExtension in SignExtension.values) {
+          final pp = PartialProductGenerator(Logic(name: 'X', width: width),
+              Logic(name: 'Y', width: width), encoder);
+          switch (signExtension) {
+            case SignExtension.brute:
+              pp.bruteForceSignExtend();
+            case SignExtension.stop:
+              pp.signExtendWithStopBits();
+            case SignExtension.stopRect:
+              pp.signExtendWithStopBitsRect();
+            case SignExtension.compact:
+              pp.signExtendCompact();
           }
-          expect(pp.evaluate(signed: true), equals(product));
+          stdout.write('\tTesting extension=$signExtension\n');
+          testPartialProductExhaustive(pp);
+        }
+      }
+    }
+  });
+  // radix16 takes a long time to complete
+  test('exhaustive partial product evaluate: rectangular all radix,', () async {
+    for (var radix = 2; radix < 32; radix *= 2) {
+      final encoder = switch (radix) {
+        2 => Radix2Encoder(),
+        4 => Radix4Encoder(),
+        8 => Radix8Encoder(),
+        16 => Radix16Encoder(),
+        _ => Radix2Encoder(),
+      };
+      stdout.write('encoding with $encoder\n');
+      final shift = log2Ceil(encoder.radix);
+      for (var width = shift + 1; width < shift + 2; width++) {
+        for (var skew = 0; skew < shift + 1; skew++) {
+          stdout.write('\tTesting width=$width skew=$skew\n');
+          for (final signExtension in [SignExtension.brute]) {
+            final pp = PartialProductGenerator(Logic(name: 'X', width: width),
+                Logic(name: 'Y', width: width + skew), encoder);
+            switch (signExtension) {
+              case SignExtension.brute:
+                pp.bruteForceSignExtend();
+              case SignExtension.stop:
+                pp.signExtendWithStopBits();
+              case SignExtension.stopRect:
+                pp.signExtendWithStopBitsRect();
+              case SignExtension.compact:
+                pp.signExtendCompact();
+            }
+            stdout.write('\tTesting extension=$signExtension\n');
+            testPartialProductExhaustive(pp);
+          }
         }
       }
     }
@@ -100,9 +197,9 @@ void main() {
   /// valuable debug information.
   test('slow exhaustive partial product evaluate test', () async {
     final encoder = Radix16Encoder();
-    for (var width = 7; width < 8; width++) {
+    for (var width = 5; width < 6; width++) {
       final widthX = width;
-      final widthY = width + 16;
+      final widthY = width + 1;
       final logicX = Logic(name: 'X', width: widthX);
       final logicY = Logic(name: 'Y', width: widthY);
       // ignore: cascade_invocationskjkjkkkkk
@@ -122,8 +219,8 @@ void main() {
           pp
             // ..bruteForceSignExtend()
             // .signExtendWithStopBits();
-            // ..signExtendWithStopBitsRect();
-            ..signExtendCompact();
+            ..signExtendWithStopBitsRect();
+          // ..signExtendCompact();
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
                 'vs expected $product\n');
