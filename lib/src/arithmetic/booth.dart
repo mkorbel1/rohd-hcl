@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // booth.dart
-// Implementation of compression trees for multipliers
+// Generation of Booth Encoded partial products for multiplication
 //
 // 2024 May 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
@@ -77,30 +77,6 @@ class RadixEncoder {
     return RadixEncode._(
         multiples.rswizzle(), multiplierSlice[multiplierSlice.width - 1]);
   }
-}
-
-/// A Radix-2 encoder
-class Radix2Encoder extends RadixEncoder {
-  /// Create a Radix-2 encoder
-  Radix2Encoder() : super(2);
-}
-
-/// A Radix-4 encoder
-class Radix4Encoder extends RadixEncoder {
-  /// Create a Radix-4 encoder
-  Radix4Encoder() : super(4);
-}
-
-/// A Radix-8 encoder
-class Radix8Encoder extends RadixEncoder {
-  /// Create a Radix-8 encoder
-  Radix8Encoder() : super(8);
-}
-
-/// A Radix-16 encoder
-class Radix16Encoder extends RadixEncoder {
-  /// Create a Radix-16 encoder
-  Radix16Encoder() : super(16);
 }
 
 /// A class that generates the Booth encoding of the multipler
