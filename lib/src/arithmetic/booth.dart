@@ -111,6 +111,42 @@ class Radix8Encoder extends RadixEncoder {
   }
 }
 
+/// A Radix-Nencoder based on a generator
+class RadixNEncoder extends RadixEncoder {
+  /// Create a Radix-N encoder
+  RadixNEncoder(super.radix) : super.initRadix();
+
+  @override
+  RadixEncode encode(Logic multiplierSlice) {
+    final width = log2Ceil(radix) + 1;
+    final inputXor = Logic(width: width);
+    inputXor <=
+        (multiplierSlice ^ (multiplierSlice >>> 1))
+            .slice(multiplierSlice.width - 1, 0);
+    final multiples = <Logic>[];
+
+    for (var i = 2; i < radix + 1; i += 2) {
+      final variantA = LogicValue.ofInt(i - 1, width);
+      final xorA = variantA ^ (variantA >>> 1);
+      final variantB = LogicValue.ofInt(i, width);
+      final xorB = variantB ^ (variantB >>> 1);
+      // Multiples don't agree on a bit position so we will skip that position
+      final multiplesDisagree = xorA ^ xorB;
+      // Where multiples agree, we need the sense or direction (1 or 0)
+      final senseMultiples = xorA & xorB;
+
+      multiples.add([
+        for (var j = 0; j < width - 1; j++)
+          if (multiplesDisagree[j].isZero)
+            if (senseMultiples[j].isZero) ~inputXor[j] else inputXor[j]
+      ].swizzle().and());
+    }
+
+    return RadixEncode._(
+        multiples.rswizzle(), multiplierSlice[multiplierSlice.width - 1]);
+  }
+}
+
 /// A Radix-16 encoder
 class Radix16Encoder extends RadixEncoder {
   /// Create a Radix-16 encoder
