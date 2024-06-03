@@ -57,60 +57,6 @@ class RadixEncoder {
   }
 }
 
-/// A Radix-2 encoder
-class Radix2Encoder extends RadixEncoder {
-  /// Create a Radix-2 encoder
-  Radix2Encoder() : super.initRadix(2);
-
-  // multiple is in [0,1]  followed by sign
-  @override
-  RadixEncode encode(Logic multiplierSlice) {
-    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
-        .slice(multiplierSlice.width - 1, 0);
-    return RadixEncode._(xor[0], multiplierSlice[multiplierSlice.width - 1]);
-  }
-}
-
-/// A Radix-4 encoder
-class Radix4Encoder extends RadixEncoder {
-  /// Create a Radix-4 encoder
-  Radix4Encoder() : super.initRadix(4);
-
-  @override
-  RadixEncode encode(Logic multiplierSlice) {
-    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
-        .slice(multiplierSlice.width - 1, 0);
-
-    return RadixEncode._(
-        [
-          xor[1] & ~xor[0], // 2M
-          xor[0] // 1M
-        ].swizzle(),
-        multiplierSlice[multiplierSlice.width - 1]);
-  }
-}
-
-/// A Radix-8 encoder
-class Radix8Encoder extends RadixEncoder {
-  /// Create a Radix-8 encoder
-  Radix8Encoder() : super.initRadix(8);
-
-  @override
-  RadixEncode encode(Logic multiplierSlice) {
-    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
-        .slice(multiplierSlice.width - 1, 0);
-
-    return RadixEncode._(
-        [
-          xor[2] & ~xor[1] & ~xor[0], // 4M
-          xor[2] & xor[0], // 3M
-          xor[1] & ~xor[0], // 2M
-          ~xor[2] & xor[0], // M
-        ].swizzle(),
-        multiplierSlice[multiplierSlice.width - 1]);
-  }
-}
-
 /// A Radix-Nencoder based on a generator
 class RadixNEncoder extends RadixEncoder {
   /// Create a Radix-N encoder
@@ -123,8 +69,8 @@ class RadixNEncoder extends RadixEncoder {
     inputXor <=
         (multiplierSlice ^ (multiplierSlice >>> 1))
             .slice(multiplierSlice.width - 1, 0);
-    final multiples = <Logic>[];
 
+    final multiples = <Logic>[];
     for (var i = 2; i < radix + 1; i += 2) {
       final variantA = LogicValue.ofInt(i - 1, width);
       final xorA = variantA ^ (variantA >>> 1);
@@ -147,29 +93,28 @@ class RadixNEncoder extends RadixEncoder {
   }
 }
 
+/// A Radix-2 encoder
+class Radix2Encoder extends RadixNEncoder {
+  /// Create a Radix-2 encoder
+  Radix2Encoder() : super(2);
+}
+
+/// A Radix-4 encoder
+class Radix4Encoder extends RadixNEncoder {
+  /// Create a Radix-4 encoder
+  Radix4Encoder() : super(4);
+}
+
+/// A Radix-8 encoder
+class Radix8Encoder extends RadixNEncoder {
+  /// Create a Radix-8 encoder
+  Radix8Encoder() : super(8);
+}
+
 /// A Radix-16 encoder
-class Radix16Encoder extends RadixEncoder {
+class Radix16Encoder extends RadixNEncoder {
   /// Create a Radix-16 encoder
-  Radix16Encoder() : super.initRadix(16);
-
-  @override
-  RadixEncode encode(Logic multiplierSlice) {
-    final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
-        .slice(multiplierSlice.width - 1, 0);
-
-    return RadixEncode._(
-        [
-          xor[3] & ~xor[2] & ~xor[1] & ~xor[0], // 8M
-          xor[3] & ~xor[2] & xor[0], // 7M
-          xor[3] & xor[1] & ~xor[0], // 6M
-          xor[3] & xor[2] & xor[0], // 5M
-          xor[2] & ~xor[1] & ~xor[0], // 4M
-          ~xor[3] & xor[2] & xor[0], // 3M
-          ~xor[3] & xor[1] & ~xor[0], // 2M
-          ~xor[3] & ~xor[2] & xor[0] // M
-        ].swizzle(),
-        multiplierSlice[multiplierSlice.width - 1]);
-  }
+  Radix16Encoder() : super(16);
 }
 
 /// A class that generates the Booth encoding of the multipler
