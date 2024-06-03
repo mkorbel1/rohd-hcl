@@ -9,14 +9,11 @@
 
 import 'dart:io';
 import 'dart:math';
-import 'package:collection/collection.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:rohd_hcl/src/utils.dart';
-import 'package:test/expect.dart';
 import 'package:test/test.dart';
 
-// TODO(desmonddak): Generalize radix recoding using xor equations
 // TODO(desmonddak): combine rectangular with compact
 
 enum SignExtension { brute, stop, stopRect, compact }
@@ -48,7 +45,7 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
 
 void main() {
   test('single partial product test', () async {
-    final encoder = Radix16Encoder();
+    final encoder = RadixEncoder(16);
     const widthX = 10; // 4/7:  64   4/10: 512
     const widthY = 10;
 // 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
@@ -90,7 +87,7 @@ void main() {
 
   // TODO(dakdesmond): Why cannot radix8 handle Y width 3
   test('exhaustive rectangular partial product evaluate test', () async {
-    final encoder = Radix8Encoder();
+    final encoder = RadixEncoder(8);
     for (var width = 5; width < 6; width++) {
       final widthX = width;
       stdout.write('Testing widthX=$widthX\n');
@@ -109,7 +106,7 @@ void main() {
   });
 
   test('exhaustive partial product evaluate single test', () async {
-    final encoder = Radix16Encoder();
+    final encoder = RadixEncoder(16);
     for (var width = 5; width < 6; width++) {
       final pp = PartialProductGenerator(Logic(name: 'X', width: width),
           Logic(name: 'Y', width: width), encoder);
@@ -129,13 +126,7 @@ void main() {
       'exhaustive partial product evaluate: square all radix, all SignExtension',
       () async {
     for (var radix = 2; radix < 32; radix *= 2) {
-      final encoder = switch (radix) {
-        2 => Radix2Encoder(),
-        4 => Radix4Encoder(),
-        8 => Radix8Encoder(),
-        16 => Radix16Encoder(),
-        _ => Radix2Encoder(),
-      };
+      final encoder = RadixEncoder(radix);
       stdout.write('encoding with $encoder\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
@@ -162,13 +153,7 @@ void main() {
   // radix16 takes a long time to complete
   test('exhaustive partial product evaluate: rectangular all radix,', () async {
     for (var radix = 2; radix < 32; radix *= 2) {
-      final encoder = switch (radix) {
-        2 => Radix2Encoder(),
-        4 => Radix4Encoder(),
-        8 => Radix8Encoder(),
-        16 => Radix16Encoder(),
-        _ => Radix2Encoder(),
-      };
+      final encoder = RadixEncoder(radix);
       stdout.write('encoding with $encoder\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
@@ -199,7 +184,7 @@ void main() {
   ///  during each elaboration will have valid logic values which can provide
   /// valuable debug information.
   test('slow exhaustive partial product evaluate test', () async {
-    final encoder = Radix16Encoder();
+    final encoder = RadixEncoder(16);
     const signExtension = SignExtension.brute;
     for (var width = 5; width < 6; width++) {
       final widthX = width;
@@ -248,13 +233,8 @@ void main() {
     // for (var radix = 2; radix < 32; radix *= 2) {
     for (var radix = 2; radix < 32; radix *= 2) {
       stdout.write('Radix-$radix\n');
-      final encoder = switch (radix) {
-        2 => Radix2Encoder(),
-        4 => Radix4Encoder(),
-        8 => Radix8Encoder(),
-        16 => Radix16Encoder(),
-        _ => Radix2Encoder(),
-      };
+      final encoder = RadixEncoder(radix);
+
       final width = log2Ceil(radix) + 1;
       final inputXor = Logic(width: width);
       final multiples = <Logic>[];
@@ -297,7 +277,7 @@ void main() {
           inLogic.put(inValue);
           final code = encoder.encode(inLogic).multiples[multPos - 1];
           final newCode =
-              RadixNEncoder(radix).encode(inLogic).multiples[multPos - 1];
+              RadixEncoder(radix).encode(inLogic).multiples[multPos - 1];
           inputXor.put(inValue ^ (inValue >>> 1));
           stdout
             ..write('in=${bitString(inValue)} ')
