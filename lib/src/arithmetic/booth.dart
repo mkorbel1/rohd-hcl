@@ -42,10 +42,7 @@ class RadixEncoder {
   int radix;
 
   /// Baseline call for setting up an empty radixEncoder
-  RadixEncoder() : radix = 0;
-
-  /// Structure style of radix radixEncoder
-  RadixEncoder.initRadix(this.radix);
+  RadixEncoder(this.radix);
 
   /// Encode a multiplier slice into the Booth encoded value
   RadixEncode encode(Logic multiplierSlice) {
@@ -53,17 +50,6 @@ class RadixEncoder {
         multiplierSlice.width == log2Ceil(radix) + 1,
         'multiplier slice width ${multiplierSlice.width}'
         'must be same length as log(radix)+1=${log2Ceil(radix) + 1}');
-    return RadixEncode(numMultiples: 0);
-  }
-}
-
-/// A Radix-Nencoder based on a generator
-class RadixNEncoder extends RadixEncoder {
-  /// Create a Radix-N encoder
-  RadixNEncoder(super.radix) : super.initRadix();
-
-  @override
-  RadixEncode encode(Logic multiplierSlice) {
     final width = log2Ceil(radix) + 1;
     final inputXor = Logic(width: width);
     inputXor <=
@@ -94,25 +80,25 @@ class RadixNEncoder extends RadixEncoder {
 }
 
 /// A Radix-2 encoder
-class Radix2Encoder extends RadixNEncoder {
+class Radix2Encoder extends RadixEncoder {
   /// Create a Radix-2 encoder
   Radix2Encoder() : super(2);
 }
 
 /// A Radix-4 encoder
-class Radix4Encoder extends RadixNEncoder {
+class Radix4Encoder extends RadixEncoder {
   /// Create a Radix-4 encoder
   Radix4Encoder() : super(4);
 }
 
 /// A Radix-8 encoder
-class Radix8Encoder extends RadixNEncoder {
+class Radix8Encoder extends RadixEncoder {
   /// Create a Radix-8 encoder
   Radix8Encoder() : super(8);
 }
 
 /// A Radix-16 encoder
-class Radix16Encoder extends RadixNEncoder {
+class Radix16Encoder extends RadixEncoder {
   /// Create a Radix-16 encoder
   Radix16Encoder() : super(16);
 }
