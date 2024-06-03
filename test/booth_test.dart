@@ -14,9 +14,10 @@ import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:rohd_hcl/src/utils.dart';
 import 'package:test/test.dart';
 
-enum SignExtension { brute, stop, stopRect, compact }
-// TODO(desmonddak): cleanup and check in
+// TODO(desmonddak): Generalize radix recoding using xor equations
 // TODO(desmonddak): combine rectangular with compact
+
+enum SignExtension { brute, stop, stopRect, compact }
 
 void testPartialProductExhaustive(PartialProductGenerator pp) {
   final widthX = pp.selector.multiplicand.width;
@@ -45,14 +46,14 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
 
 void main() {
   test('single partial product test', () async {
-    final encoder = Radix4Encoder();
+    final encoder = Radix16Encoder();
     const widthX = 10; // 4/7:  64   4/10: 512
     const widthY = 10;
 // 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
     const i = 1;
     var j = pow(2, widthY - 1).toInt();
     // j = 128; // r=16,N=8
-    j = 3; // r=16,N=9?
+    j = 11; // r=16,N=9?
     // j = 64; // r=8,N=7
     final X = BigInt.from(i).toSigned(widthX);
     final Y = BigInt.from(j).toSigned(widthY);
@@ -106,16 +107,16 @@ void main() {
   });
 
   test('exhaustive partial product evaluate single test', () async {
-    final encoder = Radix8Encoder();
+    final encoder = Radix16Encoder();
     for (var width = 5; width < 6; width++) {
       final pp = PartialProductGenerator(Logic(name: 'X', width: width),
           Logic(name: 'Y', width: width), encoder);
       // ignore: cascade_invocations
-      pp..bruteForceSignExtend();
+      // pp..bruteForceSignExtend();
       // pp.signExtendWithStopBits();
       // pp.signExtendWithStopBitsRect();
       // ignore: cascade_invocations
-      // pp.signExtendCompact();
+      pp.signExtendCompact();
 
       testPartialProductExhaustive(pp);
     }
@@ -197,6 +198,7 @@ void main() {
   /// valuable debug information.
   test('slow exhaustive partial product evaluate test', () async {
     final encoder = Radix16Encoder();
+    const signExtension = SignExtension.brute;
     for (var width = 5; width < 6; width++) {
       final widthX = width;
       final widthY = width + 1;
@@ -216,11 +218,16 @@ void main() {
           logicY.put(Y);
 
           final pp = PartialProductGenerator(logicX, logicY, encoder);
-          pp
-            // ..bruteForceSignExtend()
-            // .signExtendWithStopBits();
-            ..signExtendWithStopBitsRect();
-          // ..signExtendCompact();
+          switch (signExtension) {
+            case SignExtension.brute:
+              pp.bruteForceSignExtend();
+            case SignExtension.stop:
+              pp.signExtendWithStopBits();
+            case SignExtension.stopRect:
+              pp.signExtendWithStopBitsRect();
+            case SignExtension.compact:
+              pp.signExtendCompact();
+          }
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
                 'vs expected $product\n');
@@ -231,39 +238,46 @@ void main() {
       }
     }
   });
-  test('radix16 extract', () async {
-    for (var i = 0; i < pow(2, 5); i++) {
-      final m = (i < 16 ? 1 : -1) *
-          ((i < 16 ? 0 : 16) + ((i / 2).ceil() % 16) * (i < 16 ? 1 : -1));
-      final x = LogicValue.ofInt(i, 5);
-      final xor = x ^ (x >>> 1);
-      //             1        0       0      0
-      final m8 = xor[3] & ~xor[2] & ~xor[1] & ~xor[0]; // 8M
-      //             1       0       -      1
-      final m7 = xor[3] & ~xor[2] & xor[0]; // 7M
-      //             1       -       1       0
-      final m6 = xor[3] & xor[1] & ~xor[0]; // 6M
-      //             1       1       -       1
-      final m5 = xor[3] & xor[2] & xor[0]; // 5M
-      //             -       1       0       0
-      final m4 = xor[2] & ~xor[1] & ~xor[0]; // 4M
-      //              0       1      -       1
-      final m3 = ~xor[3] & xor[2] & xor[0]; // 3M
-      //             0       -       1      0
-      final m2 = ~xor[3] & xor[1] & ~xor[0]; // 2M
-      //             0       0      -     1
-      final m1 = ~xor[3] & ~xor[2] & xor[0]; // M
 
-      // Let's try to predict:
-      // final myM = i &&
-      stdout.write('$i: ${(i >>> 1) + i % 2} x=${bitString(x)} '
-          'm=$m xor=${bitString(xor)}(${xor.toInt()}) '
-          '$m1 $m2 $m3 $m4 $m5 $m6 $m7 $m8\n');
+  // This routine is to reverse-engineer how to create booth encoders from
+  //  XOR computations on the multiplier bits
+  test('radix extract', () async {
+    for (var radix = 2; radix < 32; radix *= 2) {
+      stdout.write('Radix-$radix\n');
+      final width = log2Ceil(radix) + 1;
+      for (var i = 2; i < pow(2, log2Ceil(radix) + 1) + 1; i += 2) {
+        // final m = (i < radix ? 1 : -1) *
+        //     ((i < radix ? 0 : radix) +
+        //         ((i / 2).ceil() % radix) * (i < radix ? 1 : -1));
+
+        if (i < radix + 1) {
+          final pastX = LogicValue.ofInt(i - 1, width);
+          final x = LogicValue.ofInt(i, width);
+          final pastXor = pastX ^ (pastX >>> 1);
+          final xor = x ^ (x >>> 1);
+          // Multiples don't agree on a bit position so we will skip
+          final multiplesDisagree = xor ^ pastXor;
+          // Where multiples agree, we need the sense or direction (1 or 0)
+          final senseMultiples = xor & pastXor;
+
+          stdout
+            ..write('\tM${(i >>> 1) + i % 2} x=${bitString(x)} '
+                'lx=${bitString(pastX)} '
+                // 'm=$m xor=${bitString(xor)}(${xor.toInt()}) '
+                'dontcare=${bitString(multiplesDisagree)}'
+                ' agree=${bitString(senseMultiples)}')
+            ..write(':    ');
+          for (var j = 0; j < width - 1; j++) {
+            if (multiplesDisagree[j].isZero) {
+              if (senseMultiples[j].isZero) {
+                stdout.write('~');
+              }
+              stdout.write('xor[$j] ');
+            }
+          }
+          stdout.write('\n');
+        }
+      }
     }
   });
 }
-// TODO(desmonddak): Generalize radix recoding using xor equations
-// TODO(desmonddak): Calculate the folding method for sign extension
-//    using m() and q() vectors
-// TODO(desmonddak): Create the PP->PP logic change for sign extension
-//     rather than modifying in-situ:   PP function (PP);

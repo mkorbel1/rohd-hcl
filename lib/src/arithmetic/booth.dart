@@ -81,7 +81,11 @@ class Radix4Encoder extends RadixEncoder {
     final xor = (multiplierSlice ^ (multiplierSlice >>> 1))
         .slice(multiplierSlice.width - 1, 0);
 
-    return RadixEncode._([~xor[0] & xor[1], xor[0]].swizzle(),
+    return RadixEncode._(
+        [
+          xor[1] & ~xor[0], // 2M
+          xor[0] // 1M
+        ].swizzle(),
         multiplierSlice[multiplierSlice.width - 1]);
   }
 }
