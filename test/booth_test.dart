@@ -36,7 +36,7 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
       if (pp.evaluate(signed: true) != product) {
         stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
             'vs expected $product\n');
-        pp.print();
+        stdout.write(pp);
       }
       expect(pp.evaluate(signed: true), equals(product));
     }
@@ -68,19 +68,28 @@ void main() {
     logicX.put(X);
     logicY.put(Y);
 
-    pp
-      ..print()
-      // ..bruteForceSignExtend()
-      // ..signExtendWithStopBits()
-      // ..signExtendWithStopBitsRect()
-      ..signExtendCompact()
-      ..print();
+    stdout.write(pp);
+    const signExtension = SignExtension.compact;
+    switch (signExtension) {
+      case SignExtension.brute:
+        pp.bruteForceSignExtend();
+      case SignExtension.stop:
+        pp.signExtendWithStopBits();
+      case SignExtension.stopRect:
+        pp.signExtendWithStopBitsRect();
+      case SignExtension.compact:
+        pp.signExtendCompact();
+    }
+
+    stdout.write(pp);
+    // ignore: cascade_invocations
     stdout.write(
         'Test: $i($X) * $j($Y) = $product vs ${pp.evaluate(signed: true)}\n');
     if (pp.evaluate(signed: true) != product) {
       stdout.write(
           'Fail: $X * $Y: ${pp.evaluate(signed: true)} vs expected $product\n');
-      pp.print();
+      // ignore: cascade_invocations
+      stdout.write(pp);
     }
     expect(pp.evaluate(signed: true), equals(product));
   });
@@ -110,13 +119,18 @@ void main() {
     for (var width = 5; width < 6; width++) {
       final pp = PartialProductGenerator(Logic(name: 'X', width: width),
           Logic(name: 'Y', width: width), encoder);
-      // ignore: cascade_invocations
-      // pp..bruteForceSignExtend();
-      // pp.signExtendWithStopBits();
-      // pp.signExtendWithStopBitsRect();
-      // ignore: cascade_invocations
-      pp.signExtendCompact();
 
+      const signExtension = SignExtension.compact;
+      switch (signExtension) {
+        case SignExtension.brute:
+          pp.bruteForceSignExtend();
+        case SignExtension.stop:
+          pp.signExtendWithStopBits();
+        case SignExtension.stopRect:
+          pp.signExtendWithStopBitsRect();
+        case SignExtension.compact:
+          pp.signExtendCompact();
+      }
       testPartialProductExhaustive(pp);
     }
   });
@@ -127,7 +141,7 @@ void main() {
       () async {
     for (var radix = 2; radix < 32; radix *= 2) {
       final encoder = RadixEncoder(radix);
-      stdout.write('encoding with $encoder\n');
+      stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
         stdout.write('\tTesting width=$width\n');
@@ -154,7 +168,7 @@ void main() {
   test('exhaustive partial product evaluate: rectangular all radix,', () async {
     for (var radix = 2; radix < 32; radix *= 2) {
       final encoder = RadixEncoder(radix);
-      stdout.write('encoding with $encoder\n');
+      stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
         for (var skew = 0; skew < shift + 1; skew++) {
@@ -218,7 +232,8 @@ void main() {
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
                 'vs expected $product\n');
-            pp.print();
+            // ignore: cascade_invocations
+            stdout.write(pp);
           }
           expect(pp.evaluate(signed: true), equals(product));
         }

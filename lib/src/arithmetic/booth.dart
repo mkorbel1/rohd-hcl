@@ -7,7 +7,6 @@
 // 2024 May 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
-import 'dart:io';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/utils.dart';
 
@@ -338,6 +337,7 @@ class PartialProductGenerator {
   void signExtendCompact() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
     _signExtended = true;
+
     final lastRow = rows - 1;
     final firstAddend = partialProducts[0];
     final lastAddend = partialProducts[lastRow];
@@ -440,7 +440,9 @@ class PartialProductGenerator {
   }
 
   /// Print out the partial product matrix
-  void print() {
+  @override
+  String toString() {
+    final str = StringBuffer();
     final maxW = maxWidth();
     final nonSignExtendedPad = _signExtended ? 0 : shift - 1;
     // We will print encoding(1-hot multiples and sign) before each row
@@ -449,35 +451,39 @@ class PartialProductGenerator {
             3 * nonSignExtendedPad;
 
     // print bit position header
-    stdout.write(' ' * shortPrefix);
+    str.write(' ' * shortPrefix);
     for (var i = maxW - 1; i >= 0; i--) {
       final bits = i > 9 ? 2 : 1;
-      stdout
+      str
         ..write('$i')
         ..write(' ' * (3 - bits));
     }
-    stdout.write('\n');
+    str.write('\n');
     // Partial product matrix:  rows of multiplicand multiples shift by
     //    rowshift[row]
     for (var row = 0; row < rows; row++) {
       if (row < encoder.rows) {
         final encoding = encoder.getEncoding(row);
-        stdout.write('M=${bitString(encoding.multiples.reversed.value)} '
-            'S=${encoding.sign.value.toInt()}: ');
+        if (encoding.multiples.value.isValid) {
+          str.write('M=${bitString(encoding.multiples.reversed.value)} '
+              'S=${encoding.sign.value.toInt()}: ');
+        } else {
+          str.write(' ' * shortPrefix);
+        }
       } else {
-        stdout.write('${'M='.padRight(2 + selector.radix ~/ 2)} S= : ');
+        str.write('${'M='.padRight(2 + selector.radix ~/ 2)} S= : ');
       }
       final entry = partialProducts[row].reversed.toList();
       final prefixCnt =
           maxW - (entry.length + rowShift[row]) + nonSignExtendedPad;
-      stdout.write('   ' * prefixCnt);
+      str.write('   ' * prefixCnt);
       for (var col = 0; col < entry.length; col++) {
-        stdout.write('${bitString(entry[col].value)}  ');
+        str.write('${bitString(entry[col].value)}  ');
       }
       final suffixCnt = rowShift[row];
       final value = entry.swizzle().value.zeroExtend(maxW) << suffixCnt;
-      final intValue = value.toBigInt();
-      stdout
+      final intValue = value.isValid ? value.toBigInt() : BigInt.from(-1);
+      str
         ..write('   ' * suffixCnt)
         ..write(': ${bitString(value)}')
         ..write(' = ${value.isValid ? intValue : "<invalid>"}'
@@ -485,7 +491,7 @@ class PartialProductGenerator {
     }
     // Compute and print binary representation from accumulated value
     // Later: we will compare with a compression tree result
-    stdout
+    str
       ..write('=' * (shortPrefix + 3 * maxW))
       ..write('\n')
       ..write(' ' * shortPrefix);
@@ -493,9 +499,10 @@ class PartialProductGenerator {
     final sum = LogicValue.ofBigInt(evaluate(), maxW);
     // print out the sum as a MSB-first bitvector
     for (final elem in [for (var i = 0; i < maxW; i++) sum[i]].reversed) {
-      stdout.write('${elem.toInt()}  ');
+      str.write('${elem.toInt()}  ');
     }
-    stdout.write(': ${bitString(sum)} = '
+    str.write(': ${bitString(sum)} = '
         '${evaluate()} (${evaluate(signed: true)})\n\n');
+    return str.toString();
   }
 }
