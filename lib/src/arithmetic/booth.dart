@@ -7,6 +7,8 @@
 // 2024 May 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
+import 'dart:io';
+
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/utils.dart';
 
@@ -91,12 +93,18 @@ class MultiplierEncoder {
   late final int _sliceWidth;
 
   /// Generate an encoding of the input multiplier
-  MultiplierEncoder(this.multiplier, RadixEncoder radixEncoder)
+  MultiplierEncoder(this.multiplier, RadixEncoder radixEncoder,
+      {bool signed = true})
       : _encoder = radixEncoder,
         _sliceWidth = log2Ceil(radixEncoder.radix) + 1 {
-    rows = (multiplier.width / log2Ceil(radixEncoder.radix)).ceil();
+    // Unsigned encoding wants to overlap past the multipler
+    rows =
+        ((multiplier.width + (signed ? 0 : 1)) / log2Ceil(radixEncoder.radix))
+            .ceil();
     // slices overlap by 1 and start at -1
-    _extendedMultiplier = multiplier.signExtend(rows * (_sliceWidth - 1));
+    _extendedMultiplier = (signed
+        ? multiplier.signExtend(rows * (_sliceWidth - 1))
+        : multiplier.zeroExtend(rows * (_sliceWidth - 1)));
   }
 
   /// Retrieve the Booth encoding for the row
@@ -132,12 +140,14 @@ class MultiplicandSelector {
   late LogicArray multiples;
 
   /// Generate required multiples of multiplicand
-  MultiplicandSelector(this.radix, this.multiplicand)
+  MultiplicandSelector(this.radix, this.multiplicand, {bool signed = true})
       : shift = log2Ceil(radix) {
     final width = multiplicand.width + shift;
     final numMultiples = radix ~/ 2;
     multiples = LogicArray([numMultiples], width);
-    final extendedMultiplicand = multiplicand.signExtend(width);
+    final extendedMultiplicand = signed
+        ? multiplicand.signExtend(width)
+        : multiplicand.zeroExtend(width);
 
     for (var pos = 0; pos < numMultiples; pos++) {
       final ratio = pos + 1;
@@ -197,14 +207,19 @@ class PartialProductGenerator {
   /// multiples of the multiplicand and generate partial products
   late final MultiplicandSelector selector;
 
+  /// Operands are signed
+  late bool signed = true;
+
   // Used to avoid sign extending more than once
   var _signExtended = false;
 
   /// Construct the partial product matrix
   PartialProductGenerator(
-      Logic multiplicand, Logic multiplier, RadixEncoder radixEncoder) {
-    encoder = MultiplierEncoder(multiplier, radixEncoder);
-    selector = MultiplicandSelector(radixEncoder.radix, multiplicand);
+      Logic multiplicand, Logic multiplier, RadixEncoder radixEncoder,
+      {this.signed = true}) {
+    encoder = MultiplierEncoder(multiplier, radixEncoder, signed: signed);
+    selector =
+        MultiplicandSelector(radixEncoder.radix, multiplicand, signed: signed);
     _build();
   }
 
@@ -273,6 +288,38 @@ class PartialProductGenerator {
     // Hack for radix-2
     if (shift == 1) {
       partialProducts.last.last = ~partialProducts.last.last;
+    }
+  }
+
+  /// Sign extend the PP array using stop bits: useful for reference only
+  void unsignExtendWithStopBits() {
+    assert(!_signExtended, 'Partial Product array already sign-extended');
+    _signExtended = true;
+    final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
+    for (var row = 0; row < rows; row++) {
+      final addend = partialProducts[row];
+      final sign = signs[row];
+      if (row == 0) {
+        addend
+          ..addAll(List.filled(shift, sign))
+          ..add(~sign);
+      } else {
+        addend
+          ..addAll(List.filled(shift - 1, ~sign))
+          ..insertAll(0, List.filled(shift - 1, Const(0)))
+          ..insert(0, signs[row - 1])
+          ..add(Const(1));
+        rowShift[row] -= shift;
+      }
+    }
+    // Insert carry bit into extra row
+    partialProducts.add(List.generate(selector.width, (i) => Const(0)));
+    partialProducts.last.insert(0, signs[rows - 2]);
+    rowShift.add((rows - 2) * shift);
+
+    // Hack for radix-2
+    if (shift == 1) {
+      // partialProducts.last.last = ~partialProducts.last.last;
     }
   }
 
@@ -443,8 +490,13 @@ class PartialProductGenerator {
   @override
   String toString() {
     final str = StringBuffer();
+
     final maxW = maxWidth();
-    final nonSignExtendedPad = _signExtended ? 0 : shift - 1;
+    final nonSignExtendedPad = _signExtended
+        ? 0
+        : shift > 2
+            ? shift - 1
+            : 1;
     // We will print encoding(1-hot multiples and sign) before each row
     final shortPrefix =
         '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +

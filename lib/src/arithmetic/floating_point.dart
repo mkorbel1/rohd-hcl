@@ -12,9 +12,13 @@
 
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
+import 'package:rohd_hcl/src/arithmetic/booth.dart';
+import 'package:rohd_hcl/src/arithmetic/compressor.dart';
 
 /// Flexible floating point logic representation
 class FloatingPoint extends LogicStructure {
@@ -162,4 +166,68 @@ class FloatingPointAdder extends Module {
       ])
     ]);
   }
+}
+
+/// An multiplier module for FloatingPoint values
+class FloatingPointMultiplier extends Module {
+  /// Must be greater than 0.
+  final int exponentWidth;
+
+  /// Must be greater than 0.
+  final int mantissaWidth;
+
+  /// Output [FloatingPoint] computed
+  late final FloatingPoint out =
+      FloatingPoint(exponentWidth: exponentWidth, mantissaWidth: mantissaWidth)
+        ..gets(output('out'));
+
+  /// The result of [FloatingPoint] multiplication
+  @protected
+  late final FloatingPoint _out =
+      FloatingPoint(exponentWidth: exponentWidth, mantissaWidth: mantissaWidth);
+
+  /// Multiply two floating point numbers [a] and [b], returning result in [out]
+  FloatingPointMultiplier(FloatingPoint a, FloatingPoint b, int radix,
+      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen,
+      {super.name})
+      : exponentWidth = a.exponent.width,
+        mantissaWidth = a.mantissa.width {
+    if (b.exponent.width != exponentWidth ||
+        b.mantissa.width != mantissaWidth) {
+      throw RohdHclException('FloatingPoint widths must match');
+    }
+    a = a.clone()..gets(addInput('a', a, width: a.width));
+    b = b.clone()..gets(addInput('b', b, width: b.width));
+    addOutput('out', width: _out.width) <= _out;
+
+    final aExp =
+        a.exponent + mux(a.isNormal(), a.zeroExponent(), a.oneExponent());
+    final bExp =
+        b.exponent + mux(b.isNormal(), b.zeroExponent(), b.oneExponent());
+
+    final aMantissa = [a.isNormal(), a.mantissa].swizzle();
+    final bMantissa = [b.isNormal(), b.mantissa].swizzle();
+
+    final encoder = RadixEncoder(radix);
+    final pp = PartialProductGenerator(aMantissa, bMantissa, encoder);
+    // ignore: cascade_invocations
+    pp.signExtendCompact();
+    final compressor = ColumnCompressor(pp);
+    // ignore: cascade_invocations
+    compressor.compress();
+    final r0 = compressor.extractRow(0);
+    final r1 = compressor.extractRow(1);
+    final adder = ParallelPrefixAdder(r0, r1, ppGen);
+
+    stdout.write(adder.out.value.toBigInt().toSigned(a.width));
+  }
+}
+
+void main() {
+  int radix = 4;
+  final fp1 = FloatingPoint32()
+    ..put(FloatingPoint32Value.fromDouble(2.0).value);
+  final fp2 = FloatingPoint32()
+    ..put(FloatingPoint32Value.fromDouble(2.0).value);
+  final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
 }
