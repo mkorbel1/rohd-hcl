@@ -38,9 +38,10 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
       pp.multiplier.put(Y);
       // stdout.write('$i($X) * $j($Y): should be $product\n');
       if (pp.evaluate(signed: true) != product) {
-        stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
-            'vs expected $product\n');
-        stdout.write(pp);
+        stdout
+          ..write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
+              'vs expected $product\n')
+          ..write(pp);
       }
       expect(pp.evaluate(signed: pp.signed), equals(product));
     }
@@ -99,25 +100,27 @@ void main() {
   });
 
   test('single partial product test unsigned', () async {
-    final encoder = RadixEncoder(2);
-    const widthX = 4; // 4/7:  64   4/10: 512
-    const widthY = 4;
+    final encoder = RadixEncoder(4);
+    final signed = false;
+    const widthX = 3;
+    const widthY = 3;
 
-// 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
     const i = 1;
     var j = pow(2, widthY - 1).toInt();
-    // j = 128; // r=16,N=8
-    j = 4; // r=16,N=9?
-    // j = 64; // r=8,N=7
-    final X = BigInt.from(i).toUnsigned(widthX);
-    final Y = BigInt.from(j).toUnsigned(widthY);
+    j = 7;
+    final X = signed
+        ? BigInt.from(i).toSigned(widthX)
+        : BigInt.from(i).toUnsigned(widthX);
+    final Y = signed
+        ? BigInt.from(j).toSigned(widthY)
+        : BigInt.from(j).toUnsigned(widthY);
     final product = X * Y;
 
     final logicX = Logic(name: 'X', width: widthX);
     final logicY = Logic(name: 'Y', width: widthY);
     logicX.put(X);
     logicY.put(Y);
-    final pp = PartialProductGenerator(logicX, logicY, encoder, signed: false);
+    final pp = PartialProductGenerator(logicX, logicY, encoder, signed: signed);
 
     // ignore: cascade_invocations
 
@@ -126,7 +129,12 @@ void main() {
 
     stdout.write(pp);
 
-    pp.unsignExtendWithStopBits();
+    if (signed) {
+      pp.signExtendWithStopBits();
+    } else {
+      pp.unsignExtendWithStopBits();
+      // pp.bruteForceSignExtend();
+    }
 
     stdout.write(pp);
 
@@ -139,7 +147,7 @@ void main() {
       // ignore: cascade_invocations
       stdout.write(pp);
     }
-    expect(pp.evaluate(signed: false), equals(product));
+    expect(pp.evaluate(signed: pp.signed), equals(product));
   });
 
   // TODO(dakdesmond): Why cannot radix8 handle Y width 3
@@ -219,26 +227,27 @@ void main() {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
-      for (var width = shift + 1; width < shift + 3; width++) {
+      for (var width = shift + 1; width < shift + 4; width++) {
         stdout.write('\tTesting width=$width\n');
-        for (final signExtension in SignExtension.values) {
-          final pp = PartialProductGenerator(Logic(name: 'X', width: width),
-              Logic(name: 'Y', width: width), encoder,
-              signed: false);
-          // switch (signExtension) {
-          //   case SignExtension.brute:
-          //     pp.bruteForceSignExtend();
-          //   case SignExtension.stop:
-          //     pp.signExtendWithStopBits();
-          //   case SignExtension.stopRect:
-          //     pp.signExtendWithStopBitsRect();
-          //   case SignExtension.compact:
-          //     pp.signExtendCompact();
-          // }
-          // stdout.write('\tTesting extension=$signExtension\n');
-          pp.unsignExtendWithStopBits();
-          testPartialProductExhaustive(pp);
-        }
+        // for (final signExtension in SignExtension.values) {
+        final pp = PartialProductGenerator(Logic(name: 'X', width: width),
+            Logic(name: 'Y', width: width), encoder,
+            signed: false);
+        // switch (signExtension) {
+        //   case SignExtension.brute:
+        //     pp.bruteForceSignExtend();
+        //   case SignExtension.stop:
+        //     pp.signExtendWithStopBits();
+        //   case SignExtension.stopRect:
+        //     pp.signExtendWithStopBitsRect();
+        //   case SignExtension.compact:
+        //     pp.signExtendCompact();
+        // }
+        // stdout.write('\tTesting extension=$signExtension\n');
+        pp.unsignExtendWithStopBits();
+        // pp.bruteForceSignExtend();
+        testPartialProductExhaustive(pp);
+        // }
       }
     }
   });
