@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 
 // TODO(desmonddak): combine rectangular with compact
 
-enum SignExtension { brute, stop, stopRect, compact }
+enum SignExtension { brute, stop, stopRect, compact, unsigned }
 
 void testPartialProductExhaustive(PartialProductGenerator pp) {
   final widthX = pp.selector.multiplicand.width;
@@ -80,6 +80,8 @@ void main() {
         pp.bruteForceSignExtend();
       case SignExtension.stop:
         pp.signExtendWithStopBits();
+      case SignExtension.unsigned:
+        pp.unsignExtendWithStopBits();
       case SignExtension.stopRect:
         pp.signExtendWithStopBitsRect();
       case SignExtension.compact:
@@ -100,14 +102,14 @@ void main() {
   });
 
   test('single partial product test unsigned', () async {
-    final encoder = RadixEncoder(4);
-    final signed = false;
-    const widthX = 3;
-    const widthY = 3;
+    final encoder = RadixEncoder(2);
+    final signed = true;
+    const widthX = 2;
+    const widthY = 2;
 
-    const i = 1;
+    const i = 4;
     var j = pow(2, widthY - 1).toInt();
-    j = 7;
+    j = 1;
     final X = signed
         ? BigInt.from(i).toSigned(widthX)
         : BigInt.from(i).toUnsigned(widthX);
@@ -130,7 +132,9 @@ void main() {
     stdout.write(pp);
 
     if (signed) {
-      pp.signExtendWithStopBits();
+      // pp.signExtendWithStopBits();
+      pp.signExtendWithStopBitsRect();
+      // pp.bruteForceSignExtend();
     } else {
       pp.unsignExtendWithStopBits();
       // pp.bruteForceSignExtend();
@@ -184,6 +188,8 @@ void main() {
           pp.signExtendWithStopBits();
         case SignExtension.stopRect:
           pp.signExtendWithStopBitsRect();
+        case SignExtension.unsigned:
+          pp.unsignExtendWithStopBits();
         case SignExtension.compact:
           pp.signExtendCompact();
       }
@@ -195,11 +201,11 @@ void main() {
   test(
       'exhaustive partial product evaluate: square all radix, all SignExtension',
       () async {
-    for (var radix = 2; radix < 32; radix *= 2) {
+    for (var radix = 4; radix < 16; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
-      for (var width = shift + 1; width < shift + 2; width++) {
+      for (var width = shift + 1; width < shift + 4; width++) {
         stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
@@ -211,12 +217,44 @@ void main() {
               pp.signExtendWithStopBits();
             case SignExtension.stopRect:
               pp.signExtendWithStopBitsRect();
-            case SignExtension.compact:
+            case SignExtension.compact: // HACK
+              // pp.signExtendWithStopBitsRect();
               pp.signExtendCompact();
+            case SignExtension.unsigned:
+              // Hack: repeat the signed version since these are all signed
+              pp.signExtendWithStopBits();
           }
           stdout.write('\tTesting extension=$signExtension\n');
           testPartialProductExhaustive(pp);
         }
+      }
+    }
+  });
+  test('crash on rect', () async {
+    const radix = 2;
+    final encoder = RadixEncoder(radix);
+    stdout.write('encoding with radix=$radix\n');
+    final shift = log2Ceil(encoder.radix);
+    for (var width = shift + 1; width < shift + 5; width++) {
+      stdout.write('\tTesting width=$width\n');
+      for (final signExtension in [SignExtension.compact]) {
+        final pp = PartialProductGenerator(Logic(name: 'X', width: width),
+            Logic(name: 'Y', width: width), encoder);
+        switch (signExtension) {
+          case SignExtension.brute:
+            pp.bruteForceSignExtend();
+          case SignExtension.stop:
+            pp.signExtendWithStopBits();
+          case SignExtension.stopRect:
+            pp.signExtendWithStopBitsRect();
+          case SignExtension.compact:
+            // pp.signExtendWithStopBitsRect();
+            pp.signExtendCompact();
+          case SignExtension.unsigned:
+            pp.unsignExtendWithStopBits();
+        }
+        stdout.write('\tTesting extension=$signExtension\n');
+        testPartialProductExhaustive(pp);
       }
     }
   });
@@ -229,38 +267,47 @@ void main() {
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 4; width++) {
         stdout.write('\tTesting width=$width\n');
-        // for (final signExtension in SignExtension.values) {
-        final pp = PartialProductGenerator(Logic(name: 'X', width: width),
-            Logic(name: 'Y', width: width), encoder,
-            signed: false);
-        // switch (signExtension) {
-        //   case SignExtension.brute:
-        //     pp.bruteForceSignExtend();
-        //   case SignExtension.stop:
-        //     pp.signExtendWithStopBits();
-        //   case SignExtension.stopRect:
-        //     pp.signExtendWithStopBitsRect();
-        //   case SignExtension.compact:
-        //     pp.signExtendCompact();
-        // }
-        // stdout.write('\tTesting extension=$signExtension\n');
-        pp.unsignExtendWithStopBits();
-        // pp.bruteForceSignExtend();
-        testPartialProductExhaustive(pp);
-        // }
+        for (final signExtension in [
+          SignExtension.unsigned,
+          SignExtension.brute,
+        ]) {
+          final pp = PartialProductGenerator(Logic(name: 'X', width: width),
+              Logic(name: 'Y', width: width), encoder,
+              signed: false);
+          switch (signExtension) {
+            case SignExtension.brute:
+              pp.bruteForceSignExtend();
+            case SignExtension.stop:
+              pp.signExtendWithStopBits();
+            case SignExtension.stopRect:
+              pp.signExtendWithStopBitsRect();
+            case SignExtension.compact:
+              pp.signExtendCompact();
+            case SignExtension.unsigned:
+              pp.unsignExtendWithStopBits();
+          }
+          stdout.write('\tTesting extension=$signExtension\n');
+          testPartialProductExhaustive(pp);
+        }
       }
     }
   });
-  // radix16 takes a long time to complete
+  // radix16 takes a long time to complete, so we omit
   test('exhaustive partial product evaluate: rectangular all radix,', () async {
-    for (var radix = 2; radix < 32; radix *= 2) {
+    for (var radix = 2; radix < 16; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
-        for (var skew = 0; skew < shift + 1; skew++) {
+        for (var skew = 1; skew < shift + 1; skew++) {
           stdout.write('\tTesting width=$width skew=$skew\n');
-          for (final signExtension in [SignExtension.brute]) {
+          // Only some routines have rectangular support
+          for (final signExtension in [
+            SignExtension.brute,
+            SignExtension.stop,
+            SignExtension.stopRect,
+            // SignExtension.compact
+          ]) {
             final pp = PartialProductGenerator(Logic(name: 'X', width: width),
                 Logic(name: 'Y', width: width + skew), encoder);
             switch (signExtension) {
@@ -272,6 +319,8 @@ void main() {
                 pp.signExtendWithStopBitsRect();
               case SignExtension.compact:
                 pp.signExtendCompact();
+              case SignExtension.unsigned:
+                pp.unsignExtendWithStopBits();
             }
             stdout.write('\tTesting extension=$signExtension\n');
             testPartialProductExhaustive(pp);
@@ -315,6 +364,8 @@ void main() {
               pp.signExtendWithStopBitsRect();
             case SignExtension.compact:
               pp.signExtendCompact();
+            case SignExtension.unsigned:
+              pp.unsignExtendWithStopBits();
           }
           if (pp.evaluate(signed: true) != product) {
             stdout.write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '

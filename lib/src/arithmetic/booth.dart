@@ -392,7 +392,8 @@ class PartialProductGenerator {
     final lastRow = rows - 1;
     final firstAddend = partialProducts[0];
     final lastAddend = partialProducts[lastRow];
-    final alignRow0Sign = selector.width - 1 - shift * lastRow;
+    final alignRow0Sign =
+        selector.width - shift * lastRow - ((shift > 1) ? 1 : 0);
 
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
 
