@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 
 // TODO(desmonddak): combine rectangular with compact
 
-enum SignExtension { brute, stop, stopRect, compact }
+enum SignExtension { brute, stop, compact }
 
 void testPartialProductExhaustive(PartialProductGenerator pp) {
   final widthX = pp.selector.multiplicand.width;
@@ -79,8 +79,6 @@ void main() {
       case SignExtension.brute:
         pp.bruteForceSignExtend();
       case SignExtension.stop:
-        pp.signExtendWithStopBits();
-      case SignExtension.stopRect:
         pp.signExtendWithStopBitsRect();
       case SignExtension.compact:
         pp.signExtendCompact();
@@ -176,8 +174,6 @@ void main() {
         case SignExtension.brute:
           pp.bruteForceSignExtend();
         case SignExtension.stop:
-          pp.signExtendWithStopBits();
-        case SignExtension.stopRect:
           pp.signExtendWithStopBitsRect();
         case SignExtension.compact:
           pp.signExtendCompact();
@@ -203,11 +199,9 @@ void main() {
             case SignExtension.brute:
               pp.bruteForceSignExtend();
             case SignExtension.stop:
-              pp.signExtendWithStopBits();
-            case SignExtension.stopRect:
               pp.signExtendWithStopBitsRect();
             case SignExtension.compact:
-              // pp.bruteForceSignExtend();
+              // pp.signExtendWithStopBitsRect();
               pp.signExtendCompact();
           }
           stdout.write('\tTesting extension=$signExtension\n');
@@ -220,7 +214,7 @@ void main() {
   // This is a two-minute exhaustive but quick test
   test('exhaustive partial product evaluate: square all radix, unsigned',
       () async {
-    for (var radix = 4; radix < 32; radix *= 2) {
+    for (var radix = 2; radix < 32; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
@@ -234,11 +228,10 @@ void main() {
             case SignExtension.brute:
               pp.bruteForceSignExtend();
             case SignExtension.stop:
-              pp.signExtendWithStopBits();
-            case SignExtension.stopRect:
-              pp.signExtendWithStopBits();
+              pp.signExtendWithStopBitsRect();
             case SignExtension.compact:
-              pp.signExtendCompact();
+              // pp.signExtendWithStopBits();
+              pp.signExtendCompact(); // fails for r2
           }
           stdout.write('\tTesting extension=$signExtension\n');
           testPartialProductExhaustive(pp);
@@ -254,14 +247,12 @@ void main() {
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 4; width++) {
-        for (var skew = 0; skew < 1; skew++) {
+        for (var skew = 1; skew < 2; skew++) {
           stdout.write('\tTesting width=$width skew=$skew\n');
           // Only some routines have rectangular support
           for (final signExtension in [
-            // SignExtension.brute,
-            // SignExtension.unsigned,
+            SignExtension.brute,
             SignExtension.stop,
-            // SignExtension.stopRect,
             // SignExtension.compact
           ]) {
             final pp = PartialProductGenerator(Logic(name: 'X', width: width),
@@ -271,8 +262,6 @@ void main() {
               case SignExtension.brute:
                 pp.bruteForceSignExtend();
               case SignExtension.stop:
-                pp.signExtendWithStopBits();
-              case SignExtension.stopRect:
                 pp.signExtendWithStopBitsRect();
               case SignExtension.compact:
                 pp.signExtendCompact();
@@ -314,8 +303,6 @@ void main() {
             case SignExtension.brute:
               pp.bruteForceSignExtend();
             case SignExtension.stop:
-              pp.signExtendWithStopBits();
-            case SignExtension.stopRect:
               pp.signExtendWithStopBitsRect();
             case SignExtension.compact:
               pp.signExtendCompact();

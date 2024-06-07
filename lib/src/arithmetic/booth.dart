@@ -267,48 +267,6 @@ class PartialProductGenerator {
     rowShift.add((rows - 2) * shift);
   }
 
-  /// Sign extend the PP array using stop bits: useful for reference only
-  void signExtendWithStopBits() {
-    assert(!_signExtended, 'Partial Product array already sign-extended');
-    _signExtended = true;
-    final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
-    for (var row = 0; row < rows; row++) {
-      final addend = partialProducts[row];
-      final sign = signed ? addend.last : signs[row];
-      // final sign = addend.last;
-      if (row == 0) {
-        if (signed) {
-          addend.addAll(List.filled(shift - 1, sign)); // signed only?
-        } else {
-          addend.addAll(List.filled(shift, sign));
-        }
-        addend.add(~sign);
-      } else {
-        if (signed) {
-          addend.last = ~sign;
-        } else {
-          addend.add(~sign);
-        }
-        addend
-          ..addAll(List.filled(shift - 1, Const(1)))
-          ..insertAll(0, List.filled(shift - 1, Const(0)))
-          ..insert(0, signs[row - 1]);
-        rowShift[row] -= shift;
-      }
-    }
-    if (signed) {
-      // Insert carry bit into extra row
-      partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-      partialProducts.last.insert(0, signs[rows - 2]);
-      rowShift.add((rows - 2) * shift);
-
-      // Hack for radix-2
-      if (shift == 1) {
-        partialProducts.last.last = ~partialProducts.last.last;
-      }
-    }
-  }
-
   /// Sign extend the PP array using stop bits
   /// If possible, fold the final carry into another row (only when rectangular
   /// enough that carry bit lands outside another row).
@@ -329,15 +287,21 @@ class PartialProductGenerator {
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       final addend = partialProducts[row];
-      final sign = addend.last;
+      final sign = signed ? addend.last : signs[row];
       if (row == 0) {
-        addend
-          ..addAll(List.filled(shift - 1, sign))
-          ..add(~sign);
+        if (signed) {
+          addend.addAll(List.filled(shift - 1, sign)); // signed only?
+        } else {
+          addend.addAll(List.filled(shift, sign));
+        }
+        addend.add(~sign);
       } else {
-        // sign extend and insert the carry from previous row
+        if (signed) {
+          addend.last = ~sign;
+        } else {
+          addend.add(~sign);
+        }
         addend
-          ..last = ~sign
           ..addAll(List.filled(shift - 1, Const(1)))
           ..insertAll(0, List.filled(shift - 1, Const(0)))
           ..insert(0, signs[row - 1]);
@@ -352,7 +316,7 @@ class PartialProductGenerator {
             finalCarryPos - (extensionRow.length + rowShift[finalCarryRow]),
             Const(0)))
         ..add(signs[rows - 1]);
-    } else {
+    } else if (signed) {
       // Create an extra row to hold the final carry bit
       partialProducts
           .add(List.filled(selector.width, Const(0), growable: true));
