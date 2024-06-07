@@ -246,7 +246,9 @@ class PartialProductGenerator {
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       final addend = partialProducts[row];
-      final sign = signs[row];
+      // final sign = signs[row];
+      // final sign = addend.last ^ signs[row];
+      final sign = addend.last;
       addend.addAll(List.filled((rows - row) * shift, sign));
       if (row > 0) {
         addend
