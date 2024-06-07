@@ -98,10 +98,16 @@ class MultiplierEncoder {
       : _encoder = radixEncoder,
         _sliceWidth = log2Ceil(radixEncoder.radix) + 1 {
     // Unsigned encoding wants to overlap past the multipler
-    rows = (((multiplier.width + 1) % (_sliceWidth - 1) == 0) ? 0 : 1) +
-        ((multiplier.width + 1) ~/ log2Ceil(radixEncoder.radix));
-    if (_sliceWidth == 2) {
-      stdout.write('extending multipler by 1 row\n');
+    if (signed) {
+      rows =
+          ((multiplier.width + (signed ? 0 : 1)) / log2Ceil(radixEncoder.radix))
+              .ceil();
+    } else {
+      rows = (((multiplier.width + 1) % (_sliceWidth - 1) == 0) ? 0 : 1) +
+          ((multiplier.width + 1) ~/ log2Ceil(radixEncoder.radix));
+      if (_sliceWidth == 2) {
+        stdout.write('extending multipler by 1 row\n');
+      }
     }
     // slices overlap by 1 and start at -1
     _extendedMultiplier = (signed
@@ -246,9 +252,7 @@ class PartialProductGenerator {
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       final addend = partialProducts[row];
-      // final sign = signs[row];
-      // final sign = addend.last ^ signs[row];
-      final sign = addend.last;
+      final sign = signed ? addend.last : signs[row];
       addend.addAll(List.filled((rows - row) * shift, sign));
       if (row > 0) {
         addend
@@ -270,60 +274,38 @@ class PartialProductGenerator {
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
     for (var row = 0; row < rows; row++) {
       final addend = partialProducts[row];
-      final sign = addend.last;
+      final sign = signed ? addend.last : signs[row];
+      // final sign = addend.last;
       if (row == 0) {
-        addend
-          ..addAll(List.filled(shift - 1, sign))
-          ..add(~sign);
+        if (signed) {
+          addend.addAll(List.filled(shift - 1, sign)); // signed only?
+        } else {
+          addend.addAll(List.filled(shift, sign));
+        }
+        addend.add(~sign);
       } else {
+        if (signed) {
+          addend.last = ~sign;
+        } else {
+          addend.add(~sign);
+        }
         addend
-          ..last = ~sign
           ..addAll(List.filled(shift - 1, Const(1)))
           ..insertAll(0, List.filled(shift - 1, Const(0)))
           ..insert(0, signs[row - 1]);
         rowShift[row] -= shift;
       }
     }
-    // Insert carry bit into extra row
-    partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    partialProducts.last.insert(0, signs[rows - 2]);
-    rowShift.add((rows - 2) * shift);
+    if (signed) {
+      // Insert carry bit into extra row
+      partialProducts.add(List.generate(selector.width, (i) => Const(0)));
+      partialProducts.last.insert(0, signs[rows - 2]);
+      rowShift.add((rows - 2) * shift);
 
-    // Hack for radix-2
-    if (shift == 1) {
-      partialProducts.last.last = ~partialProducts.last.last;
-    }
-  }
-
-  /// Sign extend the PP array using stop bits: useful for reference only
-  void unsignExtendWithStopBits() {
-    assert(!_signExtended, 'Partial Product array already sign-extended');
-    _signExtended = true;
-    final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
-    for (var row = 0; row < rows; row++) {
-      final addend = partialProducts[row];
-      final sign = signs[row];
-      if (row == 0) {
-        addend
-          ..addAll(List.filled(shift, sign))
-          ..add(~sign);
-      } else {
-        addend
-          ..add(~sign)
-          ..addAll(List.filled(shift - 1, Const(1)))
-          ..insertAll(0, List.filled(shift - 1, Const(0)))
-          ..insert(0, signs[row - 1]);
-        rowShift[row] -= shift;
+      // Hack for radix-2
+      if (shift == 1) {
+        partialProducts.last.last = ~partialProducts.last.last;
       }
-    }
-    // Insert carry bit into extra row
-    // partialProducts.add(List.generate(selector.width, (i) => Const(0)));
-    // partialProducts.last.insert(0, signs[rows - 2]);
-    // rowShift.add((rows - 2) * shift);
-
-    // Hack for radix-2
-    if (shift == 1) {
-      // partialProducts.last.last = ~partialProducts.last.last;
     }
   }
 
