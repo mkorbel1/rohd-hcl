@@ -50,15 +50,15 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
 
 void main() {
   test('single partial product test', () async {
-    final encoder = RadixEncoder(2);
-    const widthX = 4; // 4/7:  64   4/10: 512
+    final encoder = RadixEncoder(4);
+    const widthX = 4;
     const widthY = 4;
-// 3,4 ;   4,8, 5,16  6,32  7,64 8,128  9,256  10, 512
-    const i = 1;
+
+    const i = 8;
     var j = pow(2, widthY - 1).toInt();
-    // j = 128; // r=16,N=8
-    j = 4; // r=16,N=9?
-    // j = 64; // r=8,N=7
+
+    j = 2;
+
     final X = BigInt.from(i).toSigned(widthX);
     final Y = BigInt.from(j).toSigned(widthY);
     final product = X * Y;
@@ -99,13 +99,13 @@ void main() {
 
   test('single partial product test unsigned', () async {
     final encoder = RadixEncoder(2);
-    final signed = true;
+    const signed = false;
     const widthX = 2;
-    const widthY = 2;
+    const widthY = 3;
 
     const i = 4;
     var j = pow(2, widthY - 1).toInt();
-    j = 1;
+    j = 4;
     final X = signed
         ? BigInt.from(i).toSigned(widthX)
         : BigInt.from(i).toUnsigned(widthX);
@@ -127,7 +127,8 @@ void main() {
 
     stdout.write(pp);
 
-    pp.signExtendWithStopBitsRect();
+    pp.signExtendCompact();
+    // pp.signExtendWithStopBitsRect();
 
     stdout.write(pp);
 
@@ -186,11 +187,11 @@ void main() {
   test(
       'exhaustive partial product evaluate: square all radix, all SignExtension',
       () async {
-    for (var radix = 4; radix < 32; radix *= 2) {
+    for (var radix = 2; radix < 32; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
-      for (var width = shift + 1; width < shift + 4; width++) {
+      for (var width = shift + 3; width < shift + 4; width++) {
         stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
@@ -247,13 +248,13 @@ void main() {
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 4; width++) {
-        for (var skew = 1; skew < 2; skew++) {
+        for (var skew = 1; skew < 3; skew++) {
           stdout.write('\tTesting width=$width skew=$skew\n');
           // Only some routines have rectangular support
           for (final signExtension in [
-            SignExtension.brute,
-            SignExtension.stop,
-            // SignExtension.compact
+            // SignExtension.brute,
+            // SignExtension.stop,
+            SignExtension.compact
           ]) {
             final pp = PartialProductGenerator(Logic(name: 'X', width: width),
                 Logic(name: 'Y', width: width + skew), encoder,

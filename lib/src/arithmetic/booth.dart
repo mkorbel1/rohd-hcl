@@ -338,8 +338,18 @@ class PartialProductGenerator {
     final lastRow = rows - 1;
     final firstAddend = partialProducts[0];
     final lastAddend = partialProducts[lastRow];
-    final alignRow0Sign =
-        selector.width - shift * lastRow - ((shift > 1) ? 1 : 0);
+    var alignRow0Sign = selector.width -
+        shift * lastRow -
+        ((shift > 1)
+            ? 1
+            : signed
+                ? 1
+                : 0);
+    if (alignRow0Sign < 0) {
+      alignRow0Sign = 0;
+    }
+
+    // stdout.write('align is $alignRow0Sign, rows=$rows\n');
 
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
 
@@ -373,16 +383,14 @@ class PartialProductGenerator {
     }
     remainders[lastRow] <= propagate[lastRow][alignRow0Sign];
     // Hack for radix-2
-    if (shift == 1) {
-      lastAddend
-        ..last = ~lastAddend.last
-        ..add(Const(0));
-    }
+
+    // stdout.write('remainders ${bitString(remainders[lastRow].value)}\n');
 
     // Compute Sign extension for row==0
+    final firstSign = signed ? firstAddend.last : signs[0];
     final q = [
-      firstAddend.last ^ remainders[lastRow],
-      ~(firstAddend.last & ~remainders[lastRow]),
+      firstSign ^ remainders[lastRow],
+      ~(firstSign & ~remainders[lastRow]),
     ];
     q.insertAll(1, List.filled(shift - 1, ~q[1]));
 
@@ -394,19 +402,29 @@ class PartialProductGenerator {
           addend[i] = m[row][i];
         }
         // Stop bits
+        if (signed) {
+          addend.last = ~addend.last;
+        } else {
+          addend.add(~signs[row]);
+        }
         addend
           ..insert(0, remainders[row - 1])
-          ..last = ~partialProducts[row].last
           ..addAll(List.filled(shift - 1, Const(1)));
         rowShift[row] -= 1;
       } else {
         for (var i = 0; i < shift - 1; i++) {
           firstAddend[i] = m[0][i];
         }
-        firstAddend
-          ..last = q[0]
-          ..addAll(q.getRange(1, q.length));
+        if (signed) {
+          firstAddend.last = q[0];
+        } else {
+          firstAddend.add(q[0]);
+        }
+        firstAddend.addAll(q.getRange(1, q.length));
       }
+    }
+    if (shift == 1) {
+      lastAddend.add(Const(1));
     }
   }
 
@@ -450,7 +468,7 @@ class PartialProductGenerator {
             : 1;
     // We will print encoding(1-hot multiples and sign) before each row
     final shortPrefix =
-        '${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +
+        '99 ${'M='.padRight(2 + selector.radix ~/ 2)} S= : '.length +
             3 * nonSignExtendedPad;
 
     // print bit position header
@@ -465,16 +483,17 @@ class PartialProductGenerator {
     // Partial product matrix:  rows of multiplicand multiples shift by
     //    rowshift[row]
     for (var row = 0; row < rows; row++) {
+      final rowStr = (row < 10) ? '0$row' : '$row';
       if (row < encoder.rows) {
         final encoding = encoder.getEncoding(row);
         if (encoding.multiples.value.isValid) {
-          str.write('M=${bitString(encoding.multiples.reversed.value)} '
+          str.write('$rowStr M=${bitString(encoding.multiples.reversed.value)} '
               'S=${encoding.sign.value.toInt()}: ');
         } else {
           str.write(' ' * shortPrefix);
         }
       } else {
-        str.write('${'M='.padRight(2 + selector.radix ~/ 2)} S= : ');
+        str.write('$rowStr ${'M='.padRight(2 + selector.radix ~/ 2)} S= : ');
       }
       final entry = partialProducts[row].reversed.toList();
       final prefixCnt =
