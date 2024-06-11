@@ -15,7 +15,7 @@
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
-import 'package:rohd_hcl/src/floating_point_value.dart';
+import 'package:rohd_hcl/src/arithmetic/floating_point_value.dart';
 
 /// Flexible floating point logic representation
 class FloatingPoint extends LogicStructure {

@@ -167,8 +167,7 @@ class ParallelPrefixOrScan extends Module {
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic))
           ppGen) {
     inp = addInput('inp', inp, width: inp.width);
-    final u =
-        ppGen(List<Logic>.generate(inp.width, (i) => inp[i]), (a, b) => a | b);
+    final u = ppGen(inp.elements, (a, b) => a | b);
     addOutput('out', width: inp.width) <= u.val.rswizzle();
   }
 }
@@ -252,8 +251,7 @@ class ParallelPrefixIncr extends Module {
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic))
           ppGen) {
     inp = addInput('inp', inp, width: inp.width);
-    final u = ppGen(List<Logic>.generate(inp.width, (i) => inp[i]),
-        (lhs, rhs) => rhs & lhs);
+    final u = ppGen(inp.elements, (lhs, rhs) => rhs & lhs);
     addOutput('out', width: inp.width) <=
         (List<Logic>.generate(
                 inp.width, (i) => ((i == 0) ? ~inp[i] : inp[i] ^ u.val[i - 1]))
@@ -272,8 +270,7 @@ class ParallelPrefixDecr extends Module {
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic))
           ppGen) {
     inp = addInput('inp', inp, width: inp.width);
-    final u = ppGen(List<Logic>.generate(inp.width, (i) => ~inp[i]),
-        (lhs, rhs) => rhs & lhs);
+    final u = ppGen((~inp).elements, (lhs, rhs) => rhs & lhs);
     addOutput('out', width: inp.width) <=
         (List<Logic>.generate(
                 inp.width, (i) => ((i == 0) ? ~inp[i] : inp[i] ^ u.val[i - 1]))
