@@ -17,7 +17,7 @@ import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:rohd_hcl/src/utils.dart';
 import 'package:test/test.dart';
 
-enum SignExtension { brute, stop, stopRect, compact }
+enum SignExtension { brute, stop, compact }
 
 void testCompressionExhaustive(PartialProductGenerator pp) {
   final widthX = pp.selector.multiplicand.width;

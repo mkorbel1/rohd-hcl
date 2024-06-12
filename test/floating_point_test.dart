@@ -314,5 +314,49 @@ void main() {
     }
   });
 
+  group('multiplication', () {
+    test('exhaustive', () {
+      const radix = 4;
+
+      final fp1 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
+      final fv1 = FloatingPointValue.ofStrings('0', '0110', '0000');
+      final fp2 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
+      final fv2 = FloatingPointValue.ofStrings('0', '0110', '0000');
+      fp1.put(fv1.value);
+      fp2.put(fv2.value);
+
+      final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
+      final fpOut = multiply.out;
+      const widthX = 4;
+      const widthY = 4;
+      // return;
+      final limitX = pow(2, widthX);
+      final limitY = pow(2, widthY);
+      for (var j = 0; j < limitY; j++) {
+        for (var i = 0; i < limitX; i++) {
+          final X = BigInt.from(i).toUnsigned(widthX);
+          final Y = BigInt.from(j).toUnsigned(widthY);
+          final strX = X.toRadixString(2).padLeft(widthX, '0');
+          final strY = Y.toRadixString(2).padLeft(widthY, '0');
+          final fv1 = FloatingPointValue.ofStrings('0', '0110', strX);
+          final fv2 = FloatingPointValue.ofStrings('0', '0110', strY);
+
+          final doubleProduct = fv1.toDouble() * fv2.toDouble();
+          final roundTrip = FloatingPointValue.fromDouble(doubleProduct,
+                  exponentWidth: 4, mantissaWidth: 4)
+              .toDouble();
+
+          fp1.put(fv1.value);
+          fp2.put(fv2.value);
+
+          assert(
+              fpOut.floatingPointValue.toDouble() == roundTrip,
+              'multiply result ${fpOut.floatingPointValue.toDouble()} mismatch '
+              ' $roundTrip\n');
+        }
+      }
+    });
+  });
+
   // TODO(desmonddak):  we need floating point comparison tests
 }
