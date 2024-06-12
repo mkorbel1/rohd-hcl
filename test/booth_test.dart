@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // booth_test.dart
-// Tests for the select interface of Booth encoding
+// Tests for Booth encoding
 //
 // 2024 May 21
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>

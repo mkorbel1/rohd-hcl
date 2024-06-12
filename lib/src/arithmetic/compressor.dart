@@ -1,8 +1,8 @@
 // Copyright (C) 2024 Intel Corporation
 // SPDX-License-Identifier: BSD-3-Clause
 //
-// booth.dart
-// Generation of Booth Encoded partial products for multiplication
+// compressor.dart
+// Column compression of partial prodcuts
 //
 // 2024 June 04
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
