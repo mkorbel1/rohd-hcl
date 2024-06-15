@@ -429,7 +429,7 @@ void main() {
             final E = BigInt.from(k).toUnsigned(expWidth);
             final X = BigInt.from(i).toUnsigned(widthX);
             final Y = BigInt.from(j).toUnsigned(widthY);
-            var expStr = E.toRadixString(2).padLeft(expWidth, '0');
+            final expStr = E.toRadixString(2).padLeft(expWidth, '0');
             // expStr = '0110';  this will pass, but all else fails
             final strX = X.toRadixString(2).padLeft(widthX, '0');
             final strY = Y.toRadixString(2).padLeft(widthY, '0');

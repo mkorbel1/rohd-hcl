@@ -188,7 +188,7 @@ class FloatingPointMultiplier extends Module {
 
   /// Multiply two floating point numbers [a] and [b], returning result in [out]
   FloatingPointMultiplier(FloatingPoint a, FloatingPoint b, int radix,
-      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen,
+      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
       {super.name})
       : exponentWidth = a.exponent.width,
         mantissaWidth = a.mantissa.width {
@@ -217,14 +217,13 @@ class FloatingPointMultiplier extends Module {
     compressor.compress();
     final r0 = compressor.extractRow(0);
     final r1 = compressor.extractRow(1);
-    final adder = ParallelPrefixAdder(r0, r1, ppGen);
+    final adder = ParallelPrefixAdder(r0, r1, ppTree);
 
     final rawMantissa = adder.out.slice((exponentWidth + 1) * 2 - 1, 0);
     // Find the leading '1' in the mantissa
-    final pos =
-        ParallelPrefixPriorityEncoder(rawMantissa.reversed, KoggeStone.new)
-            .out
-            .zeroExtend(exponentWidth);
+    final pos = ParallelPrefixPriorityEncoder(rawMantissa.reversed, ppTree)
+        .out
+        .zeroExtend(exponentWidth);
 
     final expAdd = aExp - FloatingPointValue.bias(aExp.width) + bExp - pos + 1;
 

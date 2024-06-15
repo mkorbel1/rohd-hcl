@@ -10,6 +10,7 @@
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:rohd/rohd.dart';
+import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 
 // TODO(desmonddak): Logic and LogicValue majority() functions
@@ -144,6 +145,10 @@ class ColumnCompressor {
     }
   }
 
+// TODO(desmonddak): This cannot run without real logic values due to toInt()
+//  which forces the user to assign values to the inputs first
+//  We need a way to build the CompressionTerm without actual values
+//    e.g., there needs to be a way to do the reductions with 'X' values
   /// Evaluate the logic value of a given CompressTerm
   LogicValue evaluateTerm(CompressTerm term) {
     switch (term.type) {
@@ -165,6 +170,12 @@ class ColumnCompressor {
             : 0;
         final majority =
             (count > termValues.length ~/ 2 ? LogicValue.one : LogicValue.zero);
+        // Alternative method:
+        // final x = Logic(width: termValues.length);
+        // x.put(termValues.swizzle());
+        // final newCount = Count(x).index.value.toInt();
+        // stdout.write('count=$count newCount=$newCount\n');
+        // assert(newCount == count, 'count=$count newCount=$newCount\n');
         return majority;
     }
   }
@@ -269,8 +280,8 @@ class ColumnCompressor {
           }
           final t = CompressTerm.sumTerm(inputs, 0, col);
           t.logic <= compressor.sum;
-          assert(t.logic.value == evaluateTerm(t),
-              'sum logic does not match evaluate');
+          // assert(t.logic.value == evaluateTerm(t),
+          //     'sum logic does not match evaluate');
           terms.add(t);
           columns[col].add(t);
           if (col < columns.length - 1) {
@@ -278,8 +289,8 @@ class ColumnCompressor {
             columns[col + 1].add(t);
             terms.add(t);
             t.logic <= compressor.carry;
-            assert(t.logic.value == evaluateTerm(t),
-                'carry logic does not match evaluate.');
+            // assert(t.logic.value == evaluateTerm(t),
+            //     'carry logic does not match evaluate.');
           }
         }
       }

@@ -8,9 +8,13 @@
 // 2023 May 29
 // Author: Yao Jing Quek <yao.jing.quek@intel.com>
 
+import 'dart:io';
+
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
+import 'package:rohd_hcl/src/arithmetic/booth.dart';
+import 'package:rohd_hcl/src/arithmetic/compressor.dart';
 
 /// An abstract class for all multiplier implementation.
 abstract class Multiplier extends Module {
@@ -33,5 +37,32 @@ abstract class Multiplier extends Module {
     }
     this.a = addInput('a', a, width: a.width);
     this.b = addInput('b', b, width: b.width);
+  }
+}
+
+/// An implementation of an integer multiplier using compression trees
+class CompressionTreeMultiplier extends Multiplier {
+  /// The final product of the multiplier module.
+  @override
+  Logic get product => output('product');
+
+  /// Construct a compression tree integer multipler with
+  ///   a given radix and final adder functor
+  CompressionTreeMultiplier(super.a, super.b, int radix,
+      ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
+      {super.name}) {
+    const signed = false; // We need to move this into a parameter
+    final product = addOutput('product', width: a.width + b.width + 1);
+
+    final pp =
+        PartialProductGenerator(a, b, RadixEncoder(radix), signed: signed);
+    // ignore: cascade_invocations
+    pp.signExtendCompact();
+    final compressor = ColumnCompressor(pp);
+    // ignore: cascade_invocations
+    compressor.compress();
+    final adder = ParallelPrefixAdder(
+        compressor.extractRow(0), compressor.extractRow(1), ppTree);
+    product <= adder.out.slice(a.width + b.width, 0);
   }
 }
