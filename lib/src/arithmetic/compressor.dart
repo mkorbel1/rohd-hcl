@@ -163,7 +163,6 @@ class ColumnCompressor {
         final count = (termValuesInt.isNotEmpty)
             ? termValuesInt.reduce((c, term) => c + term)
             : 0;
-
         final majority =
             (count > termValues.length ~/ 2 ? LogicValue.one : LogicValue.zero);
         return majority;

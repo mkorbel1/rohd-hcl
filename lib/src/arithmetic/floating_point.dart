@@ -13,7 +13,6 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
-import 'dart:math';
 
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
@@ -208,9 +207,9 @@ class FloatingPointMultiplier extends Module {
     final aMantissa = [a.isNormal(), a.mantissa].swizzle();
     final bMantissa = [b.isNormal(), b.mantissa].swizzle();
 
-    final encoder = RadixEncoder(radix);
-    final pp =
-        PartialProductGenerator(aMantissa, bMantissa, encoder, signed: false);
+    final pp = PartialProductGenerator(
+        aMantissa, bMantissa, RadixEncoder(radix),
+        signed: false);
     // ignore: cascade_invocations
     pp.signExtendCompact();
     final compressor = ColumnCompressor(pp);
@@ -220,76 +219,37 @@ class FloatingPointMultiplier extends Module {
     final r1 = compressor.extractRow(1);
     final adder = ParallelPrefixAdder(r0, r1, ppGen);
 
-    final rawMantissa = adder.out;
+    final rawMantissa = adder.out.slice((exponentWidth + 1) * 2 - 1, 0);
     // Find the leading '1' in the mantissa
     final pos =
-        ParallelPrefixPriorityEncoder(rawMantissa.reversed, KoggeStone.new).out;
+        ParallelPrefixPriorityEncoder(rawMantissa.reversed, KoggeStone.new)
+            .out
+            .zeroExtend(exponentWidth);
 
-    final bias = FloatingPointValue.bias(aExp.width);
-    final expAdd = Const(bias, width: aExp.width) * 3 - (aExp + bExp + pos + 1);
+    final expAdd = aExp - FloatingPointValue.bias(aExp.width) + bExp - pos + 1;
+
+    // stdout.write('aExp=${aExp.value}, bExp=${bExp.value}, '
+    //     'pos=${pos.value}, bias=${FloatingPointValue.bias(aExp.width)} '
+    //     'expAdd=${expAdd.value}\n');
 
     final mantissa = rawMantissa << (pos + 1);
     final normMantissa = mantissa.reversed.slice(mantissaWidth - 1, 0).reversed;
 
+    // stdout
+    //   ..write('aMant:  ${bitString(aMantissa.value)}\n')
+    //   ..write('bMant:  ${bitString(bMantissa.value)}\n')
+    //   ..write('out:  ${bitString(adder.out.value)}\n')
+    //   ..write('lenOut:  ${adder.out.width} ')
+    //   ..write('rawMantissa:  ${bitString(rawMantissa.value)} ')
+    //   ..write('normMantissa: ${bitString(normMantissa.value)}')
+    //   ..write('\n');
+
+    // stdout.write(
+    //     'e=${bitString(expAdd.value)} m=${bitString(normMantissa.value)}\n');
+
     _out.sign <= a.sign ^ b.sign;
     _out.exponent <= expAdd;
+    // _out.exponent <= Const(8, width: exponentWidth);
     _out.mantissa <= normMantissa;
-  }
-}
-
-void main() {
-  const radix = 4;
-
-  final fv1 = FloatingPointValue.ofStrings('0', '0110', '0000');
-  final fp1 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
-
-  final fv2 = FloatingPointValue.ofStrings('0', '0110', '0001');
-  final fp2 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
-
-  fp1.put(fv1.value);
-  fp2.put(fv2.value);
-  stdout
-    ..write('fp1=${fp1.floatingPointValue} = '
-        '${fp1.floatingPointValue.toDouble()},\n')
-    ..write('fp2=${fp2.floatingPointValue} = '
-        '${fp2.floatingPointValue.toDouble()},\n');
-
-  final product = fv1 * fv2;
-
-  stdout.write('prd=$product = ${product.toDouble()}\n');
-
-  final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
-  final fpOut = multiply.out;
-
-  stdout.write('mult=${multiply.out.floatingPointValue}= '
-      '${multiply.out.floatingPointValue.toDouble()}\n');
-
-  const widthX = 4;
-  const widthY = 4;
-  // return;
-  final limitX = pow(2, widthX);
-  final limitY = pow(2, widthY);
-  for (var j = 0; j < limitY; j++) {
-    for (var i = 0; i < limitX; i++) {
-      final X = BigInt.from(i).toUnsigned(widthX);
-      final Y = BigInt.from(j).toUnsigned(widthY);
-      final strX = X.toRadixString(2).padLeft(widthX, '0');
-      final strY = Y.toRadixString(2).padLeft(widthY, '0');
-      final fv1 = FloatingPointValue.ofStrings('0', '0110', strX);
-      final fv2 = FloatingPointValue.ofStrings('0', '0110', strY);
-
-      final doubleProduct = fv1.toDouble() * fv2.toDouble();
-      final roundTrip = FloatingPointValue.fromDouble(doubleProduct,
-              exponentWidth: 4, mantissaWidth: 4)
-          .toDouble();
-
-      fp1.put(fv1.value);
-      fp2.put(fv2.value);
-
-      assert(
-          fpOut.floatingPointValue.toDouble() == roundTrip,
-          'multiply result ${fpOut.floatingPointValue.toDouble()} not match '
-          ' $roundTrip\n');
-    }
   }
 }

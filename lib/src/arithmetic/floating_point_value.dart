@@ -191,6 +191,14 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
   factory FloatingPointValue.fromDouble(double inDouble,
       {required int exponentWidth, required int mantissaWidth}) {
     var doubleVal = inDouble;
+    if (inDouble.isNaN) {
+      return FloatingPointValue(
+        exponent:
+            LogicValue.ofInt(pow(2, exponentWidth).toInt() - 1, exponentWidth),
+        mantissa: LogicValue.zero,
+        sign: LogicValue.zero,
+      );
+    }
     LogicValue sign;
     if (inDouble < 0.0) {
       doubleVal = -doubleVal;
@@ -236,11 +244,11 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
     // We reverse so that we fit into a shorter BigInt, we keep the MSB.
     // The conversion fills leftward.
     // We reverse again after conversion.
-    fullValue = fullValue.reversed;
     final exponentVal = LogicValue.ofInt(
         e + FloatingPointValue.bias(exponentWidth), exponentWidth);
-    var mantissaVal = LogicValue.ofBigInt(fullValue.toBigInt(), mantissaWidth);
-    mantissaVal = mantissaVal.reversed;
+    var mantissaVal =
+        LogicValue.ofBigInt(fullValue.reversed.toBigInt(), mantissaWidth)
+            .reversed;
 
     final exponent = exponentVal;
     final mantissa = mantissaVal;
@@ -298,6 +306,12 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
         (mantissa == other.mantissa);
   }
 
+  /// Return true if the represented floating point number is considered
+  ///  NaN or 'Not a Number' due to overflow
+  // TODO(desmonddak): figure out the difference with Infinity
+  bool isNaN() =>
+      exponent.toInt() == eMax(exponent.width) + bias(exponent.width) + 1;
+
   /// Return the value of the floating point number in a Dart [double] type.
   double toDouble() {
     var doubleVal = double.nan;
@@ -307,8 +321,7 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
             pow(2.0, eMin(exponent.width)) *
             mantissa.toBigInt().toDouble() /
             pow(2.0, mantissa.width);
-      } else if (exponent.toInt() !=
-          eMax(exponent.width) + bias(exponent.width) + 1) {
+      } else if (!isNaN()) {
         doubleVal = (sign.toBool() ? -1.0 : 1.0) *
             (1.0 + mantissa.toBigInt().toDouble() / pow(2.0, mantissa.width)) *
             pow(2.0, exponent.toInt() - bias(exponent.width));

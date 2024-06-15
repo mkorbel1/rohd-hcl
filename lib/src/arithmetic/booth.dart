@@ -149,7 +149,8 @@ class MultiplicandSelector {
 
   /// Generate required multiples of multiplicand
   MultiplicandSelector(this.radix, this.multiplicand, {bool signed = true})
-      : shift = log2Ceil(radix) {
+      : shift = log2Ceil(radix),
+        assert(radix <= 16, 'beyond radix 16 is not yet supported') {
     final width = multiplicand.width + shift;
     final numMultiples = radix ~/ 2;
     multiples = LogicArray([numMultiples], width);
@@ -170,6 +171,7 @@ class MultiplicandSelector {
             7 => (extendedMultiplicand << 3) - extendedMultiplicand,
             8 => extendedMultiplicand << 3,
             _ => extendedMultiplicand
+            // TODO(desmonddak): generalize to support higher radix than 16
           };
     }
   }

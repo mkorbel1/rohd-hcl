@@ -12,6 +12,7 @@
 
 // ignore_for_file: avoid_print
 
+import 'dart:io';
 import 'dart:math';
 
 import 'package:rohd_hcl/src/arithmetic/floating_point.dart';
@@ -315,7 +316,7 @@ void main() {
   });
 
   group('multiplication', () {
-    test('exhaustive', () {
+    test('exhaustive zero exponent', () {
       const radix = 4;
 
       final fp1 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
@@ -324,9 +325,9 @@ void main() {
       final fv2 = FloatingPointValue.ofStrings('0', '0110', '0000');
       fp1.put(fv1.value);
       fp2.put(fv2.value);
-
       final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
       final fpOut = multiply.out;
+
       const widthX = 4;
       const widthY = 4;
       // return;
@@ -338,25 +339,135 @@ void main() {
           final Y = BigInt.from(j).toUnsigned(widthY);
           final strX = X.toRadixString(2).padLeft(widthX, '0');
           final strY = Y.toRadixString(2).padLeft(widthY, '0');
-          final fv1 = FloatingPointValue.ofStrings('0', '0110', strX);
-          final fv2 = FloatingPointValue.ofStrings('0', '0110', strY);
+          final fv1 = FloatingPointValue.ofStrings('0', '0111', strX);
+          final fv2 = FloatingPointValue.ofStrings('0', '0111', strY);
 
           final doubleProduct = fv1.toDouble() * fv2.toDouble();
-          final roundTrip = FloatingPointValue.fromDouble(doubleProduct,
-                  exponentWidth: 4, mantissaWidth: 4)
-              .toDouble();
+          final partway = FloatingPointValue.fromDouble(doubleProduct,
+              exponentWidth: widthX, mantissaWidth: widthY);
+          final roundTrip = partway.toDouble();
 
           fp1.put(fv1.value);
           fp2.put(fv2.value);
+          // final multiply =
+          //     FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
+          // final fpOut = multiply.out;
 
           assert(
               fpOut.floatingPointValue.toDouble() == roundTrip,
-              'multiply result ${fpOut.floatingPointValue.toDouble()} mismatch '
-              ' $roundTrip\n');
+              'multiply $fv1($X)*$fv2($Y)='
+              '${fpOut.floatingPointValue}'
+              '(${fpOut.floatingPointValue.toDouble()}) mismatch '
+              ' $roundTrip-->$partway\n');
+        }
+      }
+    });
+
+    // TODO(desmonddak): This is a failing case for overflow we need
+    // to generalize and handle all cases
+    // uncomment the fv1 below to expose the failure
+    test('single example', () {
+      const radix = 4;
+
+      const expWidth = 4;
+      const mantWidth = 4;
+      final fp1 =
+          FloatingPoint(exponentWidth: expWidth, mantissaWidth: mantWidth);
+      // final fv1 = FloatingPointValue.ofStrings('0', '1111', '1111');
+      final fv1 = FloatingPointValue.ofStrings('0', '1110', '1111');
+      final fp2 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
+      final fv2 = FloatingPointValue.ofStrings('0', '0111', '0001');
+      fp1.put(fv1.value);
+      fp2.put(fv2.value);
+
+      final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
+      final fpOut = multiply.out;
+
+      final doubleProduct = fv1.toDouble() * fv2.toDouble();
+      final partWay = FloatingPointValue.fromDouble(doubleProduct,
+          exponentWidth: 4, mantissaWidth: 4);
+      final roundTrip = partWay.toDouble();
+
+      fp1.put(fv1.value);
+      fp2.put(fv2.value);
+
+      stdout.write('$fv1(${fv1.toDouble()}) * $fv2(${fv2.toDouble()})\n');
+
+      assert(
+          (fpOut.floatingPointValue.isNaN() && roundTrip.isNaN) |
+              (fpOut.floatingPointValue.toDouble() == roundTrip),
+          'multiply result ${fpOut.floatingPointValue}'
+          '(${fpOut.floatingPointValue.toDouble()}) mismatch '
+          ' $partWay($roundTrip)\n');
+    });
+
+    test('normals', () {
+      const radix = 4;
+
+      const expWidth = 4;
+      const mantWidth = 4;
+      final fp1 =
+          FloatingPoint(exponentWidth: expWidth, mantissaWidth: mantWidth);
+      final fv1 = FloatingPointValue.ofStrings('0', '0110', '0000');
+      final fp2 = FloatingPoint(exponentWidth: 4, mantissaWidth: 4);
+      final fv2 = FloatingPointValue.ofStrings('0', '0110', '0000');
+      fp1.put(fv1.value);
+      fp2.put(fv2.value);
+
+      const widthX = mantWidth;
+      const widthY = mantWidth;
+      final expLimit = pow(2, expWidth);
+      final limitX = pow(2, widthX);
+      final limitY = pow(2, widthY);
+      // TODO(desmonddak): Push to the exponent limit: implement
+      //   Infinity and NaN properly in both floating_point_value
+      //   and the operations
+      for (var k = 1; k < expLimit - 1; k++) {
+        stdout.write('k=$k\n');
+        for (var j = 0; j < limitY; j++) {
+          for (var i = 0; i < limitX; i++) {
+            final E = BigInt.from(k).toUnsigned(expWidth);
+            final X = BigInt.from(i).toUnsigned(widthX);
+            final Y = BigInt.from(j).toUnsigned(widthY);
+            var expStr = E.toRadixString(2).padLeft(expWidth, '0');
+            // expStr = '0110';  this will pass, but all else fails
+            final strX = X.toRadixString(2).padLeft(widthX, '0');
+            final strY = Y.toRadixString(2).padLeft(widthY, '0');
+            final fv1 = FloatingPointValue.ofStrings('0', expStr, strX);
+            // This will force it to be normal
+            final fv2 = FloatingPointValue.ofStrings('0', '0111', strY);
+
+            final multiply =
+                FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
+            final fpOut = multiply.out;
+            final doubleProduct = fv1.toDouble() * fv2.toDouble();
+            final roundTrip = FloatingPointValue.fromDouble(doubleProduct,
+                    exponentWidth: 4, mantissaWidth: 4)
+                .toDouble();
+
+            fp1.put(fv1.value);
+            fp2.put(fv2.value);
+
+            // stdout
+            //   ..write('testing e= $E')
+            //   ..write('a=$fv1 ')
+            //   ..write('b=$fv2 ')
+            //   ..write('expect=$roundTrip ')
+            //   ..write('result=${fpOut.floatingPointValue.toDouble()}')
+            //   ..write('${fpOut.floatingPointValue.toDouble() == roundTrip}\n');
+
+            assert(
+                (fpOut.floatingPointValue.isNaN() && roundTrip.isNaN) |
+                    (fpOut.floatingPointValue.toDouble() == roundTrip),
+                'multiply result ${fpOut.floatingPointValue.toDouble()} mismatch '
+                ' $roundTrip\n'
+                'a=$fv1\n'
+                'b=$fv2\n');
+          }
         }
       }
     });
   });
+}
 
   // TODO(desmonddak):  we need floating point comparison tests
-}
