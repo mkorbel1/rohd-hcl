@@ -51,7 +51,7 @@ class CompressionTreeMultiplier extends Multiplier {
   CompressionTreeMultiplier(super.a, super.b, int radix,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
       {bool signed = false, super.name}) {
-    final product = addOutput('product', width: a.width + b.width + 1);
+    final product = addOutput('product', width: a.width + b.width);
 
     final pp =
         PartialProductGenerator(a, b, RadixEncoder(radix), signed: signed);
@@ -62,6 +62,6 @@ class CompressionTreeMultiplier extends Multiplier {
     compressor.compress();
     final adder = ParallelPrefixAdder(
         compressor.extractRow(0), compressor.extractRow(1), ppTree);
-    product <= adder.out.slice(a.width + b.width, 0);
+    product <= adder.out.slice(a.width + b.width - 1, 0);
   }
 }

@@ -56,7 +56,7 @@ void testSignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
         final golden = computeMultiplication(bA, bB);
         a.put(bA);
         b.put(bB);
-        final result = mod.product.value.toBigInt().toSigned(n * 2);
+        final result = mod.product.value.toBigInt().toSigned(mod.product.width);
         expect(result, equals(golden));
       }
     }
