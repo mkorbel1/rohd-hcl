@@ -7,8 +7,11 @@
 // 2024 June 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
+import 'dart:io';
+
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
+import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:test/test.dart';
 
 void testUnsignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
@@ -37,6 +40,29 @@ void testUnsignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
   });
 }
 
+void testSignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
+  test('multiplier_$n', () async {
+    final a = Logic(name: 'a', width: n);
+    final b = Logic(name: 'b', width: n);
+
+    final mod = fn(a, b);
+    BigInt computeMultiplication(BigInt aa, BigInt bb) => aa * bb;
+
+    for (var aa = 0; aa < (1 << n); ++aa) {
+      for (var bb = 0; bb < (1 << n); ++bb) {
+        final bA = BigInt.from(aa).toSigned(n);
+        final bB = BigInt.from(bb).toSigned(n);
+
+        final golden = computeMultiplication(bA, bB);
+        a.put(bA);
+        b.put(bB);
+        final result = mod.product.value.toBigInt().toSigned(n * 2);
+        expect(result, equals(golden));
+      }
+    }
+  });
+}
+
 void main() {
   tearDown(() async {
     await Simulator.reset();
@@ -45,8 +71,12 @@ void main() {
   Multiplier curryCompressionTreeMultiplier(Logic a, Logic b) =>
       CompressionTreeMultiplier(a, b, 4, KoggeStone.new);
 
+  Multiplier currySignedCompressionTreeMultiplier(Logic a, Logic b) =>
+      CompressionTreeMultiplier(a, b, 4, KoggeStone.new, signed: true);
+
   group('test Compression Tree Multiplier', () {
     const width = 5;
     testUnsignedMultiplier(width, curryCompressionTreeMultiplier);
+    testSignedMultiplier(width, currySignedCompressionTreeMultiplier);
   });
 }

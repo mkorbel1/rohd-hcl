@@ -50,8 +50,7 @@ class CompressionTreeMultiplier extends Multiplier {
   ///   a given radix and final adder functor
   CompressionTreeMultiplier(super.a, super.b, int radix,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
-      {super.name}) {
-    const signed = false; // We need to move this into a parameter
+      {bool signed = false, super.name}) {
     final product = addOutput('product', width: a.width + b.width + 1);
 
     final pp =
