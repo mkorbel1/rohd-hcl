@@ -9,6 +9,7 @@
 
 import 'dart:io';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 
@@ -17,6 +18,7 @@ import 'package:rohd_hcl/src/arithmetic/booth.dart';
 /// Base class for column compressor function
 class Compressor extends Module {
   /// Input bits to compress
+  @protected
   late final Logic compressBits;
 
   /// The addition results [sum] including carry bit
@@ -26,7 +28,12 @@ class Compressor extends Module {
   Logic get carry => output('carry');
 
   /// Construct a column compressor
-  Compressor(this.compressBits) {
+  Compressor(Logic compressBits) {
+    this.compressBits = addInput(
+      'compressBits',
+      compressBits,
+      width: compressBits.width,
+    );
     addOutput('sum');
     addOutput('carry');
   }

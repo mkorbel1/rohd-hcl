@@ -21,9 +21,7 @@ void testUnsignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
     final b = Logic(name: 'b', width: n);
 
     final mod = fn(a, b);
-    // TODO(desmonddak): understand why this doesn't work with build()
-    //  idiom, but works without -- something about my module constructor
-    // await mod.build();
+    await mod.build();
 
     int computeMultiplication(int aa, int bb) => aa * bb;
 
