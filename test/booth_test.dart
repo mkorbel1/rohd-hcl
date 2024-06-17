@@ -97,6 +97,56 @@ void main() {
     expect(pp.evaluate(signed: true), equals(product));
   });
 
+  test('single MAC partial product test', () async {
+    final encoder = RadixEncoder(4);
+    const widthX = 4;
+    const widthY = 4;
+
+    const i = 8;
+    var j = pow(2, widthY - 1).toInt();
+    j = 2;
+    const k = 128;
+
+    final X = BigInt.from(i).toSigned(widthX);
+    final Y = BigInt.from(j).toSigned(widthY);
+    final Z = BigInt.from(k).toSigned(widthX + widthY);
+    final product = X * Y + Z;
+
+    final logicX = Logic(name: 'X', width: widthX);
+    final logicY = Logic(name: 'Y', width: widthY);
+    final logicZ = Logic(name: 'Z', width: widthX + widthY);
+    logicX.put(X);
+    logicY.put(Y);
+    logicZ.put(Z);
+    final pp = PartialProductGenerator(logicX, logicY, encoder);
+    // ignore: cascade_invocations
+
+    // stdout.write(pp);
+    pp.signExtendCompact();
+    stdout.write(pp);
+    // Add a row for addend
+    final l = [for (var i = 0; i < logicZ.width; i++) logicZ[i]];
+    // ignore: cascade_invocations
+    l
+      ..add(Const(0)) // ~Sign in our sign extension form
+      ..add(Const(1));
+    pp.partialProducts.add(l);
+    pp.rowShift.add(0);
+    stdout.write(pp);
+
+    final val = pp.evaluate(signed: true);
+
+    stdout.write(
+        'Test: $i($X) * $j($Y) + $k($Z)= $product vs ${pp.evaluate(signed: true)}\n');
+    if (pp.evaluate(signed: true) != product) {
+      stdout.write(
+          'Fail: $X * $Y: ${pp.evaluate(signed: true)} vs expected $product\n');
+      // ignore: cascade_invocations
+      // stdout.write(pp);
+    }
+    // expect(pp.evaluate(signed: true), equals(product));
+  });
+
   test('single partial product test unsigned', () async {
     final encoder = RadixEncoder(2);
     const signed = false;

@@ -10,7 +10,6 @@
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:rohd/rohd.dart';
-import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 
 // TODO(desmonddak): Logic and LogicValue majority() functions
@@ -73,14 +72,30 @@ class CompressTerm implements Comparable<CompressTerm> {
   /// The Logic wire of the term
   final logic = Logic();
 
+  /// Estimated delay of the output of this CompessTerm
+  late double delay;
+
+  /// Estimated delay of a Sum term
+  static const sumDelay = 1.0;
+
+  /// Estimated delay of a Carry term
+  static const carryDelay = 0.75;
+
   /// CompressTerm constructor
-  CompressTerm(this.type, this.row, this.col);
+  CompressTerm(this.type, this.row, this.col) {
+    delay = 0.0;
+  }
 
   /// Create a sum Term
   factory CompressTerm.sumTerm(List<CompressTerm> args, int row, int col) {
     final term = CompressTerm(CompressTermType.sum, row, col);
     // ignore: cascade_invocations
     term.inputs = args;
+    for (final i in term.inputs) {
+      if (i.delay + sumDelay > term.delay) {
+        term.delay = i.delay + sumDelay;
+      }
+    }
     return term;
   }
 
@@ -89,6 +104,11 @@ class CompressTerm implements Comparable<CompressTerm> {
     final term = CompressTerm(CompressTermType.carry, row, col);
     // ignore: cascade_invocations
     term.inputs = args;
+    for (final i in term.inputs) {
+      if (i.delay + carryDelay > term.delay) {
+        term.delay = i.delay + carryDelay;
+      }
+    }
     return term;
   }
   // TODO(desmonddak): create a delay-driven comparison
@@ -97,12 +117,7 @@ class CompressTerm implements Comparable<CompressTerm> {
     if (other is! CompressTerm) {
       throw Exception('Input must be of type CompressTerm ');
     }
-    if (type == CompressTermType.pp) {
-      if (row < other.row || col < other.col) {
-        return 0;
-      }
-    }
-    return 1;
+    return delay > other.delay ? 1 : (delay < other.delay ? -1 : 0);
   }
 
   @override
@@ -265,10 +280,9 @@ class ColumnCompressor {
       final depth = queue.length;
       if (depth > iteration) {
         if (depth > 2) {
-          final inputs = <CompressTerm>[
-            queue.removeFirst(),
-            queue.removeFirst()
-          ];
+          final first = queue.removeFirst();
+          final second = queue.removeFirst();
+          final inputs = <CompressTerm>[first, second];
           Compressor compressor;
           if (depth > 3) {
             inputs.add(queue.removeFirst());

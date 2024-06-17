@@ -9,9 +9,10 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
-import 'package:rohd_hcl/src/arithmetic/booth.dart';
+import 'package:rohd_hcl/src/arithmetic/compressor.dart';
 import 'package:test/test.dart';
 
 void testUnsignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
@@ -78,5 +79,68 @@ void main() {
     const width = 5;
     testUnsignedMultiplier(width, curryCompressionTreeMultiplier);
     testSignedMultiplier(width, currySignedCompressionTreeMultiplier);
+  });
+
+  test('exhaustive signed mac', () async {
+    const n = 4;
+    final a = Logic(name: 'a', width: n);
+    final b = Logic(name: 'b', width: n);
+    final c = Logic(name: 'c', width: 2 * n);
+    a.put(0);
+    b.put(0);
+    c.put(0);
+
+    final mod = CompressionTreeMultiplyAccumulate(a, b, c, 4, KoggeStone.new,
+        signed: true);
+    BigInt computeMultiplyAccumulate(BigInt aa, BigInt bb, BigInt cc) =>
+        aa * bb + cc;
+
+    for (var aa = 0; aa < (1 << n); ++aa) {
+      for (var bb = 0; bb < (1 << n); ++bb) {
+        for (var cc = 0; cc < (1 << 2 * n); ++cc) {
+          final bA = BigInt.from(aa).toSigned(n);
+          final bB = BigInt.from(bb).toSigned(n);
+          final bC = BigInt.from(cc).toSigned(2 * n);
+
+          final golden = computeMultiplyAccumulate(bA, bB, bC);
+          a.put(bA);
+          b.put(bB);
+          c.put(bC);
+          final result =
+              mod.accumulate.value.toBigInt().toSigned(mod.accumulate.width);
+          if (result != golden) {
+            stdout.write(
+                'Failed:  $bA * $bB + $bC = $result (expected: $golden)\n');
+          }
+          expect(result, equals(golden));
+        }
+      }
+    }
+  });
+
+  test('single mac', () async {
+    const n = 4;
+    final a = Logic(name: 'a', width: n);
+    final b = Logic(name: 'b', width: n);
+    final c = Logic(name: 'c', width: 2 * n);
+
+    BigInt computeMultiplyAccumulate(BigInt aa, BigInt bb, BigInt cc) =>
+        aa * bb + cc;
+
+    final bA = BigInt.from(0).toSigned(n);
+    final bB = BigInt.from(0).toSigned(n);
+    final bC = BigInt.from(128).toSigned(2 * n);
+    // when the sum is 128 it fails due to sign
+
+    final golden = computeMultiplyAccumulate(bA, bB, bC);
+    a.put(bA);
+    b.put(bB);
+    c.put(bC);
+    final mod = CompressionTreeMultiplyAccumulate(a, b, c, 4, KoggeStone.new,
+        signed: true);
+    final result =
+        mod.accumulate.value.toBigInt().toSigned(mod.accumulate.width);
+    stdout.write('expecting $golden\n');
+    expect(result, equals(golden));
   });
 }
