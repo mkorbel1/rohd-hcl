@@ -163,4 +163,6 @@ void main() {
   });
   // TODO(desmonddak): need exhaustive test of OnesComplement which requires
   // operand a be larger than operand b
+  // TODO(desmonddak): need to document/fix the OnesComplement ordering issue
+  //  as it leads to the overhead of a comparison
 }

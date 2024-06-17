@@ -69,14 +69,14 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
   final LogicValue mantissa;
 
   /// Return the exponent value representing the true zero exponent 2^0 = 1
-  ///   often termed [_bias] or the offset of the exponent
-  static int _bias(int exponentWidth) => pow(2, exponentWidth - 1).toInt() - 1;
+  ///   often termed [bias] or the offset of the exponent
+  static int bias(int exponentWidth) => pow(2, exponentWidth - 1).toInt() - 1;
 
   /// Return the minimum exponent value
-  static int _eMin(int exponentWidth) => -pow(2, exponentWidth - 1).toInt() + 2;
+  static int eMin(int exponentWidth) => -pow(2, exponentWidth - 1).toInt() + 2;
 
   /// Return the maximum exponent value
-  static int _eMax(int exponentWidth) => _bias(exponentWidth);
+  static int eMax(int exponentWidth) => bias(exponentWidth);
 
   /// Factory (static) constructor of a [FloatingPointValue] from
   /// sign, mantissa and exponent
@@ -191,6 +191,14 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
   factory FloatingPointValue.fromDouble(double inDouble,
       {required int exponentWidth, required int mantissaWidth}) {
     var doubleVal = inDouble;
+    if (inDouble.isNaN) {
+      return FloatingPointValue(
+        exponent:
+            LogicValue.ofInt(pow(2, exponentWidth).toInt() - 1, exponentWidth),
+        mantissa: LogicValue.zero,
+        sign: LogicValue.zero,
+      );
+    }
     LogicValue sign;
     if (inDouble < 0.0) {
       doubleVal = -doubleVal;
@@ -201,7 +209,7 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
 
     // If we are dealing with a really small number we need to scale it up
     final scaleToWhole =
-        (doubleVal != 0) ? (-log(doubleVal) / log(2)).floor() : 0;
+        (doubleVal != 0) ? (-log(doubleVal) / log(2)).ceil() : 0;
     final scale = mantissaWidth + scaleToWhole;
     var s = scale;
 
@@ -220,27 +228,27 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
     var fullValue = LogicValue.ofBigInt(scaledValue, fullLength);
     var e = (fullLength > 0)
         ? fullLength - mantissaWidth - scaleToWhole
-        : FloatingPointValue._eMin(exponentWidth);
+        : FloatingPointValue.eMin(exponentWidth);
 
-    if (e < -FloatingPointValue._bias(exponentWidth)) {
-      fullValue = fullValue >>>
-          (scaleToWhole - FloatingPointValue._bias(exponentWidth));
-      e = -FloatingPointValue._bias(exponentWidth);
+    if (e < -FloatingPointValue.bias(exponentWidth)) {
+      fullValue =
+          fullValue >>> (scaleToWhole - FloatingPointValue.bias(exponentWidth));
+      e = -FloatingPointValue.bias(exponentWidth);
     } else {
       // Could be just one away from subnormal
       e -= 1;
-      if (e > -FloatingPointValue._bias(exponentWidth)) {
+      if (e > -FloatingPointValue.bias(exponentWidth)) {
         fullValue = fullValue << 1; // Chop the first '1'
       }
     }
     // We reverse so that we fit into a shorter BigInt, we keep the MSB.
     // The conversion fills leftward.
     // We reverse again after conversion.
-    fullValue = fullValue.reversed;
     final exponentVal = LogicValue.ofInt(
-        e + FloatingPointValue._bias(exponentWidth), exponentWidth);
-    var mantissaVal = LogicValue.ofBigInt(fullValue.toBigInt(), mantissaWidth);
-    mantissaVal = mantissaVal.reversed;
+        e + FloatingPointValue.bias(exponentWidth), exponentWidth);
+    var mantissaVal =
+        LogicValue.ofBigInt(fullValue.reversed.toBigInt(), mantissaWidth)
+            .reversed;
 
     final exponent = exponentVal;
     final mantissa = mantissaVal;
@@ -298,20 +306,25 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
         (mantissa == other.mantissa);
   }
 
+  /// Return true if the represented floating point number is considered
+  ///  NaN or 'Not a Number' due to overflow
+  // TODO(desmonddak): figure out the difference with Infinity
+  bool isNaN() =>
+      exponent.toInt() == eMax(exponent.width) + bias(exponent.width) + 1;
+
   /// Return the value of the floating point number in a Dart [double] type.
   double toDouble() {
     var doubleVal = double.nan;
     if (value.isValid) {
       if (exponent.toInt() == 0) {
         doubleVal = (sign.toBool() ? -1.0 : 1.0) *
-            pow(2.0, _eMin(exponent.width)) *
+            pow(2.0, eMin(exponent.width)) *
             mantissa.toBigInt().toDouble() /
             pow(2.0, mantissa.width);
-      } else if (exponent.toInt() !=
-          _eMax(exponent.width) + _bias(exponent.width) + 1) {
+      } else if (!isNaN()) {
         doubleVal = (sign.toBool() ? -1.0 : 1.0) *
             (1.0 + mantissa.toBigInt().toDouble() / pow(2.0, mantissa.width)) *
-            pow(2.0, exponent.toInt() - _bias(exponent.width));
+            pow(2.0, exponent.toInt() - bias(exponent.width));
       }
     }
     return doubleVal;

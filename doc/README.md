@@ -41,7 +41,7 @@ Some in-development items will have opened issues, as well. Feel free to create 
   - Log
   - Square root
   - Inverse square root
-  - Floating point
+  - [Floating point](./components/floating_point.md)
     - Double (64-bit)
     - Float (32-bit)
     - BFloat16 (16-bit)
