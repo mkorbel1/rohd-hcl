@@ -120,8 +120,6 @@ void main() {
     logicZ.put(Z);
     final pp = PartialProductGenerator(logicX, logicY, encoder);
     // ignore: cascade_invocations
-
-    // stdout.write(pp);
     pp.signExtendCompact();
     stdout.write(pp);
     // Add a row for addend
@@ -132,9 +130,6 @@ void main() {
       ..add(Const(1));
     pp.partialProducts.add(l);
     pp.rowShift.add(0);
-    stdout.write(pp);
-
-    final val = pp.evaluate(signed: true);
 
     stdout.write(
         'Test: $i($X) * $j($Y) + $k($Z)= $product vs ${pp.evaluate(signed: true)}\n');

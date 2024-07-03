@@ -15,7 +15,6 @@
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
-import 'package:rohd_hcl/src/arithmetic/floating_point_value.dart';
 import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:rohd_hcl/src/arithmetic/compressor.dart';
 
