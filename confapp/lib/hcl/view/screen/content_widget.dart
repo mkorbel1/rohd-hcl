@@ -342,10 +342,11 @@ class _SVGeneratorState extends State<SVGenerator> {
 
           yosysWorker.postMessage({'module': moduleName, 'verilog': rtlRes});
 
-          await yosysWorker.onMessage.listen((msg) {
+          await yosysWorker.onMessage.first.then((msg) {
+            //  await yosysWorker.onMessage.listen((msg) {
             // TODO(desmonddak):  We see that the number of messages increases
             // with each click
-            print('got msg' + msg.data);
+            // print('got msg' + msg.data);
 
             schematicHTML = d3Schematic(msg.data);
             ui_web.platformViewRegistry.registerViewFactory(
