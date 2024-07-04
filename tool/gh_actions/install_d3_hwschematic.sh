@@ -22,3 +22,8 @@ cp -r doc/d3-hwschematic/node_modules/d3 doc/api/d3-hwschematic-assets
 cp -r doc/d3-hwschematic/node_modules/elkjs doc/api/d3-hwschematic-assets
 cp doc/d3-hwschematic/dist/d3-hwschematic.{css,js} doc/api/d3-hwschematic-assets
 
+mkdir -p confapp/d3-hwschematic-assets
+cp -r doc/d3-hwschematic/node_modules/d3 confapp/d3-hwschematic-assets
+cp -r doc/d3-hwschematic/node_modules/elkjs confapp/d3-hwschematic-assets
+cp doc/d3-hwschematic/dist/d3-hwschematic.{css,js} confapp/d3-hwschematic-assets
+
