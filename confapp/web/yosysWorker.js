@@ -1,3 +1,11 @@
+// Copyright (C) 2023 Intel Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// yosysWorker.js
+// Javascript routine to be used in a worker for loading Yosys WebAsm
+//
+// 2024 July 3
+// Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
 function LoadModule() {
     return import('https://cdn.jsdelivr.net/npm/@yowasp/yosys/gen/bundle.js');
