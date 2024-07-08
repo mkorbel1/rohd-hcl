@@ -3,13 +3,13 @@
 
 export 'src/arbiters/arbiters.dart';
 export 'src/arithmetic/adder.dart';
+export 'src/arithmetic/carry_save_mutiplier.dart';
 export 'src/arithmetic/floating_point.dart';
 export 'src/arithmetic/floating_point_value.dart';
 export 'src/arithmetic/multiplier.dart';
 export 'src/arithmetic/ones_complement_adder.dart';
 export 'src/arithmetic/ripple_carry_adder.dart';
 export 'src/binary_gray.dart';
-export 'src/carry_save_mutiplier.dart';
 export 'src/component_config/component_config.dart';
 export 'src/count.dart';
 export 'src/edge_detector.dart';

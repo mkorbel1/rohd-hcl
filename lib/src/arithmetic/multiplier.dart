@@ -24,15 +24,22 @@ abstract class Multiplier extends Module {
   @protected
   late final Logic b;
 
+  /// The multiplier treats operands and output as signed
+  bool get signed => _signed;
+
+  @protected
+  bool _signed = false;
+
   /// The multiplication results of the multiplier.
   Logic get product;
 
   /// Take input [a] and input [b] and return the
   /// [product] of the multiplication result.
-  Multiplier(Logic a, Logic b, {super.name}) {
+  Multiplier(Logic a, Logic b, {bool signed = false, super.name}) {
     if (a.width != b.width) {
       throw RohdHclException('inputs of a and b should have same width.');
     }
+    _signed = signed;
     this.a = addInput('a', a, width: a.width);
     this.b = addInput('b', b, width: b.width);
   }
@@ -77,7 +84,7 @@ class CompressionTreeMultiplier extends Multiplier {
   ///   a given radix and final adder functor
   CompressionTreeMultiplier(super.a, super.b, int radix,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
-      {bool signed = false, super.name}) {
+      {super.signed = false, super.name}) {
     final product = addOutput('product', width: a.width + b.width);
 
     final pp =

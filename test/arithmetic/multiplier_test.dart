@@ -12,49 +12,59 @@ import 'dart:io';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:test/test.dart';
+import './random_bigInt.dart';
 
-void testUnsignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
+void testMultiplierRandom(
+    int width, int iterations, Multiplier Function(Logic a, Logic b) fn) {
+  test('multiplier_$width', () async {
+    final a = Logic(name: 'a', width: width);
+    final b = Logic(name: 'b', width: width);
+    final mod = fn(a, b);
+    await mod.build();
+    final signed = mod.signed;
+
+    BigInt computeBigIntMultiplication(BigInt aa, BigInt bb) => aa * bb;
+
+    for (var i = 0; i < iterations; i++) {
+      final bA = randomBigInt(width, signed: signed);
+      final bB = randomBigInt(width, signed: signed);
+      final bigGolden = computeBigIntMultiplication(bA, bB);
+      a.put(bA);
+      b.put(bB);
+      final bigResult = signed
+          ? mod.product.value.toBigInt().toSigned(mod.product.width)
+          : mod.product.value.toBigInt();
+      expect(bigResult, equals(bigGolden));
+    }
+  });
+}
+
+void testMultiplierExhaustive(int n, Multiplier Function(Logic a, Logic b) fn) {
   test('multiplier_$n', () async {
     final a = Logic(name: 'a', width: n);
     final b = Logic(name: 'b', width: n);
 
     final mod = fn(a, b);
     await mod.build();
+    final signed = mod.signed;
 
-    int computeMultiplication(int aa, int bb) => aa * bb;
+    // We use BigInts only to provide uniformity and template for testing
+    // Clearly we can only use small integers for exhaustive tests
 
-    // put/expect testing
+    BigInt computeBigIntMultiplication(BigInt aa, BigInt bb) => aa * bb;
 
-    for (var aa = 0; aa < (1 << n); ++aa) {
-      for (var bb = 0; bb < (1 << n); ++bb) {
-        final golden = computeMultiplication(aa, bb);
-        a.put(aa);
-        b.put(bb);
-        final result = mod.product.value.toInt();
-        expect(result, equals(golden));
-      }
-    }
-  });
-}
+    for (var bA = BigInt.zero; bA < (BigInt.one << n); bA += BigInt.one) {
+      for (var bB = BigInt.zero; bB < (BigInt.one << n); bB += BigInt.one) {
+        final opA = signed ? bA.toSigned(n) : bA;
+        final opB = signed ? bB.toSigned(n) : bB;
 
-void testSignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {
-  test('multiplier_$n', () async {
-    final a = Logic(name: 'a', width: n);
-    final b = Logic(name: 'b', width: n);
-
-    final mod = fn(a, b);
-    BigInt computeMultiplication(BigInt aa, BigInt bb) => aa * bb;
-
-    for (var aa = 0; aa < (1 << n); ++aa) {
-      for (var bb = 0; bb < (1 << n); ++bb) {
-        final bA = BigInt.from(aa).toSigned(n);
-        final bB = BigInt.from(bb).toSigned(n);
-
-        final golden = computeMultiplication(bA, bB);
-        a.put(bA);
-        b.put(bB);
-        final result = mod.product.value.toBigInt().toSigned(mod.product.width);
-        expect(result, equals(golden));
+        final bigGolden = computeBigIntMultiplication(opA, opB);
+        a.put(opA);
+        b.put(opB);
+        final bigResult = signed
+            ? mod.product.value.toBigInt().toSigned(mod.product.width)
+            : mod.product.value.toBigInt();
+        expect(bigResult, equals(bigGolden));
       }
     }
   });
@@ -71,10 +81,15 @@ void main() {
   Multiplier currySignedCompressionTreeMultiplier(Logic a, Logic b) =>
       CompressionTreeMultiplier(a, b, 4, KoggeStone.new, signed: true);
 
-  group('test Compression Tree Multiplier', () {
+  group('test Compression Tree Multiplier Exhaustive', () {
     const width = 5;
-    testUnsignedMultiplier(width, curryCompressionTreeMultiplier);
-    testSignedMultiplier(width, currySignedCompressionTreeMultiplier);
+    testMultiplierExhaustive(width, curryCompressionTreeMultiplier);
+    testMultiplierExhaustive(width, currySignedCompressionTreeMultiplier);
+  });
+
+  group('test Compression Tree Multiplier Randomly', () {
+    testMultiplierRandom(4, 500, currySignedCompressionTreeMultiplier);
+    testMultiplierRandom(4, 500, curryCompressionTreeMultiplier);
   });
 
   test('exhaustive signed mac', () async {
@@ -123,8 +138,8 @@ void main() {
     BigInt computeMultiplyAccumulate(BigInt aa, BigInt bb, BigInt cc) =>
         aa * bb + cc;
 
-    final bA = BigInt.from(0).toSigned(n);
-    final bB = BigInt.from(0).toSigned(n);
+    final bA = BigInt.from(1).toSigned(n);
+    final bB = BigInt.from(3).toSigned(n);
     final bC = BigInt.from(128).toSigned(2 * n);
     // when the sum is 128 it fails due to sign
 
@@ -136,7 +151,6 @@ void main() {
         signed: true);
     final result =
         mod.accumulate.value.toBigInt().toSigned(mod.accumulate.width);
-    stdout.write('expecting $golden\n');
     expect(result, equals(golden));
   });
 }
