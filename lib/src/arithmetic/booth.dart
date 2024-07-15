@@ -425,6 +425,7 @@ class PartialProductGenerator {
     if (shift == 1) {
       lastAddend.add(Const(1));
     }
+  }
 
   /// Return the actual largest width of all rows
   int maxWidth() {
