@@ -59,15 +59,23 @@ abstract class MultiplyAccumulate extends Module {
   @protected
   late final Logic c;
 
+  /// The multiplier treats operands and output as signed
+  bool get signed => _signed;
+
+  @protected
+  bool _signed = false;
+
   /// The multiplication results of the multiply-accumulate.
   Logic get accumulate;
 
   /// Take input [a] and input [b], compute their
   /// product, add input [c] to produce the [accumulate] result.
-  MultiplyAccumulate(Logic a, Logic b, Logic c, {super.name}) {
+  MultiplyAccumulate(Logic a, Logic b, Logic c,
+      {bool signed = false, super.name}) {
     if (a.width != b.width) {
       throw RohdHclException('inputs of a and b should have same width.');
     }
+    _signed = signed;
     this.a = addInput('a', a, width: a.width);
     this.b = addInput('b', b, width: b.width);
     this.c = addInput('c', c, width: c.width);
@@ -112,6 +120,7 @@ class CompressionTreeMultiplyAccumulate extends MultiplyAccumulate {
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
       {bool signed = false, super.name}) {
     final accumulate = addOutput('accumulate', width: a.width + b.width + 1);
+    _signed = signed;
 
     final pp =
         PartialProductGenerator(a, b, RadixEncoder(radix), signed: signed);
@@ -126,14 +135,25 @@ class CompressionTreeMultiplyAccumulate extends MultiplyAccumulate {
     // TODO(desmonddak): This sign extension method for the additional
     //  addend may only work with signExtendCompact.
 
+    final lastLength =
+        pp.partialProducts[pp.rows - 1].length + pp.rowShift[pp.rows - 1];
+
     final sign = signed ? c[c.width - 1] : Const(0);
     final l = [for (var i = 0; i < c.width; i++) c[i]];
-    // ignore: cascade_invocations
+    while (l.length < lastLength) {
+      l.add(sign);
+    }
     l
       ..add(~sign)
       ..add(Const(1));
+
     pp.partialProducts.insert(0, l);
     pp.rowShift.insert(0, 0);
+
+    // TODO(desmonddak): probably cleaner to add row at end, but
+    // compressor fails to properly handle, so we need to debug
+    // pp.partialProducts.add(l);
+    // pp.rowShift.add(0);
     final compressor = ColumnCompressor(pp);
     // ignore: cascade_invocations
     compressor.compress();

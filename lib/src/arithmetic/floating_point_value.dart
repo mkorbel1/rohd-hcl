@@ -244,14 +244,11 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
     // We reverse so that we fit into a shorter BigInt, we keep the MSB.
     // The conversion fills leftward.
     // We reverse again after conversion.
-    final exponentVal = LogicValue.ofInt(
+    final exponent = LogicValue.ofInt(
         e + FloatingPointValue.bias(exponentWidth), exponentWidth);
-    var mantissaVal =
+    final mantissa =
         LogicValue.ofBigInt(fullValue.reversed.toBigInt(), mantissaWidth)
             .reversed;
-
-    final exponent = exponentVal;
-    final mantissa = mantissaVal;
 
     return FloatingPointValue(
       exponent: exponent,

@@ -105,9 +105,6 @@ class MultiplierEncoder {
     } else {
       rows = (((multiplier.width + 1) % (_sliceWidth - 1) == 0) ? 0 : 1) +
           ((multiplier.width + 1) ~/ log2Ceil(radixEncoder.radix));
-      if (_sliceWidth == 2) {
-        stdout.write('extending multipler by 1 row\n');
-      }
     }
     // slices overlap by 1 and start at -1
     _extendedMultiplier = (signed
@@ -428,7 +425,6 @@ class PartialProductGenerator {
     if (shift == 1) {
       lastAddend.add(Const(1));
     }
-  }
 
   /// Return the actual largest width of all rows
   int maxWidth() {

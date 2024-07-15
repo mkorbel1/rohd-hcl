@@ -118,7 +118,6 @@ class CompressTerm implements Comparable<CompressTerm> {
     }
     return term;
   }
-  // TODO(desmonddak): create a delay-driven comparison
   @override
   int compareTo(Object other) {
     if (other is! CompressTerm) {
