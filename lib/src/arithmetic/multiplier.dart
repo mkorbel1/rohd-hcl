@@ -8,8 +8,6 @@
 // 2023 May 29
 // Author: Yao Jing Quek <yao.jing.quek@intel.com>
 
-import 'dart:io';
-
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
@@ -95,7 +93,7 @@ class CompressionTreeMultiplier extends Multiplier {
   }
 }
 
-/// An implementation of an integer multiplier using compression trees
+/// An implementation of an integer multiply accumulate using compression trees
 class CompressionTreeMultiplyAccumulate extends MultiplyAccumulate {
   /// The final product of the multiplier module.
   @override
@@ -117,6 +115,9 @@ class CompressionTreeMultiplyAccumulate extends MultiplyAccumulate {
     // So the rowshift is valid.
     // But this requires that we prefix the PP with the addend (not add) to
     // keep the evaluate routine working.
+
+    // TODO(desmonddak): This sign extension method for the additional
+    //  addend may only work with signExtendCompact.
 
     final sign = signed ? c[c.width - 1] : Const(0);
     final l = [for (var i = 0; i < c.width; i++) c[i]];

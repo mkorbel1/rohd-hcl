@@ -9,10 +9,8 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
-import 'package:rohd_hcl/src/arithmetic/compressor.dart';
 import 'package:test/test.dart';
 
 void testUnsignedMultiplier(int n, Multiplier Function(Logic a, Logic b) fn) {

@@ -284,8 +284,7 @@ void main() {
     // expect(adder.out.floatingPointValue.compareTo(out), 0);
   });
 
-  // if you name two tests the same they get run together
-// RippleCarryAdder: cannot access inputs from outside -- super.a issue
+
   test('basic loop adder test2', () {
     final input = [(4.5, 3.75), (9.0, -3.75), (-9.0, 3.9375), (-3.9375, 9.0)];
 
