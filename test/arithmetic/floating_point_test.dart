@@ -284,7 +284,6 @@ void main() {
     // expect(adder.out.floatingPointValue.compareTo(out), 0);
   });
 
-
   test('basic loop adder test2', () {
     final input = [(4.5, 3.75), (9.0, -3.75), (-9.0, 3.9375), (-3.9375, 9.0)];
 
@@ -421,6 +420,7 @@ void main() {
       // TODO(desmonddak): Push to the exponent limit: implement
       //   Infinity and NaN properly in both floating_point_value
       //   and the operations
+      final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
       for (var k = 1; k < expLimit - 1; k++) {
         stdout.write('k=$k\n');
         for (var j = 0; j < limitY; j++) {
@@ -436,8 +436,6 @@ void main() {
             // This will force it to be normal
             final fv2 = FloatingPointValue.ofStrings('0', '0111', strY);
 
-            final multiply =
-                FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
             final fpOut = multiply.out;
             final doubleProduct = fv1.toDouble() * fv2.toDouble();
             final roundTrip = FloatingPointValue.fromDouble(doubleProduct,

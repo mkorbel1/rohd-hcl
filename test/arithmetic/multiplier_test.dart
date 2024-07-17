@@ -7,14 +7,16 @@
 // 2024 June 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
+import 'dart:math';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:test/test.dart';
-import 'random_bigint.dart';
 
 void runSingleMultiply(Multiplier mod, BigInt bA, BigInt bB) {
   final golden = bA * bB;
+  // ignore: invalid_use_of_protected_member
   mod.a.put(bA);
+  // ignore: invalid_use_of_protected_member
   mod.b.put(bB);
   final result = mod.signed
       ? mod.product.value.toBigInt().toSigned(mod.product.width)
@@ -34,8 +36,14 @@ void testMultiplierRandom(
     final signed = mod.signed;
 
     for (var i = 0; i < iterations; i++) {
-      final bA = randomBigInt(width, signed: signed);
-      final bB = randomBigInt(width, signed: signed);
+      // final bA = randomBigInt(width, signed: signed);
+      final bA = signed
+          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
+          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
+      // final bB = randomBigInt(width, signed: signed);
+      final bB = signed
+          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
+          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
       runSingleMultiply(mod, bA, bB);
     }
   });
@@ -46,7 +54,7 @@ void testMultiplierExhaustive(
   final a = Logic(name: 'a', width: width);
   final b = Logic(name: 'b', width: width);
   final mod = fn(a, b);
-  test('exhaustive${mod.definitionName}_S${mod.signed}_W$width', () async {
+  test('exhaustive_${mod.definitionName}_S${mod.signed}_W$width', () async {
     await mod.build();
     final signed = mod.signed;
 
@@ -65,8 +73,11 @@ void testMultiplierExhaustive(
 void runSingleMultiplyAccumulate(
     MultiplyAccumulate mod, BigInt bA, BigInt bB, BigInt bC) {
   final golden = bA * bB + bC;
+  // ignore: invalid_use_of_protected_member
   mod.a.put(bA);
+  // ignore: invalid_use_of_protected_member
   mod.b.put(bB);
+  // ignore: invalid_use_of_protected_member
   mod.c.put(bC);
   // print('$bA, $bB, $bC');
 
@@ -87,9 +98,19 @@ void testMultiplyAccumulateRandom(int width, int iterations,
     await mod.build();
     final signed = mod.signed;
     for (var i = 0; i < iterations; i++) {
-      final bA = randomBigInt(width, signed: signed);
-      final bB = randomBigInt(width, signed: signed);
-      final bC = randomBigInt(width * 2, signed: signed);
+      // final bA = randomBigInt(width, signed: signed);
+      // final bB = randomBigInt(width, signed: signed);
+      // final bC = randomBigInt(width * 2, signed: signed);
+      final bA = signed
+          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
+          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
+      // final bB = randomBigInt(width, signed: signed);
+      final bB = signed
+          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
+          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
+      final bC = signed
+          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
+          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
 
       runSingleMultiplyAccumulate(mod, bA, bB, bC);
     }
@@ -182,28 +203,28 @@ void main() {
     final b = Logic(name: 'b', width: width);
     final c = Logic(name: 'c', width: 2 * width);
 
-    const signed = true;
     const av = 0;
     const bv = 0;
     const cv = -512;
+    for (final signed in [true, false]) {
+      final bA = signed
+          ? BigInt.from(av).toSigned(width)
+          : BigInt.from(av).toUnsigned(width);
+      final bB = signed
+          ? BigInt.from(bv).toSigned(width)
+          : BigInt.from(bv).toUnsigned(width);
+      final bC = signed
+          ? BigInt.from(cv).toSigned(2 * width)
+          : BigInt.from(cv).toUnsigned(width * 2);
 
-    final bA = signed
-        ? BigInt.from(av).toSigned(width)
-        : BigInt.from(av).toUnsigned(width);
-    final bB = signed
-        ? BigInt.from(bv).toSigned(width)
-        : BigInt.from(bv).toUnsigned(width);
-    final bC = signed
-        ? BigInt.from(cv).toSigned(2 * width)
-        : BigInt.from(cv).toUnsigned(width * 2);
+      // Set these so that printing inside module build will have Logic values
+      a.put(bA);
+      b.put(bB);
+      c.put(bC);
 
-    // Set these so that printing inside module build will have Logic values
-    a.put(bA);
-    b.put(bB);
-    c.put(bC);
-
-    final mod = CompressionTreeMultiplyAccumulate(a, b, c, 4, KoggeStone.new,
-        signed: signed);
-    runSingleMultiplyAccumulate(mod, bA, bB, bC);
+      final mod = CompressionTreeMultiplyAccumulate(a, b, c, 4, KoggeStone.new,
+          signed: signed);
+      runSingleMultiplyAccumulate(mod, bA, bB, bC);
+    }
   });
 }

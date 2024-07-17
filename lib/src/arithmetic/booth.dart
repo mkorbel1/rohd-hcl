@@ -7,8 +7,6 @@
 // 2024 May 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
-import 'dart:io';
-
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/utils.dart';
 

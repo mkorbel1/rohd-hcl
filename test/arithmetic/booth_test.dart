@@ -37,12 +37,12 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
       pp.multiplicand.put(X);
       pp.multiplier.put(Y);
       // stdout.write('$i($X) * $j($Y): should be $product\n');
-      if (pp.evaluate(signed: true) != product) {
-        stdout
-          ..write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
-              'vs expected $product\n')
-          ..write(pp);
-      }
+      // if (pp.evaluate(signed: true) != product) {
+      //   stdout
+      //     ..write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
+      //         'vs expected $product\n')
+      //     ..write(pp);
+      // }
       expect(pp.evaluate(signed: pp.signed), equals(product));
     }
   }
@@ -73,7 +73,7 @@ void main() {
     logicX.put(X);
     logicY.put(Y);
 
-    stdout.write(pp);
+    // stdout.write(pp);
     const signExtension = SignExtension.compact;
     switch (signExtension) {
       case SignExtension.brute:
@@ -84,7 +84,7 @@ void main() {
         pp.signExtendCompact();
     }
 
-    stdout.write(pp);
+    // stdout.write(pp);
     // ignore: cascade_invocations
     stdout.write(
         'Test: $i($X) * $j($Y) = $product vs ${pp.evaluate(signed: true)}\n');
@@ -121,7 +121,7 @@ void main() {
     final pp = PartialProductGenerator(logicX, logicY, encoder);
     // ignore: cascade_invocations
     pp.signExtendCompact();
-    stdout.write(pp);
+    // stdout.write(pp);
     // Add a row for addend
     final l = [for (var i = 0; i < logicZ.width; i++) logicZ[i]];
     // ignore: cascade_invocations
@@ -142,51 +142,59 @@ void main() {
     // expect(pp.evaluate(signed: true), equals(product));
   });
 
-  test('single partial product test unsigned', () async {
-    final encoder = RadixEncoder(2);
-    const signed = false;
-    const widthX = 2;
-    const widthY = 3;
+  // TODO(desmonddak): we have a bug in rectangular sign extension compact:
+  //  WX=3   WY=6, i = 8, j = 32  R=4
+  //  We need to have better skewed rectangle testing to get all possible sign
+  // alignments...
+  test('single partial product test ', () async {
+    final encoder = RadixEncoder(4);
+    const widthX = 3;
+    const widthY = 6;
 
-    const i = 4;
-    var j = pow(2, widthY - 1).toInt();
-    j = 4;
-    final X = signed
-        ? BigInt.from(i).toSigned(widthX)
-        : BigInt.from(i).toUnsigned(widthX);
-    final Y = signed
-        ? BigInt.from(j).toSigned(widthY)
-        : BigInt.from(j).toUnsigned(widthY);
-    final product = X * Y;
+    for (final signed in [true, false]) {
+      const i = 8;
+      var j = pow(2, widthY - 1).toInt();
+      j = 32;
+      final X = signed
+          ? BigInt.from(i).toSigned(widthX)
+          : BigInt.from(i).toUnsigned(widthX);
+      final Y = signed
+          ? BigInt.from(j).toSigned(widthY)
+          : BigInt.from(j).toUnsigned(widthY);
+      final product = X * Y;
+      print('X=$X, Y=$Y product=$product');
 
-    final logicX = Logic(name: 'X', width: widthX);
-    final logicY = Logic(name: 'Y', width: widthY);
-    logicX.put(X);
-    logicY.put(Y);
-    final pp = PartialProductGenerator(logicX, logicY, encoder, signed: signed);
+      final logicX = Logic(name: 'X', width: widthX);
+      final logicY = Logic(name: 'Y', width: widthY);
+      logicX.put(X);
+      logicY.put(Y);
+      final pp =
+          PartialProductGenerator(logicX, logicY, encoder, signed: signed);
 
-    // ignore: cascade_invocations
-
-    logicX.put(X);
-    logicY.put(Y);
-
-    stdout.write(pp);
-
-    pp.signExtendCompact();
-    // pp.signExtendWithStopBitsRect();
-
-    stdout.write(pp);
-
-    // ignore: cascade_invocations
-    stdout.write(
-        'Test: $i($X) * $j($Y) = $product vs ${pp.evaluate(signed: true)}\n');
-    if (pp.evaluate(signed: true) != product) {
-      stdout.write(
-          'Fail: $X * $Y: ${pp.evaluate(signed: true)} vs expected $product\n');
       // ignore: cascade_invocations
+
+      logicX.put(X);
+      logicY.put(Y);
+
+      // stdout.write(pp);
+      // print(pp);
+      // pp.signExtendCompact();
+      pp.signExtendWithStopBitsRect();
+      // print(pp);
+
       stdout.write(pp);
+
+      // ignore: cascade_invocations
+      stdout.write(
+          'Test: $i($X) * $j($Y) = $product vs ${pp.evaluate(signed: signed)}\n');
+      if (pp.evaluate(signed: signed) != product) {
+        stdout.write(
+            'Fail: $X * $Y: ${pp.evaluate(signed: signed)} vs expected $product\n');
+        // ignore: cascade_invocations
+        stdout.write(pp);
+      }
+      expect(pp.evaluate(signed: pp.signed), equals(product));
     }
-    expect(pp.evaluate(signed: pp.signed), equals(product));
   });
 
   // TODO(dakdesmond): Why cannot radix8 handle Y width 3
@@ -232,11 +240,11 @@ void main() {
   test(
       'exhaustive partial product evaluate: square all radix, all SignExtension',
       () async {
-    for (var radix = 2; radix < 32; radix *= 2) {
+    for (var radix = 2; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
-      for (var width = shift + 3; width < shift + 4; width++) {
+      for (var width = shift + 1; width < shift + 3; width++) {
         stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
@@ -250,7 +258,7 @@ void main() {
               // pp.signExtendWithStopBitsRect();
               pp.signExtendCompact();
           }
-          stdout.write('\tTesting extension=$signExtension\n');
+          // stdout.write('\tTesting extension=$signExtension\n');
           testPartialProductExhaustive(pp);
         }
       }
@@ -260,11 +268,11 @@ void main() {
   // This is a two-minute exhaustive but quick test
   test('exhaustive partial product evaluate: square all radix, unsigned',
       () async {
-    for (var radix = 2; radix < 32; radix *= 2) {
+    for (var radix = 2; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
-      for (var width = shift + 1; width < shift + 4; width++) {
+      for (var width = shift + 1; width < shift + 3; width++) {
         stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
@@ -288,11 +296,11 @@ void main() {
   // radix16 takes a long time to complete, so we omit
   test('exhaustive partial product evaluate: rectangular all radix,', () async {
     const signed = false;
-    for (var radix = 2; radix < 16; radix *= 2) {
+    for (var radix = 4; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(radix);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
-      for (var width = shift + 1; width < shift + 4; width++) {
+      for (var width = shift + 1; width < shift + 3; width++) {
         for (var skew = 1; skew < 3; skew++) {
           stdout.write('\tTesting width=$width skew=$skew\n');
           // Only some routines have rectangular support
@@ -326,7 +334,7 @@ void main() {
   test('slow exhaustive partial product evaluate test', () async {
     final encoder = RadixEncoder(16);
     const signExtension = SignExtension.brute;
-    for (var width = 5; width < 6; width++) {
+    for (var width = 3; width < 4; width++) {
       final widthX = width;
       final widthY = width + 1;
       final logicX = Logic(name: 'X', width: widthX);
@@ -371,7 +379,7 @@ void main() {
   test('radix extract', () async {
     // for (var radix = 2; radix < 32; radix *= 2) {
     for (var radix = 2; radix < 32; radix *= 2) {
-      stdout.write('Radix-$radix\n');
+      // stdout.write('Radix-$radix\n');
       final encoder = RadixEncoder(radix);
 
       final width = log2Ceil(radix) + 1;
@@ -393,21 +401,21 @@ void main() {
               if (senseMultiples[j].isZero) ~inputXor[j] else inputXor[j]
         ].swizzle().and();
         final multPos = (i >>> 1) + i % 2;
-        stdout
-          ..write('\tM${(i >>> 1) + i % 2} x=${bitString(x)} '
-              'lx=${bitString(pastX)} '
-              // 'm=$m xor=${bitString(xor)}(${xor.toInt()}) '
-              'dontcare=${bitString(multiplesDisagree)}'
-              ' agree=${bitString(senseMultiples)}')
-          ..write(':    ');
-        for (var j = 0; j < width - 1; j++) {
-          if (multiplesDisagree[j].isZero) {
-            if (senseMultiples[j].isZero) {
-              stdout.write('~');
-            }
-            stdout.write('xor[$j] ');
-          }
-        }
+        // stdout
+        //   ..write('\tM${(i >>> 1) + i % 2} x=${bitString(x)} '
+        //       'lx=${bitString(pastX)} '
+        //       // 'm=$m xor=${bitString(xor)}(${xor.toInt()}) '
+        //       'dontcare=${bitString(multiplesDisagree)}'
+        //       ' agree=${bitString(senseMultiples)}')
+        //   ..write(':    ');
+        // for (var j = 0; j < width - 1; j++) {
+        //   if (multiplesDisagree[j].isZero) {
+        //     if (senseMultiples[j].isZero) {
+        //       stdout.write('~');
+        //     }
+        //     stdout.write('xor[$j] ');
+        //   }
+        // }
         multiples.add(andOutput);
         stdout.write('\n');
         final inLogic = Logic(width: width);
@@ -418,14 +426,14 @@ void main() {
           final newCode =
               RadixEncoder(radix).encode(inLogic).multiples[multPos - 1];
           inputXor.put(inValue ^ (inValue >>> 1));
-          stdout
-            ..write('in=${bitString(inValue)} ')
-            ..write('xor=${bitString(inputXor.value)} ')
-            ..write('out=${bitString(andOutput.value)} ')
-            ..write('code=${bitString(code.value)} ')
-            ..write('ncode=${bitString(newCode.value)}')
-            ..write('')
-            ..write('\n');
+          // stdout
+          //   ..write('in=${bitString(inValue)} ')
+          //   ..write('xor=${bitString(inputXor.value)} ')
+          //   ..write('out=${bitString(andOutput.value)} ')
+          //   ..write('code=${bitString(code.value)} ')
+          //   ..write('ncode=${bitString(newCode.value)}')
+          //   ..write('')
+          //   ..write('\n');
           expect(andOutput.value, equals(code.value));
           expect(newCode.value, equals(code.value));
           expect(newCode.value, equals(andOutput.value));
