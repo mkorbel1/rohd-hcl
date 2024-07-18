@@ -12,6 +12,8 @@
 
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
@@ -205,6 +207,9 @@ class FloatingPointMultiplier extends Module {
     final aMantissa = [a.isNormal(), a.mantissa].swizzle();
     final bMantissa = [b.isNormal(), b.mantissa].swizzle();
 
+    // print('am = ${bitString(aMantissa.value)}');
+    // print('bm = ${bitString(bMantissa.value)}');
+
     final pp = PartialProductGenerator(
         aMantissa, bMantissa, RadixEncoder(radix),
         signed: false);
@@ -218,6 +223,7 @@ class FloatingPointMultiplier extends Module {
     final adder = ParallelPrefixAdder(r0, r1, ppTree);
 
     final rawMantissa = adder.out.slice((exponentWidth + 1) * 2 - 1, 0);
+
     // Find the leading '1' in the mantissa
     final pos = ParallelPrefixPriorityEncoder(rawMantissa.reversed, ppTree)
         .out
@@ -239,10 +245,9 @@ class FloatingPointMultiplier extends Module {
     //   ..write('lenOut:  ${adder.out.width} ')
     //   ..write('rawMantissa:  ${bitString(rawMantissa.value)} ')
     //   ..write('normMantissa: ${bitString(normMantissa.value)}')
-    //   ..write('\n');
-
-    // stdout.write(
-    //     'e=${bitString(expAdd.value)} m=${bitString(normMantissa.value)}\n');
+    //   ..write('\n')
+    //   ..write(
+    //       'e=${bitString(expAdd.value)} m=${bitString(normMantissa.value)}\n');
 
     _out.sign <= a.sign ^ b.sign;
     _out.exponent <= expAdd;

@@ -13,12 +13,119 @@
 // ignore_for_file: avoid_print, unnecessary_parenthesis
 
 import 'dart:math';
+import 'package:rohd/rohd.dart';
+import 'package:rohd_hcl/src/arithmetic/booth.dart';
 import 'package:rohd_hcl/src/arithmetic/floating_point.dart';
 import 'package:rohd_hcl/src/arithmetic/floating_point_value.dart';
 import 'package:rohd_hcl/src/parallel_prefix_operations.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('exhaustive round-trip', () {
+    const signStr = '0';
+    const exponentWidth = 4;
+    const mantissaWidth = 4;
+    var exponent = LogicValue.zero.zeroExtend(exponentWidth);
+    var mantissa = LogicValue.zero.zeroExtend(mantissaWidth);
+    for (var k = 0; k < pow(2.0, exponentWidth).toInt(); k++) {
+      final expStr = bitString(exponent);
+      for (var i = 0; i < pow(2.0, mantissaWidth).toInt(); i++) {
+        final mantStr = bitString(mantissa);
+        final fp = FloatingPointValue.ofStrings(signStr, expStr, mantStr);
+        final dbl = fp.toDouble();
+        final fp2 = FloatingPointValue.fromDouble(dbl,
+            exponentWidth: exponentWidth, mantissaWidth: mantissaWidth);
+        if (fp != fp2) {
+          if (fp.isNaN() != fp2.isNaN()) {
+            print('$fp $fp2,  ${fp.toDouble()}  ${fp2.toDouble()}');
+            expect(fp, equals(fp2));
+          }
+        }
+        mantissa = mantissa + 1;
+      }
+      exponent = exponent + 1;
+    }
+  });
+  test('direct subnormal conversion', () {
+    const signStr = '0';
+    for (final (exponentWidth, mantissaWidth) in [(8, 23), (11, 52)]) {
+      final expStr = '0' * exponentWidth;
+      final mantissa = LogicValue.one.zeroExtend(mantissaWidth);
+      for (var i = 0; i < mantissaWidth; i++) {
+        final mantStr = bitString(mantissa << i);
+        final fp = FloatingPointValue.ofStrings(signStr, expStr, mantStr);
+        expect(fp.toString(), '$signStr $expStr $mantStr');
+        final fp2 = FloatingPointValue.fromDouble(fp.toDouble(),
+            exponentWidth: exponentWidth, mantissaWidth: mantissaWidth);
+        expect(fp2, equals(fp));
+      }
+    }
+  });
+  test('indirect subnormal conversion', () {
+    const signStr = '0';
+    for (var exponentWidth = 2; exponentWidth < 12; exponentWidth++) {
+      for (var mantissaWidth = 2; mantissaWidth < 53; mantissaWidth++) {
+        final expStr = '0' * exponentWidth;
+        final mantissa = LogicValue.one.zeroExtend(mantissaWidth);
+        for (var i = 0; i < mantissaWidth; i++) {
+          final mantStr = bitString(mantissa << i);
+          final fp = FloatingPointValue.ofStrings(signStr, expStr, mantStr);
+          expect(fp.toString(), '$signStr $expStr $mantStr');
+          final fp2 = FloatingPointValue.fromDouble(fp.toDouble(),
+              exponentWidth: exponentWidth, mantissaWidth: mantissaWidth);
+          expect(fp2, equals(fp));
+        }
+      }
+    }
+  });
+  test('bug in cast', () {
+    FloatingPoint32Value.getFloatingPointConstant(
+        FloatingPointConstants.largestNormal);
+    //  FloatingPoint32Value.getFloatingPointConstant(
+    //       FloatingPointConstants.smallestLargerThanOne);
+  });
+  test('round trip 32', () {
+    final values = [
+      FloatingPoint32Value.getFloatingPointConstant(
+          FloatingPointConstants.largestPositiveSubnormal),
+      FloatingPoint32Value.getFloatingPointConstant(
+          FloatingPointConstants.smallestPositiveSubnormal),
+      FloatingPoint32Value.getFloatingPointConstant(
+          FloatingPointConstants.smallestPositiveNormal),
+      FloatingPoint32Value.getFloatingPointConstant(
+          FloatingPointConstants.largestLessThanOne),
+      FloatingPoint32Value.getFloatingPointConstant(FloatingPointConstants.one),
+      // FloatingPoint32Value.getFloatingPointConstant(
+      //     FloatingPointConstants.smallestLargerThanOne),
+      FloatingPoint32Value.getFloatingPointConstant(
+          FloatingPointConstants.largestNormal)
+    ];
+    for (final fp in values) {
+      final fp2 = FloatingPoint32Value.fromDouble(fp.toDouble());
+      expect(fp2, equals(fp));
+    }
+  });
+  test('round trip 64', () {
+    final values = [
+      FloatingPoint64Value.getFloatingPointConstant(
+          FloatingPointConstants.largestPositiveSubnormal),
+      FloatingPoint64Value.getFloatingPointConstant(
+          FloatingPointConstants.smallestPositiveSubnormal),
+      FloatingPoint64Value.getFloatingPointConstant(
+          FloatingPointConstants.smallestPositiveNormal),
+      FloatingPoint64Value.getFloatingPointConstant(
+          FloatingPointConstants.largestLessThanOne),
+      FloatingPoint64Value.getFloatingPointConstant(FloatingPointConstants.one),
+      // FloatingPoint32Value.getFloatingPointConstant(
+      //     FloatingPointConstants.smallestLargerThanOne),
+      FloatingPoint64Value.getFloatingPointConstant(
+          FloatingPointConstants.largestNormal)
+    ];
+    for (final fp in values) {
+      final fp2 = FloatingPoint64Value.fromDouble(fp.toDouble());
+      expect(fp2, equals(fp));
+    }
+  });
   test('FloatingPointValue string conversions', () {
     const str = '0 10000001 01000100000000000000000'; // 5.0625
     final fp = FloatingPoint32Value.ofString(str);
@@ -51,12 +158,17 @@ void main() {
     }
   });
 
-  // TODO(desmonddak): smallestPositiveSubnormal does not convert properly
-  test('corner 32', () {
+  test('smallest subnormal', () {
+    const smallestPositiveSubnormal = 1.401298464324187e-45;
     final x = FloatingPoint32Value.getFloatingPointConstant(
         FloatingPointConstants.smallestPositiveSubnormal);
-    // print((x + x));
-    const smallestPositiveSubnormal = 1.4012984643e-45; // now this one fails
+
+    final y = FloatingPoint32Value.fromDouble(smallestPositiveSubnormal);
+    expect(x, equals(y));
+  });
+
+  test('corner 32', () {
+    const smallestPositiveSubnormal = 1.401298464324187e-45;
     const smallestPositiveNormal = 1.1754943508e-38;
     const largestPositiveSubnormal = 1.1754942107e-38;
     const largestNormalNumber = 3.4028234664e38;
@@ -64,13 +176,13 @@ void main() {
     const smallestNumberLargerThanOne = 1.00000011920928955;
     const oneThird = 0.333333343267440796;
     final values = [
+      oneThird,
       smallestPositiveNormal,
       largestPositiveSubnormal,
-      // smallestPositiveSubnormal,
+      smallestPositiveSubnormal,
       largestNormalNumber,
       largestNumberLessThanOne,
-      smallestNumberLargerThanOne,
-      oneThird
+      smallestNumberLargerThanOne
     ];
     for (final val in values) {
       final fp = FloatingPoint32Value.fromDouble(val);
@@ -128,19 +240,19 @@ void main() {
       ..put(FloatingPoint32Value.fromDouble(1.5).value);
     final out = FloatingPoint32Value.fromDouble(3.25 + 1.5);
 
-    print('Adding ${fp1.floatingPointValue.toDouble()}'
-        ' to ${fp2.floatingPointValue.toDouble()}');
+    // print('Adding ${fp1.floatingPointValue.toDouble()}'
+    //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue}'
-        ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue}'
-        ' ${fp2.floatingPointValue.toDouble()}');
+    // print('${fp1.floatingPointValue}'
+    //     ' ${fp1.floatingPointValue.toDouble()}');
+    // print('${fp2.floatingPointValue}'
+    //     ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
     final fpSuper = adder.out.floatingPointValue;
     final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
     final valStr = out.toDouble().toStringAsPrecision(7);
@@ -155,25 +267,26 @@ void main() {
       ..put(FloatingPoint32Value.fromDouble(pow(2.0, -23).toDouble()).value);
     final out = FloatingPoint32Value.fromDouble(val + val);
 
-    print('Adding ${fp1.floatingPointValue.toDouble()}'
-        ' to ${fp2.floatingPointValue.toDouble()}');
+    // print('Adding ${fp1.floatingPointValue.toDouble()}'
+    //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue}'
-        ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue}'
-        ' ${fp2.floatingPointValue.toDouble()}');
+    // print('${fp1.floatingPointValue}'
+    //     ' ${fp1.floatingPointValue.toDouble()}');
+    // print('${fp2.floatingPointValue}'
+    //     ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
     final fpSuper = adder.out.floatingPointValue;
     final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
     final valStr = out.toDouble().toStringAsPrecision(7);
     expect(fpStr, valStr);
   });
 
+  // TODO(desmonddak): complete this test
   test('carry numbers adder test', () {
     final val = pow(2.5, -12).toDouble();
     final fp1 = FloatingPoint32()
@@ -182,19 +295,19 @@ void main() {
       ..put(FloatingPoint32Value.fromDouble(pow(2.0, -12).toDouble()).value);
     final out = FloatingPoint32Value.fromDouble(val + val);
 
-    print('Adding ${fp1.floatingPointValue.toDouble()}'
-        ' to ${fp2.floatingPointValue.toDouble()}');
+    // print('Adding ${fp1.floatingPointValue.toDouble()}'
+    //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue}'
-        ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue}'
-        ' ${fp2.floatingPointValue.toDouble()}');
+    // print('${fp1.floatingPointValue}'
+    //     ' ${fp1.floatingPointValue.toDouble()}');
+    // print('${fp2.floatingPointValue}'
+    //     ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
 
     // final fpSuper = adder.out.floatingPointValue;
     // final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
@@ -212,19 +325,19 @@ void main() {
         ..put(FloatingPoint32Value.fromDouble(pair.$2).value);
       final out = FloatingPoint32Value.fromDouble(pair.$1 + pair.$2);
 
-      print('Adding ${fp1.floatingPointValue.toDouble()}'
-          ' to ${fp2.floatingPointValue.toDouble()}');
+      // print('Adding ${fp1.floatingPointValue.toDouble()}'
+      //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-      print('${fp1.floatingPointValue}'
-          ' ${fp1.floatingPointValue.toDouble()}');
-      print('${fp2.floatingPointValue}'
-          ' ${fp2.floatingPointValue.toDouble()}');
+      // print('${fp1.floatingPointValue}'
+      //     ' ${fp1.floatingPointValue.toDouble()}');
+      // print('${fp2.floatingPointValue}'
+      //     ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-      print('$out'
-          ' ${out.toDouble()} expected ');
-      print('${adder.out.floatingPointValue}'
-          ' ${adder.out.floatingPointValue.toDouble()} computed ');
+      // print('$out'
+      //     ' ${out.toDouble()} expected ');
+      // print('${adder.out.floatingPointValue}'
+      //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
       final fpSuper = adder.out.floatingPointValue;
       final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
       final valStr = out.toDouble().toStringAsPrecision(7);

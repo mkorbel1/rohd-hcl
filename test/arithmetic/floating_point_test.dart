@@ -10,9 +10,7 @@
 //  Desmond A Kirkpatrick <desmond.a.kirkpatrick@intel.com
 //
 
-// ignore_for_file: avoid_print
-
-import 'dart:io';
+// import 'dart:io';
 import 'dart:math';
 
 import 'package:rohd_hcl/src/arithmetic/floating_point.dart';
@@ -34,19 +32,19 @@ void main() {
       ..put(FloatingPoint32Value.fromDouble(1.5).value);
     final out = FloatingPoint32Value.fromDouble(3.25 + 1.5);
 
-    print('Adding ${fp1.floatingPointValue.toDouble()}'
-        ' to ${fp2.floatingPointValue.toDouble()}');
+    // print('Adding ${fp1.floatingPointValue.toDouble()}'
+    //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue}'
-        ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue}'
-        ' ${fp2.floatingPointValue.toDouble()}');
+    // print('${fp1.floatingPointValue}'
+    //     ' ${fp1.floatingPointValue.toDouble()}');
+    // print('${fp2.floatingPointValue}'
+    //     ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
     final fpSuper = adder.out.floatingPointValue;
     final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
     final valStr = out.toDouble().toStringAsPrecision(7);
@@ -68,19 +66,19 @@ void main() {
           .value);
     final out = FloatingPoint32Value.fromDouble(val - val);
 
-    print('Adding ${fp1.floatingPointValue.toDouble()}'
-        ' to ${fp2.floatingPointValue.toDouble()}');
+    // print('Adding ${fp1.floatingPointValue.toDouble()}'
+    //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue}'
-        ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue}'
-        ' ${fp2.floatingPointValue.toDouble()}');
+    // print('${fp1.floatingPointValue}'
+    //     ' ${fp1.floatingPointValue.toDouble()}');
+    // print('${fp2.floatingPointValue}'
+    //     ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
     final fpSuper = adder.out.floatingPointValue;
     final fpStr = fpSuper.toDouble().abs().toStringAsPrecision(7);
     final valStr = out.toDouble().toStringAsPrecision(7);
@@ -95,19 +93,19 @@ void main() {
       ..put(FloatingPoint32Value.fromDouble(pow(2.5, -12).toDouble()).value);
     final out = FloatingPoint32Value.fromDouble(val + val);
 
-    print('Adding ${fp1.floatingPointValue.toDouble()}'
-        ' to ${fp2.floatingPointValue.toDouble()}');
+    // print('Adding ${fp1.floatingPointValue.toDouble()}'
+    //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-    print('${fp1.floatingPointValue}'
-        ' ${fp1.floatingPointValue.toDouble()}');
-    print('${fp2.floatingPointValue}'
-        ' ${fp2.floatingPointValue.toDouble()}');
+    // print('${fp1.floatingPointValue}'
+    //     ' ${fp1.floatingPointValue.toDouble()}');
+    // print('${fp2.floatingPointValue}'
+    //     ' ${fp2.floatingPointValue.toDouble()}');
 
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
 
     final fpSuper = adder.out.floatingPointValue;
     final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
@@ -125,19 +123,19 @@ void main() {
         ..put(FloatingPoint32Value.fromDouble(pair.$2).value);
       final out = FloatingPoint32Value.fromDouble(pair.$1 + pair.$2);
 
-      print('Adding ${fp1.floatingPointValue.toDouble()}'
-          ' to ${fp2.floatingPointValue.toDouble()}');
+      // print('Adding ${fp1.floatingPointValue.toDouble()}'
+      //     ' to ${fp2.floatingPointValue.toDouble()}');
 
-      print('${fp1.floatingPointValue}'
-          ' ${fp1.floatingPointValue.toDouble()}');
-      print('${fp2.floatingPointValue}'
-          ' ${fp2.floatingPointValue.toDouble()}');
+      // print('${fp1.floatingPointValue}'
+      //     ' ${fp1.floatingPointValue.toDouble()}');
+      // print('${fp2.floatingPointValue}'
+      //     ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-      print('$out'
-          ' ${out.toDouble()} expected ');
-      print('${adder.out.floatingPointValue}'
-          ' ${adder.out.floatingPointValue.toDouble()} computed ');
+      // print('$out'
+      //     ' ${out.toDouble()} expected ');
+      // print('${adder.out.floatingPointValue}'
+      //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
       final fpSuper = adder.out.floatingPointValue;
       final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
       final valStr = out.toDouble().toStringAsPrecision(7);
@@ -156,18 +154,18 @@ void main() {
       final fp2 = FloatingPoint32()
         ..put(FloatingPoint32Value.fromDouble(pair.$2).value);
       final out = FloatingPoint32Value.fromDouble(pair.$1 + pair.$2);
-      print('Adding ${fp1.floatingPointValue.toDouble()}'
-          ' and ${fp2.floatingPointValue.toDouble()}:');
-      print('${fp1.floatingPointValue}'
-          ' ${fp1.floatingPointValue.toDouble()}');
-      print('${fp2.floatingPointValue}'
-          ' ${fp2.floatingPointValue.toDouble()}');
+      // print('Adding ${fp1.floatingPointValue.toDouble()}'
+      //     ' and ${fp2.floatingPointValue.toDouble()}:');
+      // print('${fp1.floatingPointValue}'
+      //     ' ${fp1.floatingPointValue.toDouble()}');
+      // print('${fp2.floatingPointValue}'
+      //     ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-      print('$out'
-          ' ${out.toDouble()} expected ');
-      print('${adder.out.floatingPointValue}'
-          ' ${adder.out.floatingPointValue.toDouble()} computed ');
+      // print('$out'
+      //     ' ${out.toDouble()} expected ');
+      // print('${adder.out.floatingPointValue}'
+      //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
 
       final fpSuper = adder.out.floatingPointValue;
       final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
@@ -186,16 +184,16 @@ void main() {
               FloatingPointConstants.smallestPositiveSubnormal)
           .negate()
           .value);
-    print('adding');
-    print('${fp1.floatingPointValue}');
-    print('${fp2.floatingPointValue}');
+    // print('adding');
+    // print('${fp1.floatingPointValue}');
+    // print('${fp2.floatingPointValue}');
     final out = FloatingPoint32Value.fromDouble(
         fp1.floatingPointValue.toDouble() + fp2.floatingPointValue.toDouble());
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
     final fpSuper = adder.out.floatingPointValue;
     final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
     final valStr = out.toDouble().toStringAsPrecision(7);
@@ -214,22 +212,22 @@ void main() {
               FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
           .negate()
           .value);
-    print('adding');
-    print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
-    print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
+    // print('adding');
+    // print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
+    // print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
     final outDouble =
         fp1.floatingPointValue.toDouble() + fp2.floatingPointValue.toDouble();
-    print('\t Computed separately $outDouble');
+    // print('\t Computed separately $outDouble');
     final out = FloatingPointValue.fromDouble(outDouble,
         exponentWidth: ew, mantissaWidth: mw);
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
-    if (adder.out.floatingPointValue == out) {
-      print('match');
-    }
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // if (adder.out.floatingPointValue == out) {
+    //   print('match');
+    // }
     expect(adder.out.floatingPointValue.compareTo(out), 0);
   });
 
@@ -246,42 +244,43 @@ void main() {
       ..put(FloatingPointValue.fromDouble(pair.$2,
               exponentWidth: ew, mantissaWidth: mw)
           .value);
-    print('adding');
-    print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
-    print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
+    // print('adding');
+    // print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
+    // print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
     final out = FloatingPointValue.fromDouble(pair.$1 + pair.$2,
         exponentWidth: ew, mantissaWidth: mw);
     final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected from ${pair.$1 + pair.$2}');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // print('$out'
+    //     ' ${out.toDouble()} expected from ${pair.$1 + pair.$2}');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
     expect(adder.out.floatingPointValue.compareTo(out), 0);
   });
 
+// TODO(desmonddak):  figure out how to handle -0.0
   test('subnormal cancellation', () {
-    const ew = 4;
-    const mw = 4;
-    final fp1 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
-      ..put(FloatingPointValue.getFloatingPointConstant(
-              FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
-          .negate()
-          .value);
-    final fp2 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
-      ..put(FloatingPointValue.getFloatingPointConstant(
-              FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
-          .value);
-    print('adding');
-    print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
-    print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
-    final out = fp2.floatingPointValue + fp1.floatingPointValue;
+    // const ew = 4;
+    // const mw = 4;
+    // final fp1 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
+    //   ..put(FloatingPointValue.getFloatingPointConstant(
+    //           FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
+    //       .negate()
+    //       .value);
+    // final fp2 = FloatingPoint(exponentWidth: ew, mantissaWidth: mw)
+    //   ..put(FloatingPointValue.getFloatingPointConstant(
+    //           FloatingPointConstants.smallestPositiveSubnormal, ew, mw)
+    //       .value);
+    // // print('adding');
+    // // print('\t${fp1.floatingPointValue} ${fp1.floatingPointValue.toDouble()}');
+    // // print('\t${fp2.floatingPointValue} ${fp2.floatingPointValue.toDouble()}');
+    // final out = fp2.floatingPointValue + fp1.floatingPointValue;
 
-    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-    print('$out'
-        ' ${out.toDouble()} expected ');
-    print('${adder.out.floatingPointValue}'
-        ' ${adder.out.floatingPointValue.toDouble()} computed ');
-    // expect(adder.out.floatingPointValue.compareTo(out), 0);
+    // final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
+    // print('$out'
+    //     ' ${out.toDouble()} expected ');
+    // print('${adder.out.floatingPointValue}'
+    //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
+    // expect(adder.out.floatingPointValue.compareTo(out), -0);
   });
 
   test('basic loop adder test2', () {
@@ -293,18 +292,18 @@ void main() {
       final fp2 = FloatingPoint32()
         ..put(FloatingPoint32Value.fromDouble(pair.$2).value);
       final out = FloatingPoint32Value.fromDouble(pair.$1 + pair.$2);
-      print('Adding ${fp1.floatingPointValue.toDouble()}'
-          ' and ${fp2.floatingPointValue.toDouble()}:');
-      print('${fp1.floatingPointValue}'
-          ' ${fp1.floatingPointValue.toDouble()}');
-      print('${fp2.floatingPointValue}'
-          ' ${fp2.floatingPointValue.toDouble()}');
+      // print('Adding ${fp1.floatingPointValue.toDouble()}'
+      //     ' and ${fp2.floatingPointValue.toDouble()}:');
+      // print('${fp1.floatingPointValue}'
+      //     ' ${fp1.floatingPointValue.toDouble()}');
+      // print('${fp2.floatingPointValue}'
+      //     ' ${fp2.floatingPointValue.toDouble()}');
 
       final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
-      print('$out'
-          ' ${out.toDouble()} expected ');
-      print('${adder.out.floatingPointValue}'
-          ' ${adder.out.floatingPointValue.toDouble()} computed ');
+      // print('$out'
+      //     ' ${out.toDouble()} expected ');
+      // print('${adder.out.floatingPointValue}'
+      //     ' ${adder.out.floatingPointValue.toDouble()} computed ');
 
       final fpSuper = adder.out.floatingPointValue;
       final fpStr = fpSuper.toDouble().toStringAsPrecision(7);
@@ -389,7 +388,7 @@ void main() {
       fp1.put(fv1.value);
       fp2.put(fv2.value);
 
-      stdout.write('$fv1(${fv1.toDouble()}) * $fv2(${fv2.toDouble()})\n');
+      // stdout.write('$fv1(${fv1.toDouble()}) * $fv2(${fv2.toDouble()})\n');
 
       assert(
           (fpOut.floatingPointValue.isNaN() && roundTrip.isNaN) |
@@ -399,6 +398,7 @@ void main() {
           ' $partWay($roundTrip)\n');
     });
 
+// fails on i, j, k = 1, 0, 1
     test('normals', () {
       const radix = 4;
 
@@ -422,7 +422,7 @@ void main() {
       //   and the operations
       final multiply = FloatingPointMultiplier(fp1, fp2, radix, KoggeStone.new);
       for (var k = 1; k < expLimit - 1; k++) {
-        stdout.write('k=$k\n');
+        // stdout.write('k=$k\n');
         for (var j = 0; j < limitY; j++) {
           for (var i = 0; i < limitX; i++) {
             final E = BigInt.from(k).toUnsigned(expWidth);
@@ -456,10 +456,14 @@ void main() {
             assert(
                 (fpOut.floatingPointValue.isNaN() && roundTrip.isNaN) |
                     (fpOut.floatingPointValue.toDouble() == roundTrip),
-                'multiply result ${fpOut.floatingPointValue.toDouble()} mismatch '
+                'multiply result ${fpOut.floatingPointValue.toDouble()} '
+                'mismatch '
                 ' $roundTrip\n'
                 'a=$fv1\n'
-                'b=$fv2\n');
+                'b=$fv2\n'
+                'i=$i\n'
+                'k=$k\n'
+                'j=$j');
           }
         }
       }

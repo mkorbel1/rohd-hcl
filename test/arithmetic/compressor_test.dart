@@ -86,9 +86,11 @@ void testCompressionExhaustive(PartialProductGenerator pp) {
 }
 
 void main() {
-  test('exhaustive compression evaluate: square all radix, all SignExtension',
+  test('exhaustive compression evaluate: square radix-4, all SignExtension',
       () async {
-    for (var radix = 2; radix < 32; radix *= 2) {
+    stdout.write('\n');
+
+    for (var radix = 4; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(2);
       stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);

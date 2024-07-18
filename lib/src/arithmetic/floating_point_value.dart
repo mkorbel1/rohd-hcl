@@ -190,6 +190,12 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
   /// representation.
   factory FloatingPointValue.fromDouble(double inDouble,
       {required int exponentWidth, required int mantissaWidth}) {
+    if ((exponentWidth == 8) && (mantissaWidth == 23)) {
+      return FloatingPoint32Value.fromDouble(inDouble);
+    } else if ((exponentWidth == 11) && (mantissaWidth == 52)) {
+      return FloatingPoint64Value.fromDouble(inDouble);
+    }
+
     var doubleVal = inDouble;
     if (inDouble.isNaN) {
       return FloatingPointValue(
@@ -208,8 +214,20 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
     }
 
     // If we are dealing with a really small number we need to scale it up
-    final scaleToWhole =
-        (doubleVal != 0) ? (-log(doubleVal) / log(2)).ceil() : 0;
+    var scaleToWhole = (doubleVal != 0) ? (-log(doubleVal) / log(2)).ceil() : 0;
+
+    if (doubleVal < 1.0) {
+      var myCnt = 0;
+      var myVal = doubleVal;
+      while (myVal % 1 != 0.0) {
+        myVal = myVal * 2.0;
+        myCnt++;
+      }
+      if (myCnt < scaleToWhole) {
+        scaleToWhole = myCnt;
+      }
+    }
+
     final scale = mantissaWidth + scaleToWhole;
     var s = scale;
 
@@ -225,12 +243,13 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
 
     final scaledValue = BigInt.from(sVal);
     final fullLength = scaledValue.bitLength;
+
     var fullValue = LogicValue.ofBigInt(scaledValue, fullLength);
     var e = (fullLength > 0)
         ? fullLength - mantissaWidth - scaleToWhole
         : FloatingPointValue.eMin(exponentWidth);
 
-    if (e < -FloatingPointValue.bias(exponentWidth)) {
+    if (e <= -FloatingPointValue.bias(exponentWidth)) {
       fullValue =
           fullValue >>> (scaleToWhole - FloatingPointValue.bias(exponentWidth));
       e = -FloatingPointValue.bias(exponentWidth);
@@ -319,6 +338,12 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
             mantissa.toBigInt().toDouble() /
             pow(2.0, mantissa.width);
       } else if (!isNaN()) {
+        doubleVal = (sign.toBool() ? -1.0 : 1.0) *
+            (1.0 + mantissa.toBigInt().toDouble() / pow(2.0, mantissa.width)) *
+            pow(
+                2.0,
+                exponent.toInt().toSigned(exponent.width) -
+                    bias(exponent.width));
         doubleVal = (sign.toBool() ? -1.0 : 1.0) *
             (1.0 + mantissa.toBigInt().toDouble() / pow(2.0, mantissa.width)) *
             pow(2.0, exponent.toInt() - bias(exponent.width));

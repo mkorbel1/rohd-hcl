@@ -7,6 +7,8 @@
 // 2024 May 15
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
+import 'dart:io';
+
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/utils.dart';
 
@@ -523,5 +525,74 @@ class PartialProductGenerator {
     str.write(': ${bitString(sum)} = '
         '${evaluate()} (${evaluate(signed: true)})\n\n');
     return str.toString();
+  }
+}
+
+// This routine is to reverse-engineer how to create booth encoders from
+//  XOR computations on the multiplier bits
+// It is used to validate the RadixEncoder class
+void main() {
+  for (var radix = 2; radix < 32; radix *= 2) {
+    stdout.write('Radix-$radix:\n');
+    final encoder = RadixEncoder(radix);
+
+    final width = log2Ceil(radix) + 1;
+    final inputXor = Logic(width: width);
+    final multiples = <Logic>[];
+    for (var i = 2; i < radix + 1; i += 2) {
+      final pastX = LogicValue.ofInt(i - 1, width);
+      final x = LogicValue.ofInt(i, width);
+      final pastXor = pastX ^ (pastX >>> 1);
+      final xor = x ^ (x >>> 1);
+      // Multiples don't agree on a bit position so we will skip
+      final multiplesDisagree = xor ^ pastXor;
+      // Where multiples agree, we need the sense or direction (1 or 0)
+      final senseMultiples = xor & pastXor;
+
+      final andOutput = [
+        for (var j = 0; j < width - 1; j++)
+          if (multiplesDisagree[j].isZero)
+            if (senseMultiples[j].isZero) ~inputXor[j] else inputXor[j]
+      ].swizzle().and();
+      final multPos = (i >>> 1) + i % 2;
+      stdout
+        ..write('\tM${(i >>> 1) + i % 2} x=${bitString(x)} '
+            'lx=${bitString(pastX)} '
+            // 'm=$m xor=${bitString(xor)}(${xor.toInt()}) '
+            'dontcare=${bitString(multiplesDisagree)}'
+            ' agree=${bitString(senseMultiples)}')
+        ..write(':    ');
+      for (var j = 0; j < width - 1; j++) {
+        if (multiplesDisagree[j].isZero) {
+          if (senseMultiples[j].isZero) {
+            stdout.write('~');
+          }
+          stdout.write('xor[$j] ');
+        }
+      }
+      multiples.add(andOutput);
+      stdout.write('\n');
+      final inLogic = Logic(width: width);
+      for (var k = 0; k < radix; k++) {
+        final inValue = LogicValue.ofInt(k, width);
+        inLogic.put(inValue);
+        final code = encoder.encode(inLogic).multiples[multPos - 1];
+        final newCode =
+            RadixEncoder(radix).encode(inLogic).multiples[multPos - 1];
+        inputXor.put(inValue ^ (inValue >>> 1));
+        // stdout
+        //   ..write('in=${bitString(inValue)} ')
+        //   ..write('xor=${bitString(inputXor.value)} ')
+        //   ..write('out=${bitString(andOutput.value)} ')
+        //   ..write('code=${bitString(code.value)} ')
+        //   ..write('ncode=${bitString(newCode.value)}')
+        //   ..write('')
+        //   ..write('\n');
+        assert(andOutput.value == code.value, 'andOutput mismatches code');
+        assert(newCode.value == code.value, 'newCode mismatches code');
+        assert(
+            newCode.value == andOutput.value, 'andOutput mismatches newCode');
+      }
+    }
   }
 }
