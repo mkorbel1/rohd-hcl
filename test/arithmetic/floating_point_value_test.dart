@@ -222,12 +222,12 @@ void main() {
 
   // TODO(desmonddak): complete this test
   test('carry numbers adder test', () {
-    final val = pow(2.5, -12).toDouble();
-    final fp1 = FloatingPoint32()
-      ..put(FloatingPoint32Value.fromDouble(pow(2.5, -12).toDouble()).value);
-    final fp2 = FloatingPoint32()
-      ..put(FloatingPoint32Value.fromDouble(pow(2.0, -12).toDouble()).value);
-    final out = FloatingPoint32Value.fromDouble(val + val);
+    // final val = pow(2.5, -12).toDouble();
+    // final fp1 = FloatingPoint32()
+    //   ..put(FloatingPoint32Value.fromDouble(pow(2.5, -12).toDouble()).value);
+    // final fp2 = FloatingPoint32()
+    //   ..put(FloatingPoint32Value.fromDouble(pow(2.0, -12).toDouble()).value);
+    // final out = FloatingPoint32Value.fromDouble(val + val);
 
     // print('Adding ${fp1.floatingPointValue.toDouble()}'
     //     ' to ${fp2.floatingPointValue.toDouble()}');
@@ -237,7 +237,7 @@ void main() {
     // print('${fp2.floatingPointValue}'
     //     ' ${fp2.floatingPointValue.toDouble()}');
 
-    final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
+    // final adder = FloatingPointAdder(fp1, fp2, KoggeStone.new);
     // print('$out'
     //     ' ${out.toDouble()} expected ');
     // print('${adder.out.floatingPointValue}'
