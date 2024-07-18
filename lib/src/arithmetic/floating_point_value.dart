@@ -171,8 +171,8 @@ class FloatingPointValue implements Comparable<FloatingPointValue> {
 
       /// Smallest number greater than one
       case FloatingPointConstants.smallestLargerThanOne:
-        return FloatingPointValue.ofStrings(
-            '0', '0${'1' * (exponentWidth - 2)}0', '${'0' * mantissaWidth}1');
+        return FloatingPointValue.ofStrings('0',
+            '0${'1' * (exponentWidth - 2)}0', '${'0' * (mantissaWidth - 1)}1');
 
       /// Largest positive number, most positive exponent, full mantissa
       case FloatingPointConstants.largestNormal:
