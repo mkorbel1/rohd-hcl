@@ -68,6 +68,11 @@ abstract class MultiplyAccumulate extends Module {
   /// The multiplication results of the multiply-accumulate.
   Logic get accumulate;
 
+  bool get multiplyOnly => _multiplyOnly;
+
+  @protected
+  bool _multiplyOnly = false;
+
   /// Take input [a] and input [b], compute their
   /// product, add input [c] to produce the [accumulate] result.
   MultiplyAccumulate(Logic a, Logic b, Logic c,
@@ -76,6 +81,7 @@ abstract class MultiplyAccumulate extends Module {
       throw RohdHclException('inputs of a and b should have same width.');
     }
     _signed = signed;
+    _multiplyOnly = false;
     this.a = addInput('a', a, width: a.width);
     this.b = addInput('b', b, width: b.width);
     this.c = addInput('c', c, width: c.width);
@@ -161,5 +167,29 @@ class CompressionTreeMultiplyAccumulate extends MultiplyAccumulate {
     final adder = ParallelPrefixAdder(
         compressor.extractRow(0), compressor.extractRow(1), ppTree);
     accumulate <= adder.out.slice(a.width + b.width, 0);
+  }
+}
+
+/// A MultiplyAccumulate which ignores the [c] term and applies the
+/// multiplier function
+class MultiplyOnly extends MultiplyAccumulate {
+  @override
+  Logic get accumulate => output('accumulate');
+
+  /// Construct a MultiplyAccumulate that only multiplies to enable
+  /// using the same tester with zero addend.
+  MultiplyOnly(super.a, super.b, super.c,
+      Multiplier Function(Logic a, Logic b, {bool signed}) multiplyGenerator) {
+    final accumulate = addOutput('accumulate', width: a.width + b.width + 1);
+    _signed = signed;
+    _multiplyOnly = true;
+
+    final multiply = multiplyGenerator(a, b, signed: signed);
+
+    accumulate <=
+        (signed
+            ? [multiply.product[multiply.product.width - 1], multiply.product]
+                .swizzle()
+            : multiply.product.zeroExtend(accumulate.width));
   }
 }

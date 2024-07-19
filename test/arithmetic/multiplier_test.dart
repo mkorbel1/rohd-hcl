@@ -12,64 +12,7 @@ import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
 import 'package:test/test.dart';
 
-void runSingleMultiply(Multiplier mod, BigInt bA, BigInt bB) {
-  final golden = bA * bB;
-  // ignore: invalid_use_of_protected_member
-  mod.a.put(bA);
-  // ignore: invalid_use_of_protected_member
-  mod.b.put(bB);
-  final result = mod.signed
-      ? mod.product.value.toBigInt().toSigned(mod.product.width)
-      : mod.product.value.toBigInt();
-  expect(result, equals(golden));
-}
-
-void testMultiplierRandom(
-    int width, int iterations, Multiplier Function(Logic a, Logic b) fn) {
-  final a = Logic(name: 'a', width: width);
-  final b = Logic(name: 'b', width: width);
-  final mod = fn(a, b);
-  test('random_${mod.definitionName}_S${mod.signed}_W${width}_I$iterations',
-      () async {
-    // final mod = fn(a, b);
-    await mod.build();
-    final signed = mod.signed;
-
-    for (var i = 0; i < iterations; i++) {
-      // final bA = randomBigInt(width, signed: signed);
-      final bA = signed
-          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
-          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
-      // final bB = randomBigInt(width, signed: signed);
-      final bB = signed
-          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
-          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
-      runSingleMultiply(mod, bA, bB);
-    }
-  });
-}
-
-void testMultiplierExhaustive(
-    int width, Multiplier Function(Logic a, Logic b) fn) {
-  final a = Logic(name: 'a', width: width);
-  final b = Logic(name: 'b', width: width);
-  final mod = fn(a, b);
-  test('exhaustive_${mod.definitionName}_S${mod.signed}_W$width', () async {
-    await mod.build();
-    final signed = mod.signed;
-
-    // We use BigInts only to provide uniformity and template for testing
-    // Clearly we can only use small integers for exhaustive tests
-    for (var bA = BigInt.zero; bA < (BigInt.one << width); bA += BigInt.one) {
-      for (var bB = BigInt.zero; bB < (BigInt.one << width); bB += BigInt.one) {
-        final opA = signed ? bA.toSigned(width) : bA;
-        final opB = signed ? bB.toSigned(width) : bB;
-        runSingleMultiply(mod, opA, opB);
-      }
-    }
-  });
-}
-
+// Inner test of a multipy accumulate unit
 void runSingleMultiplyAccumulate(
     MultiplyAccumulate mod, BigInt bA, BigInt bB, BigInt bC) {
   final golden = bA * bB + bC;
@@ -87,6 +30,7 @@ void runSingleMultiplyAccumulate(
   expect(result, equals(golden));
 }
 
+// Random testing of a mutiplier or multiplier/accumulate unit
 void testMultiplyAccumulateRandom(int width, int iterations,
     MultiplyAccumulate Function(Logic a, Logic b, Logic c) fn) {
   final a = Logic(name: 'a', width: width);
@@ -98,25 +42,26 @@ void testMultiplyAccumulateRandom(int width, int iterations,
     await mod.build();
     final signed = mod.signed;
     for (var i = 0; i < iterations; i++) {
-      // final bA = randomBigInt(width, signed: signed);
-      // final bB = randomBigInt(width, signed: signed);
-      // final bC = randomBigInt(width * 2, signed: signed);
       final bA = signed
           ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
           : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
-      // final bB = randomBigInt(width, signed: signed);
       final bB = signed
           ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
           : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
-      final bC = signed
-          ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
-          : Random().nextLogicValue(width: width).toBigInt().toUnsigned(width);
-
+      final bC = mod.multiplyOnly
+          ? BigInt.zero
+          : signed
+              ? Random().nextLogicValue(width: width).toBigInt().toSigned(width)
+              : Random()
+                  .nextLogicValue(width: width)
+                  .toBigInt()
+                  .toUnsigned(width);
       runSingleMultiplyAccumulate(mod, bA, bB, bC);
     }
   });
 }
 
+// Exhaustive testing of a mutiplier or multiplier/accumulate unit
 void testMultiplyAccumulateExhaustive(
     int width, MultiplyAccumulate Function(Logic a, Logic b, Logic c) fn) {
   final a = Logic(name: 'a', width: width);
@@ -127,18 +72,22 @@ void testMultiplyAccumulateExhaustive(
     await mod.build();
     final signed = mod.signed;
 
+    final cLimit = mod.multiplyOnly ? 1 : (1 << (2 * width));
+
     for (var aa = 0; aa < (1 << width); ++aa) {
       for (var bb = 0; bb < (1 << width); ++bb) {
-        for (var cc = 0; cc < (1 << (2 * width)); ++cc) {
+        for (var cc = 0; cc < cLimit; ++cc) {
           final bA = signed
               ? BigInt.from(aa).toSigned(width)
               : BigInt.from(aa).toUnsigned(width);
           final bB = signed
               ? BigInt.from(bb).toSigned(width)
               : BigInt.from(bb).toUnsigned(width);
-          final bC = signed
-              ? BigInt.from(cc).toSigned(2 * width)
-              : BigInt.from(cc).toUnsigned(2 * width);
+          final bC = mod.multiplyOnly
+              ? BigInt.zero
+              : signed
+                  ? BigInt.from(cc).toSigned(2 * width)
+                  : BigInt.from(cc).toUnsigned(2 * width);
 
           runSingleMultiplyAccumulate(mod, bA, bB, bC);
         }
@@ -152,22 +101,32 @@ void main() {
     await Simulator.reset();
   });
 
-  Multiplier curryUnsignedCompressionTreeMultiplier(Logic a, Logic b) =>
-      CompressionTreeMultiplier(a, b, 4, KoggeStone.new);
+  // Use MAC tester for Multiply
 
-  Multiplier currySignedCompressionTreeMultiplier(Logic a, Logic b) =>
-      CompressionTreeMultiplier(a, b, 4, KoggeStone.new, signed: true);
+  // First curry the Multiplier
+  Multiplier curryMultiplier(Logic a, Logic b, {bool signed = true}) =>
+      CompressionTreeMultiplier(a, b, 4, KoggeStone.new, signed: signed);
+
+  Multiplier curryUnsignedMultiplier(Logic a, Logic b, {bool signed = true}) =>
+      CompressionTreeMultiplier(a, b, 4, KoggeStone.new, signed: false);
+
+  // Now treat the multiplier as a MAC with a zero input addend [c]
+  MultiplyAccumulate curryMultiplierAsMAC(Logic a, Logic b, Logic c) =>
+      MultiplyOnly(a, b, c, curryMultiplier);
+
+  MultiplyAccumulate curryUnsignedMultiplierAsMAC(Logic a, Logic b, Logic c) =>
+      MultiplyOnly(a, b, c, curryUnsignedMultiplier);
 
   group('test Compression Tree Multiplier Randomly', () {
     for (final width in [4, 5, 6, 11]) {
-      testMultiplierRandom(width, 100, currySignedCompressionTreeMultiplier);
-      testMultiplierRandom(width, 100, curryUnsignedCompressionTreeMultiplier);
+      testMultiplyAccumulateRandom(width, 100, curryMultiplierAsMAC);
+      testMultiplyAccumulateRandom(width, 100, curryUnsignedMultiplierAsMAC);
     }
   });
   group('test Compression Tree Multiplier Exhaustive', () {
     for (final width in [4, 5]) {
-      testMultiplierExhaustive(width, currySignedCompressionTreeMultiplier);
-      testMultiplierExhaustive(width, curryUnsignedCompressionTreeMultiplier);
+      testMultiplyAccumulateExhaustive(width, curryMultiplierAsMAC);
+      testMultiplyAccumulateExhaustive(width, curryUnsignedMultiplierAsMAC);
     }
   });
 
