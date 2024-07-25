@@ -216,7 +216,10 @@ class ParallelPrefixAdder extends Adder {
   ParallelPrefixAdder(super.a, super.b,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppGen)
       : _out = Logic(width: a.width),
-        super(name: 'ParallelPrefixAdder') {
+        super(
+            name: 'ParallelPrefixAdder: ${ppGen.call([
+              Logic()
+            ], (a, b) => Logic()).name}') {
     final u = ppGen(
         List<Logic>.generate(
             a.width, (i) => [a[i] & b[i], a[i] | b[i]].swizzle()),

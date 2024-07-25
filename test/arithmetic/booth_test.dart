@@ -48,6 +48,29 @@ void testPartialProductExhaustive(PartialProductGenerator pp) {
   }
 }
 
+void checkEvaluateExhaustive(PartialProductGenerator pp) {
+  final widthX = pp.selector.multiplicand.width;
+  final widthY = pp.encoder.multiplier.width;
+
+  final limitX = pow(2, widthX);
+  final limitY = pow(2, widthY);
+  for (var i = 0; i < limitX; i++) {
+    for (var j = 0; j < limitY; j++) {
+      final X = pp.signed
+          ? BigInt.from(i).toSigned(widthX)
+          : BigInt.from(i).toUnsigned(widthX);
+      final Y = pp.signed
+          ? BigInt.from(j).toSigned(widthY)
+          : BigInt.from(j).toUnsigned(widthY);
+      final product = X * Y;
+
+      pp.multiplicand.put(X);
+      pp.multiplier.put(Y);
+      expect(pp.evaluate(signed: pp.signed), equals(product));
+    }
+  }
+}
+
 void main() {
   test('single partial product test', () async {
     // stdout.write('\n');
@@ -201,14 +224,14 @@ void main() {
 
   // TODO(dakdesmond): Why cannot radix8 handle Y width 3
   test('exhaustive rectangular partial product evaluate test', () async {
-    stdout.write('\n');
+    // stdout.write('\n');
     final encoder = RadixEncoder(8);
     for (var width = 5; width < 6; width++) {
       final widthX = width;
-      stdout.write('Testing widthX=$widthX\n');
+      // stdout.write('Testing widthX=$widthX\n');
       for (var skew = -1; skew < 2; skew++) {
         final widthY = width + skew;
-        stdout.write('\tTesting widthY=$widthY\n');
+        // stdout.write('\tTesting widthY=$widthY\n');
 
         final pp = PartialProductGenerator(Logic(name: 'X', width: widthX),
             Logic(name: 'Y', width: widthY), encoder);
@@ -245,10 +268,10 @@ void main() {
     stdout.write('\n');
     for (var radix = 4; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(radix);
-      stdout.write('encoding with radix=$radix\n');
+      // stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
-        stdout.write('\tTesting width=$width\n');
+        // stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
               Logic(name: 'Y', width: width), encoder);
@@ -258,7 +281,6 @@ void main() {
             case SignExtension.stop:
               pp.signExtendWithStopBitsRect();
             case SignExtension.compact:
-              // pp.signExtendWithStopBitsRect();
               pp.signExtendCompact();
           }
           // stdout.write('\tTesting extension=$signExtension\n');
@@ -275,10 +297,10 @@ void main() {
 
     for (var radix = 4; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(radix);
-      stdout.write('encoding with radix=$radix\n');
+      // stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
-        stdout.write('\tTesting width=$width\n');
+        // stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
               Logic(name: 'Y', width: width), encoder,
@@ -292,7 +314,7 @@ void main() {
               // pp.signExtendWithStopBits();
               pp.signExtendCompact(); // fails for r2
           }
-          stdout.write('\tTesting extension=$signExtension\n');
+          // stdout.write('\tTesting extension=$signExtension\n');
           testPartialProductExhaustive(pp);
         }
       }
@@ -305,11 +327,11 @@ void main() {
     const signed = false;
     for (var radix = 4; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(radix);
-      stdout.write('encoding with radix=$radix\n');
+      // stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
         for (var skew = 1; skew < 2; skew++) {
-          stdout.write('\tTesting width=$width skew=$skew\n');
+          // stdout.write('\tTesting width=$width skew=$skew\n');
           // Only some routines have rectangular support
           for (final signExtension in [
             // SignExtension.brute,
@@ -327,7 +349,7 @@ void main() {
               case SignExtension.compact:
                 pp.signExtendCompact();
             }
-            stdout.write('\tTesting extension=$signExtension\n');
+            // stdout.write('\tTesting extension=$signExtension\n');
             testPartialProductExhaustive(pp);
           }
         }

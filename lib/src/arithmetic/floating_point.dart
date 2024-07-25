@@ -135,7 +135,7 @@ class FloatingPointAdder extends Module {
     // Align and add mantissas
     final expDiff = aExp - bExp;
     // print('${expDiff.value.toInt()} exponent diff');
-    final adder = OnesComplementAdder(
+    final adder = SignMagnitudeAdder(
         a.sign,
         [a.isNormal(), a.mantissa].swizzle(),
         b.sign,

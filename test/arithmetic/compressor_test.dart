@@ -92,10 +92,10 @@ void main() {
 
     for (var radix = 4; radix < 8; radix *= 2) {
       final encoder = RadixEncoder(2);
-      stdout.write('encoding with radix=$radix\n');
+      // stdout.write('encoding with radix=$radix\n');
       final shift = log2Ceil(encoder.radix);
       for (var width = shift + 1; width < shift + 2; width++) {
-        stdout.write('\tTesting width=$width\n');
+        // stdout.write('\tTesting width=$width\n');
         for (final signExtension in SignExtension.values) {
           final pp = PartialProductGenerator(Logic(name: 'X', width: width),
               Logic(name: 'Y', width: width), encoder);
@@ -107,7 +107,7 @@ void main() {
             case SignExtension.compact:
               pp.signExtendCompact();
           }
-          stdout.write('\tTesting extension=$signExtension\n');
+          // stdout.write('\tTesting extension=$signExtension\n');
           testCompressionExhaustive(pp);
         }
       }

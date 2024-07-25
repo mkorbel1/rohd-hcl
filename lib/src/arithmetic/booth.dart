@@ -348,8 +348,6 @@ class PartialProductGenerator {
       alignRow0Sign = 0;
     }
 
-    // stdout.write('align is $alignRow0Sign, rows=$rows\n');
-
     final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
 
     final propagate =
@@ -381,9 +379,6 @@ class PartialProductGenerator {
       remainders[row] = propagate[row][shift - 1];
     }
     remainders[lastRow] <= propagate[lastRow][alignRow0Sign];
-    // Hack for radix-2
-
-    // stdout.write('remainders ${bitString(remainders[lastRow].value)}\n');
 
     // Compute Sign extension for row==0
     final firstSign = signed ? firstAddend.last : signs[0];

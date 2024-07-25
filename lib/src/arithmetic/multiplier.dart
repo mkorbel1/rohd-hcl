@@ -68,11 +68,6 @@ abstract class MultiplyAccumulate extends Module {
   /// The multiplication results of the multiply-accumulate.
   Logic get accumulate;
 
-  bool get multiplyOnly => _multiplyOnly;
-
-  @protected
-  bool _multiplyOnly = false;
-
   /// Take input [a] and input [b], compute their
   /// product, add input [c] to produce the [accumulate] result.
   MultiplyAccumulate(Logic a, Logic b, Logic c,
@@ -81,7 +76,6 @@ abstract class MultiplyAccumulate extends Module {
       throw RohdHclException('inputs of a and b should have same width.');
     }
     _signed = signed;
-    _multiplyOnly = false;
     this.a = addInput('a', a, width: a.width);
     this.b = addInput('b', b, width: b.width);
     this.c = addInput('c', c, width: c.width);
@@ -98,7 +92,12 @@ class CompressionTreeMultiplier extends Multiplier {
   ///   a given radix and final adder functor
   CompressionTreeMultiplier(super.a, super.b, int radix,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
-      {super.signed = false, super.name}) {
+      {super.signed = false})
+      : super(
+            name: 'Compression Tree Multiplier: '
+                'R${radix}_${ppTree.call([
+              Logic()
+            ], (a, b) => Logic()).runtimeType}') {
     final product = addOutput('product', width: a.width + b.width);
 
     final pp =
@@ -124,7 +123,10 @@ class CompressionTreeMultiplyAccumulate extends MultiplyAccumulate {
   ///   a given radix and final adder functor
   CompressionTreeMultiplyAccumulate(super.a, super.b, super.c, int radix,
       ParallelPrefix Function(List<Logic>, Logic Function(Logic, Logic)) ppTree,
-      {bool signed = false, super.name}) {
+      {bool signed = false})
+      : super(
+            name: 'Compression Tree Multiplier: '
+                'R${radix}_${ppTree.call([Logic()], (a, b) => Logic()).name}') {
     final accumulate = addOutput('accumulate', width: a.width + b.width + 1);
     _signed = signed;
 
@@ -179,12 +181,12 @@ class MultiplyOnly extends MultiplyAccumulate {
   /// Construct a MultiplyAccumulate that only multiplies to enable
   /// using the same tester with zero addend.
   MultiplyOnly(super.a, super.b, super.c,
-      Multiplier Function(Logic a, Logic b, {bool signed}) multiplyGenerator) {
+      Multiplier Function(Logic a, Logic b) multiplyGenerator)
+      : super(name: 'Multiply Only: ${multiplyGenerator.call(a, b).name}') {
     final accumulate = addOutput('accumulate', width: a.width + b.width + 1);
-    _signed = signed;
-    _multiplyOnly = true;
 
-    final multiply = multiplyGenerator(a, b, signed: signed);
+    final multiply = multiplyGenerator(a, b);
+    _signed = multiply.signed;
 
     accumulate <=
         (signed
