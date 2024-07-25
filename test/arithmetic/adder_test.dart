@@ -104,7 +104,7 @@ void checkSignMagnitudeAdder(SignMagnitudeAdder adder, LogicValue aSign,
   expect(computedVal, equals(expectVal));
 }
 
-void testExhaustiveOnesComplement(int n, Adder Function(Logic a, Logic b) fn) {
+void testExhaustiveSignMagnitude(int n, Adder Function(Logic a, Logic b) fn) {
   final aSign = Logic(name: 'aSign');
   final a = Logic(name: 'a', width: n);
   final bSign = Logic(name: 'bSign');
@@ -144,7 +144,7 @@ void testExhaustiveOnesComplement(int n, Adder Function(Logic a, Logic b) fn) {
   });
 }
 
-void testRandomOnesComplement(
+void testRandomSignMagnitude(
     int width, int nSamples, Adder Function(Logic a, Logic b) fn) {
   final aSign = Logic(name: 'aSign');
   final a = Logic(name: 'a', width: width);
@@ -207,17 +207,17 @@ void main() {
       testExhaustive(4, (a, b) => ParallelPrefixAdder(a, b, ppGen));
     }
   });
-  group('onesComplement random', () {
+  group('SignMagnitude random', () {
     for (final ppGen in generators) {
-      testRandomOnesComplement(4, 30, RippleCarryAdder.new);
-      testRandomOnesComplement(
+      testRandomSignMagnitude(4, 30, RippleCarryAdder.new);
+      testRandomSignMagnitude(
           4, 30, (a, b) => ParallelPrefixAdder(a, b, ppGen));
     }
   });
-  group('onesComplement exhaustive', () {
+  group('SignMagnitude exhaustive', () {
     for (final ppGen in generators) {
-      testExhaustiveOnesComplement(4, RippleCarryAdder.new);
-      testExhaustiveOnesComplement(
+      testExhaustiveSignMagnitude(4, RippleCarryAdder.new);
+      testExhaustiveSignMagnitude(
           4, (a, b) => ParallelPrefixAdder(a, b, ppGen));
     }
   });
