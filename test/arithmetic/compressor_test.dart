@@ -36,13 +36,13 @@ void testCompressionExhaustive(PartialProductGenerator pp) {
       pp.multiplicand.put(X);
       pp.multiplier.put(Y);
       // stdout.write('$i($X) * $j($Y): should be $product\n');
-      if (pp.evaluate(signed: true) != product) {
+      if (pp.evaluate() != product) {
         stdout
-          ..write('Fail: $i($X) * $j($Y): ${pp.evaluate(signed: true)} '
+          ..write('Fail: $i($X) * $j($Y): ${pp.evaluate()} '
               'vs expected $product\n')
           ..write(pp);
       }
-      expect(pp.evaluate(signed: true), equals(product));
+      expect(pp.evaluate(), equals(product));
       final evaluateValue = compressor.evaluate();
       if (evaluateValue != product) {
         stdout

@@ -37,8 +37,8 @@ class SignMagnitudeAdder extends Adder {
       Adder Function(Logic, Logic) adderGen)
       : _out = Logic(width: a.width),
         super(
-            name:
-                'Ones Complement Adder: ${adderGen.call(Logic(), Logic()).name}') {
+            name: 'Ones Complement Adder: '
+                '${adderGen.call(Logic(), Logic()).name}') {
     aSign = addInput('aSign', as);
     bSign = addInput('bSign', bs);
     final sign = addOutput('sign');

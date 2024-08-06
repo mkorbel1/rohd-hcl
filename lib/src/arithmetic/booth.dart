@@ -8,6 +8,7 @@
 // Author: Desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/src/utils.dart';
@@ -329,6 +330,22 @@ class PartialProductGenerator {
     }
   }
 
+  void _addStopSignFlip(List<Logic> addend, Logic sign) {
+    if (signed) {
+      addend.last = ~addend.last;
+    } else {
+      addend.add(sign);
+    }
+  }
+
+  void _addStopSign(List<Logic> addend, Logic sign) {
+    if (signed) {
+      addend.last = sign;
+    } else {
+      addend.add(sign);
+    }
+  }
+
   /// Sign extend the PP array using stop bits without adding a row
   void signExtendCompact() {
     assert(!_signExtended, 'Partial Product array already sign-extended');
@@ -344,6 +361,7 @@ class PartialProductGenerator {
             : signed
                 ? 1
                 : 0);
+
     if (alignRow0Sign < 0) {
       alignRow0Sign = 0;
     }
@@ -374,6 +392,7 @@ class PartialProductGenerator {
       m[lastRow][i] = lastAddend[i] ^
           (i < alignRow0Sign ? propagate[lastRow][i] : Const(0));
     }
+
     final remainders = List.filled(rows, Logic());
     for (var row = 0; row < lastRow; row++) {
       remainders[row] = propagate[row][shift - 1];
@@ -422,6 +441,134 @@ class PartialProductGenerator {
     }
   }
 
+  /// Sign extend the PP array using stop bits without adding a row
+  /// This routine works with different widths of multiplicand/multiplier
+  void signExtendCompactRect() {
+    assert(!_signExtended, 'Partial Product array already sign-extended');
+    _signExtended = true;
+
+    final lastRow = rows - 1;
+    final firstAddend = partialProducts[0];
+    final lastAddend = partialProducts[lastRow];
+
+    final firstRowQStart = selector.width - (signed ? 1 : 0);
+    final lastRowSignPos = shift * lastRow;
+
+    final align = firstRowQStart - lastRowSignPos;
+
+    final signs = [for (var r = 0; r < rows; r++) encoder.getEncoding(r).sign];
+
+    // Compute propgation info for folding sign bits into main rows
+    final propagate =
+        List.generate(rows, (i) => List.filled(0, Logic(), growable: true));
+
+    for (var row = 0; row < rows; row++) {
+      propagate[row].add(signs[row]);
+      for (var col = 0; col < 2 * (shift - 1); col++) {
+        propagate[row].add(partialProducts[row][col]);
+      }
+      // Last row has extend sign propagation to Q start
+      if (row == lastRow) {
+        var col = 2 * (shift - 1);
+        while (propagate[lastRow].length <= align) {
+          propagate[lastRow].add(partialProducts[row][col++]);
+        }
+      }
+      // Now compute the propagation logic
+      for (var col = 1; col < propagate[row].length; col++) {
+        propagate[row][col] = propagate[row][col] & propagate[row][col - 1];
+      }
+    }
+
+    // Compute 'm', the prefix of each row to carry the sign of the next row
+    final m =
+        List.generate(rows, (i) => List.filled(0, Logic(), growable: true));
+    for (var row = 0; row < rows; row++) {
+      for (var c = 0; c < shift - 1; c++) {
+        m[row].add(partialProducts[row][c] ^ propagate[row][c]);
+      }
+      m[row].addAll(List.filled(shift - 1, Logic()));
+    }
+    while (m[lastRow].length < align) {
+      m[lastRow].add(Logic());
+    }
+    for (var i = shift - 1; i < m[lastRow].length; i++) {
+      m[lastRow][i] =
+          lastAddend[i] ^ (i < align ? propagate[lastRow][i] : Const(0));
+    }
+
+    final remainders = List.filled(rows, Logic());
+    for (var row = 0; row < lastRow; row++) {
+      remainders[row] = propagate[row][shift - 1];
+    }
+    remainders[lastRow] = propagate[lastRow][align > 0 ? align : 0];
+
+    // Merge 'm' into the LSBs of each addend
+    for (var row = 0; row < rows; row++) {
+      final addend = partialProducts[row];
+      if (row > 0) {
+        final mLimit = (row == lastRow) ? align : shift - 1;
+        for (var i = 0; i < mLimit; i++) {
+          addend[i] = m[row][i];
+        }
+        // Stop bits
+        _addStopSignFlip(addend, ~signs[row]);
+        addend
+          ..insert(0, remainders[row - 1])
+          ..addAll(List.filled(shift - 1, Const(1)));
+        rowShift[row] -= 1;
+      } else {
+        // First row
+        for (var i = 0; i < shift - 1; i++) {
+          firstAddend[i] = m[0][i];
+        }
+      }
+    }
+
+    // Insert the lastRow sign:  Either in firstRow's Q if there is a
+    // collision or in another row if it lands beyond the Q sign extension
+
+    final firstSign = signed ? firstAddend.last : signs[0];
+    final lastSign = remainders[lastRow];
+    // Compute Sign extension MSBs for firstRow
+    final qLen = shift + 1;
+    final insertSignPos = (align > 0) ? 0 : -align;
+    final q = List.filled(min(qLen, insertSignPos), firstSign, growable: true);
+    if (insertSignPos < qLen) {
+      // At sign insertion position
+      q.add(firstSign ^ lastSign);
+      if (insertSignPos == qLen - 1) {
+        q[insertSignPos] = ~q[insertSignPos];
+        q.add(~(firstSign | q[insertSignPos]));
+      } else {
+        q
+          ..addAll(List.filled(qLen - insertSignPos - 2, firstSign & ~lastSign))
+          ..add(~(firstSign & ~lastSign));
+      }
+    }
+
+    if (-align >= q.length) {
+      q.last = ~firstSign;
+    }
+    _addStopSign(firstAddend, q[0]);
+    firstAddend.addAll(q.getRange(1, q.length));
+
+    if (-align >= q.length) {
+      final finalCarryRelPos =
+          lastRowSignPos - selector.width - shift + (signed ? 1 : 0);
+      final finalCarryRow = (finalCarryRelPos / shift).floor();
+      final curRowLength =
+          partialProducts[finalCarryRow].length + rowShift[finalCarryRow];
+
+      partialProducts[finalCarryRow]
+        ..addAll(List.filled(lastRowSignPos - curRowLength, Const(0)))
+        ..add(remainders[lastRow]);
+    }
+    if (shift == 1) {
+      lastAddend.add(Const(1));
+    }
+  }
+
   /// Return the actual largest width of all rows
   int maxWidth() {
     var maxW = 0;
@@ -435,7 +582,7 @@ class PartialProductGenerator {
   }
 
   /// Accumulate the partial products and return as BigInt
-  BigInt evaluate({bool signed = false}) {
+  BigInt evaluate() {
     final maxW = maxWidth();
     var accum = BigInt.from(0);
     for (var row = 0; row < rows; row++) {
@@ -517,8 +664,12 @@ class PartialProductGenerator {
     for (final elem in [for (var i = 0; i < maxW; i++) sum[i]].reversed) {
       str.write('${elem.toInt()}  ');
     }
+    final val = evaluate();
     str.write(': ${bitString(sum)} = '
-        '${evaluate()} (${evaluate(signed: true)})\n\n');
+        '${val.toUnsigned(maxW)}');
+    if (_signExtended) {
+      str.write(' ($val)\n\n');
+    }
     return str.toString();
   }
 }
