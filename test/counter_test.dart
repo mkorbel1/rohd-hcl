@@ -55,6 +55,39 @@ void main() {
 
     await Simulator.endSimulation();
   });
+  test('counter fixed test', () async {
+    const len = 6;
+    final clk = SimpleClockGenerator(10).clk;
+    final start = Logic();
+    final reset = Logic();
+    final mod = Counter([SumInterface(fixedAmount: 1)],
+        clk: clk, reset: reset, restart: start, maxValue: len);
+
+    unawaited(Simulator.run());
+
+    reset.inject(0);
+    start.inject(0);
+    await clk.nextPosedge;
+    print(mod.value.value.bitString);
+    reset.inject(1);
+    await clk.nextPosedge;
+    print('reset ${mod.value.value.bitString}');
+    reset.inject(0);
+    await clk.nextPosedge;
+    print('unreset ${mod.value.value.bitString}');
+    start.inject(1);
+    await clk.nextPosedge;
+    print('reset ${mod.value.value.bitString}');
+    start.inject(0);
+    await clk.nextPosedge;
+    print('unreset ${mod.value.value.bitString}');
+    await clk.nextPosedge;
+    print('unreset ${mod.value.value.bitString}');
+    await clk.nextPosedge;
+    print('unreset ${mod.value.value.bitString}');
+
+    await Simulator.endSimulation();
+  });
 
   test('reset and restart counter', () async {
     final clk = SimpleClockGenerator(10).clk;
