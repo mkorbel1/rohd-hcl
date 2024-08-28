@@ -11,7 +11,7 @@ import 'package:meta/meta.dart';
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
 
-/// Deserializes aggregated data onto a narrower serialization stream
+/// Aggregates data from a serialized stream
 class Deserializer extends Module {
   /// Clk input
   @protected
@@ -21,48 +21,45 @@ class Deserializer extends Module {
   @protected
   Logic get reset => input('reset');
 
-  /// Start the count when [start] is 1, only needs to be held for 1 cycle
+  /// Run deserialization whenever [enable] is true
   @protected
-  Logic get start => input('start');
+  Logic get enable => input('enable');
 
-  /// Return the count as an output (for debug)
+  /// Serialized input, one data item per clock
+  Logic get serialized => input('serialized');
+
+  /// Aggregated data output
+  LogicArray get deserialized => output('deserialized') as LogicArray;
+
+  /// Valid out when data is reached
+  Logic get validOut => output('validOut');
+
+  /// Return the count as an output
   @protected
   Logic get count => output('count');
 
-  /// Aggregated data to serialize out
-  LogicArray get dataIn => input('dataIn') as LogicArray;
-
-  /// Serialized output, one data item per clock
-  Logic get serialized => output('serialized');
-
-  /// Build a Sequencer that takes the array [dataIn] and sequences it
-  /// out one element at a time on [serialized], one per clock after [enable]
-  Deserializer(Logic clk, Logic reset, Logic enable, LogicArray dataIn) {
+  /// Build a Deserializer that takes serialized input [serialized] of size
+  /// [length] and aggregates it into one wide output [deserialized],
+  /// emitting [validOut] when complete
+  Deserializer(
+      Logic clk, Logic reset, Logic validIn, Logic serialized, int length) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
-    enable = addInput('start', enable);
-    dataIn = addInputArray('dataIn', dataIn,
-        dimensions: dataIn.dimensions, elementWidth: dataIn.elementWidth);
-    addOutput('serialized', width: dataIn.elementWidth);
+    validIn = addInput('enable', validIn);
+    serialized = addInput('serialized', serialized, width: serialized.width);
+    addOutputArray('deserialized',
+        dimensions: [length], elementWidth: serialized.width);
 
-    final addressWidth = log2Ceil(dataIn.dimensions[0]);
-
-    addOutput('count', width: addressWidth); // for debug
-    final length = dataIn.elements.length;
-
-    count <=
-        flop(
-            clk,
-            reset: reset | count.eq(length),
-            en: enable,
-            (count + 1) % length);
-
-    final dataInFlopped = LogicArray(dataIn.dimensions, dataIn.elementWidth);
-
-    for (var i = 0; i < length; i++) {
-      dataInFlopped.elements[i] <=
-          flop(clk, reset: reset, en: enable, dataIn.elements[i]);
-    }
-    serialized <= dataInFlopped.elements.selectIndex(count);
+    final cnt = Counter(
+        [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(validIn)],
+        clk: clk, reset: reset, maxValue: length - 1);
+    addOutput('count', width: cnt.width); // for debug
+    addOutput('validOut') <= cnt.reachedMax;
+    final dataOutList = [
+      for (var i = 0; i < length; i++)
+        flop(clk, reset: reset, en: validIn & count.eq(i), serialized)
+    ];
+    deserialized <= dataOutList.swizzle();
+    count <= cnt.value;
   }
 }
