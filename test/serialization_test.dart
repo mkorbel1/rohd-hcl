@@ -33,20 +33,14 @@ void main() {
 
     await mod.build();
 
-    WaveDumper(mod);
-
     unawaited(Simulator.run());
-
     start.inject(0);
     reset.inject(0);
     var clkCount = 0;
     for (var i = 0; i < len; i++) {
       dataIn.elements[i].inject(i);
     }
-    print('dataIn[3]= ${dataIn.elements[3].value.bitString}');
-    print('dataInFull ${dataIn.reversed.value.bitString}');
     await clk.nextPosedge;
-    print('initial ${mod.count.value}');
 
     reset.inject(1);
 
@@ -59,18 +53,88 @@ void main() {
     await clk.nextPosedge;
     print('unreset: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
     start.inject(1);
-    await clk.nextPosedge;
-    print('start: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
 
-    clkCount++;
-    print(
-        '$clkCount: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
-
-    for (var i = 0; i < 16; i++) {
+    while (mod.done.value.toInt() != 1) {
       await clk.nextPosedge;
-      clkCount++;
       print(
           '$clkCount: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
+      clkCount++;
+    }
+    clkCount = 0;
+    while ((clkCount == 0) | (mod.done.value.toInt() != 1)) {
+      await clk.nextPosedge;
+      print(
+          '$clkCount: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
+      clkCount++;
+    }
+    var counting = true;
+    for (var disablePos = 0; disablePos < len; disablePos++) {
+      clkCount = 0;
+      var activeClkCount = 0;
+      while ((clkCount == 0) | (mod.done.value.toInt() == 0)) {
+        if (clkCount == disablePos) {
+          counting = false;
+          start.inject(0);
+        }
+        await clk.nextPosedge;
+        print('$activeClkCount/$clkCount: ${mod.serialized.value.bitString} '
+            'cnt=${mod.count.value}');
+        clkCount = clkCount + 1;
+        activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
+        start.inject(1);
+        counting = true;
+      }
+    }
+    await Simulator.endSimulation();
+  });
+
+  test('serializer enable', () async {
+    const len = 10;
+    const width = 8;
+    final dataIn = LogicArray([len], width);
+    final clk = SimpleClockGenerator(10).clk;
+    final start = Logic();
+    final reset = Logic();
+    final mod = Serializer(dataIn, clk: clk, reset: reset, readyIn: start);
+
+    await mod.build();
+
+    WaveDumper(mod);
+
+    unawaited(Simulator.run());
+
+    start.inject(0);
+    reset.inject(0);
+    var clkCount = 0;
+    for (var i = 0; i < len; i++) {
+      dataIn.elements[i].inject(i);
+    }
+    await clk.nextPosedge;
+
+    reset.inject(1);
+
+    await clk.nextPosedge;
+    print('reset: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
+
+    reset.inject(0);
+    await clk.nextPosedge;
+    await clk.nextPosedge;
+    await clk.nextPosedge;
+    print('unreset: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
+    start.inject(1);
+
+    while (mod.done.value.toInt() != 1) {
+      await clk.nextPosedge;
+      print(
+          '$clkCount: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
+      clkCount++;
+    }
+    clkCount = 0;
+    while ((clkCount == 0) | (mod.done.value.toInt() != 1)) {
+      await clk.nextPosedge;
+      print(
+          '$clkCount: ${mod.serialized.value.bitString} cnt=${mod.count.value}');
+      clkCount++;
     }
     await Simulator.endSimulation();
   });
@@ -113,8 +177,6 @@ void main() {
     clkCount++;
     print('$clkCount:\t${mod.deserialized.value.bitString}, '
         'count: ${mod.count.value.bitString}');
-
-    // start.inject(0);
 
     for (var i = 0; i < 11; i++) {
       if (i < 5) {
