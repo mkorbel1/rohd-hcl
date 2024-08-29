@@ -21,12 +21,11 @@ class Serializer extends Module {
   @protected
   Logic get reset => input('reset');
 
-  /// Allow serialization ont the output stream when [readyIn] is true
+  /// Allow serialization onto the output stream when [readyIn] is true
   @protected
   Logic get readyIn => input('readyIn');
 
   /// Return the count as an output
-  @protected
   Logic get count => output('count');
 
   /// Aggregated data to serialize out
@@ -38,10 +37,19 @@ class Serializer extends Module {
   /// Build a Serializer that takes the array [dataIn] and sequences it
   /// out one element at a time on [serialized] output, one element
   /// per clock while [readyIn]
-  Serializer(Logic clk, Logic reset, Logic readyIn, LogicArray dataIn) {
+  Serializer(
+    LogicArray dataIn, {
+    required Logic clk,
+    required Logic reset,
+    Logic? readyIn,
+  }) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
-    readyIn = addInput('readyIn', readyIn);
+    if (readyIn != null) {
+      readyIn = addInput('readyIn', readyIn);
+    } else {
+      readyIn = Const(1);
+    }
     dataIn = addInputArray('dataIn', dataIn,
         dimensions: dataIn.dimensions, elementWidth: dataIn.elementWidth);
     addOutput('serialized', width: dataIn.elementWidth);
@@ -52,7 +60,7 @@ class Serializer extends Module {
     final cnt = Counter(
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(readyIn)],
         clk: clk, reset: reset, maxValue: length - 1);
-    count <= cnt.value;
+    count <= cnt.count;
     final dataInFlopped = LogicArray(dataIn.dimensions, dataIn.elementWidth);
 
     for (var i = 0; i < length; i++) {

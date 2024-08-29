@@ -29,7 +29,7 @@ void main() {
     final clk = SimpleClockGenerator(10).clk;
     final start = Logic();
     final reset = Logic();
-    final mod = Serializer(clk, reset, start, dataIn);
+    final mod = Serializer(dataIn, clk: clk, reset: reset, readyIn: start);
 
     await mod.build();
 
@@ -82,7 +82,8 @@ void main() {
     final clk = SimpleClockGenerator(10).clk;
     final start = Logic();
     final reset = Logic();
-    final mod = Deserializer(clk, reset, start, dataIn, len);
+    final mod =
+        Deserializer(dataIn, len, clk: clk, reset: reset, validIn: start);
     await mod.build();
     unawaited(Simulator.run());
     WaveDumper(mod);
@@ -137,7 +138,9 @@ void main() {
     final clk = SimpleClockGenerator(10).clk;
     final enable = Logic();
     final reset = Logic();
-    final mod = Deserializer(clk, reset, enable, dataIn, len);
+    final mod =
+        Deserializer(dataIn, len, clk: clk, reset: reset, validIn: enable);
+
     await mod.build();
     unawaited(Simulator.run());
 
@@ -195,7 +198,8 @@ void main() {
     final clk = SimpleClockGenerator(10).clk;
     final enable = Logic();
     final reset = Logic();
-    final mod = Deserializer(clk, reset, enable, dataIn, len);
+    final mod =
+        Deserializer(dataIn, len, clk: clk, reset: reset, validIn: enable);
     await mod.build();
     unawaited(Simulator.run());
 
@@ -263,43 +267,6 @@ void main() {
         enable.inject(1);
       }
     }
-
-    await Simulator.endSimulation();
-  });
-
-  test('counter fixed test', () async {
-    const len = 6;
-    final clk = SimpleClockGenerator(10).clk;
-    final start = Logic();
-    final reset = Logic();
-    final mod = Counter([SumInterface(fixedAmount: 1)],
-        clk: clk, reset: reset, restart: start, maxValue: len);
-
-    unawaited(Simulator.run());
-
-    // final count = Logic(width: 3);
-    // count <= flop(clk, reset: reset, en: start, count + 1);
-
-    reset.inject(0);
-    start.inject(0);
-    await clk.nextPosedge;
-    print(mod.value.value.bitString);
-    reset.inject(1);
-    await clk.nextPosedge;
-    print('reset ${mod.value.value.bitString}');
-    reset.inject(0);
-    await clk.nextPosedge;
-    print('unreset ${mod.value.value.bitString}');
-    start.inject(1);
-    await clk.nextPosedge;
-    print('reset ${mod.value.value.bitString}');
-    start.inject(0);
-    await clk.nextPosedge;
-    print('unreset ${mod.value.value.bitString}');
-    await clk.nextPosedge;
-    print('unreset ${mod.value.value.bitString}');
-    await clk.nextPosedge;
-    print('unreset ${mod.value.value.bitString}');
 
     await Simulator.endSimulation();
   });

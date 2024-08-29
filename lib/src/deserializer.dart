@@ -41,11 +41,15 @@ class Deserializer extends Module {
   /// Build a Deserializer that takes serialized input [serialized] of size
   /// [length] and aggregates it into one wide output [deserialized],
   /// emitting [validOut] when complete
-  Deserializer(
-      Logic clk, Logic reset, Logic validIn, Logic serialized, int length) {
+  Deserializer(Logic serialized, int length,
+      {required Logic clk, required Logic reset, Logic? validIn}) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
-    validIn = addInput('enable', validIn);
+    if (validIn != null) {
+      validIn = addInput('enable', validIn);
+    } else {
+      validIn = Const(1);
+    }
     serialized = addInput('serialized', serialized, width: serialized.width);
     addOutputArray('deserialized',
         dimensions: [length], elementWidth: serialized.width);
@@ -54,12 +58,12 @@ class Deserializer extends Module {
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(validIn)],
         clk: clk, reset: reset, maxValue: length - 1);
     addOutput('count', width: cnt.width); // for debug
-    addOutput('validOut') <= cnt.reachedMax;
+    addOutput('validOut') <= cnt.equalsMax;
     final dataOutList = [
       for (var i = 0; i < length; i++)
         flop(clk, reset: reset, en: validIn & count.eq(i), serialized)
     ];
     deserialized <= dataOutList.swizzle();
-    count <= cnt.value;
+    count <= cnt.count;
   }
 }
