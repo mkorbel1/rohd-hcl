@@ -40,13 +40,11 @@ class Serializer extends Module {
   /// Build a Serializer that takes the array [dataIn] and sequences it
   /// out one element at a time on [serialized] output, one element
   /// per clock while [readyIn]
-  Serializer(
-    LogicArray dataIn, {
-    required Logic clk,
-    required Logic reset,
-    Logic? readyIn, 
-    {super.name = 'Serializer'}
-  }) {
+  Serializer(LogicArray dataIn,
+      {required Logic clk,
+      required Logic reset,
+      Logic? readyIn,
+      super.name = 'Serializer'}) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
     if (readyIn != null) {
