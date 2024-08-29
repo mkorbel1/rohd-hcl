@@ -52,7 +52,7 @@ class Serializer extends Module {
     } else {
       readyIn = Const(1);
     }
-    dataIn = addInputArray('dataIn', dataIn,
+    dataIn = addInputArray('deserialized', dataIn,
         dimensions: dataIn.dimensions, elementWidth: dataIn.elementWidth);
     addOutput('serialized', width: dataIn.elementWidth);
 
