@@ -44,7 +44,8 @@ class Serializer extends Module {
     LogicArray dataIn, {
     required Logic clk,
     required Logic reset,
-    Logic? readyIn,
+    Logic? readyIn, 
+    {super.name = 'Serializer'}
   }) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);

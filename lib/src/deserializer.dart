@@ -42,7 +42,10 @@ class Deserializer extends Module {
   /// [length] and aggregates it into one wide output [deserialized],
   /// emitting [validOut] when complete
   Deserializer(Logic serialized, int length,
-      {required Logic clk, required Logic reset, Logic? validIn}) {
+      {required Logic clk,
+      required Logic reset,
+      Logic? validIn,
+      super.name = 'Deserializer'}) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
     if (validIn != null) {
