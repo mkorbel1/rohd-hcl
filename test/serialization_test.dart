@@ -219,7 +219,6 @@ void main() {
     var clkCount = 0;
     while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
       await clk.nextPosedge;
-
       print('$clkCount:\tcount: ${mod.count.value.bitString}'
           '\t${mod.deserialized.value.bitString} '
           '(${mod.deserialized.value.toBigInt()})');
