@@ -28,6 +28,9 @@ class Serializer extends Module {
   /// Return the count as an output
   Logic get count => output('count');
 
+  /// Return [done] when we have processed [deserialized] completely
+  Logic get done => output('done');
+
   /// Aggregated data to serialize out
   LogicArray get deserialized => input('deserialized') as LogicArray;
 
@@ -54,7 +57,8 @@ class Serializer extends Module {
         dimensions: dataIn.dimensions, elementWidth: dataIn.elementWidth);
     addOutput('serialized', width: dataIn.elementWidth);
 
-    addOutput('count', width: log2Ceil(dataIn.dimensions[0])); // for debug
+    addOutput('count', width: log2Ceil(dataIn.dimensions[0]));
+    addOutput('done');
     final length = dataIn.elements.length;
 
     final cnt = Counter(
@@ -62,6 +66,7 @@ class Serializer extends Module {
         clk: clk, reset: reset, maxValue: length - 1);
     count <= cnt.count;
     final dataInFlopped = LogicArray(dataIn.dimensions, dataIn.elementWidth);
+    done <= cnt.overflowed;
 
     for (var i = 0; i < length; i++) {
       dataInFlopped.elements[i] <=
