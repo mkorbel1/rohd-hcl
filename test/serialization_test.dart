@@ -13,8 +13,6 @@ import 'dart:async';
 
 import 'package:rohd/rohd.dart';
 import 'package:rohd_hcl/rohd_hcl.dart';
-import 'package:rohd_hcl/src/deserializer.dart';
-import 'package:rohd_hcl/src/serializer.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -43,29 +41,28 @@ void main() {
 
     reset.inject(1);
     await clk.nextPosedge;
-    print('reset: ${mod.serialized.value.bitString} '
-        'cnt=${mod.count.value.toInt()}');
     reset.inject(0);
     await clk.nextPosedge;
     await clk.nextPosedge;
     await clk.nextPosedge;
-    print('unreset: ${mod.serialized.value.bitString} '
-        'cnt=${mod.count.value.toInt()}');
     start.inject(1);
     while (mod.done.value.toInt() != 1) {
       await clk.nextPosedge;
-      print('clk=$clkCount: ${mod.serialized.value.bitString} '
-          'cnt=${mod.count.value.toInt()}');
+      final predictedClk = (clkCount + 1) % len;
+      expect(mod.count.value.toInt(), equals(predictedClk));
+      expect(mod.serialized.value.toInt(), equals(predictedClk));
       clkCount++;
     }
     clkCount = 0;
     while ((clkCount == 0) | (mod.done.value.toInt() != 1)) {
       await clk.nextPosedge;
-      print('clk=$clkCount: ${mod.serialized.value.bitString} '
-          'cnt=${mod.count.value.toInt()}');
+      final predictedClk = (clkCount + 1) % len;
+      expect(mod.count.value.toInt(), equals(predictedClk));
+      expect(mod.serialized.value.toInt(), equals(predictedClk));
       clkCount++;
     }
     var counting = true;
+    start.inject(0);
     for (var disablePos = 0; disablePos < len; disablePos++) {
       clkCount = 0;
       var activeClkCount = 0;
@@ -73,71 +70,20 @@ void main() {
         if (clkCount == disablePos) {
           counting = false;
           start.inject(0);
+        } else {
+          start.inject(1);
         }
         await clk.nextPosedge;
-        print(
-            'clk=$activeClkCount/$clkCount: ${mod.serialized.value.bitString} '
-            'cnt=${mod.count.value.toInt()}');
+        final predictedClk =
+            (counting ? activeClkCount + 1 : activeClkCount) % len;
+        expect(mod.count.value.toInt(), equals(predictedClk));
+        expect(mod.serialized.value.toInt(), equals(predictedClk));
         clkCount = clkCount + 1;
         activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
         start.inject(1);
         counting = true;
       }
     }
-    await Simulator.endSimulation();
-  });
-
-  test('deserializer', () async {
-    const len = 6;
-    const width = 8;
-    final dataIn = Logic(width: width);
-    final clk = SimpleClockGenerator(10).clk;
-    final start = Logic();
-    final reset = Logic();
-    final mod =
-        Deserializer(dataIn, len, clk: clk, reset: reset, validIn: start);
-    await mod.build();
-    unawaited(Simulator.run());
-    WaveDumper(mod);
-
-    start.inject(0);
-    reset.inject(0);
-    var clkCount = 0;
-    await clk.nextPosedge;
-    print('initial: ${mod.deserialized.value.bitString}, '
-        'count: ${mod.count.value.bitString}');
-
-    reset.inject(1);
-
-    await clk.nextPosedge;
-    print('reset:   ${mod.deserialized.value.bitString}, '
-        'count: ${mod.count.value.bitString}');
-
-    reset.inject(0);
-    dataIn.inject(255);
-    await clk.nextPosedge;
-    await clk.nextPosedge;
-    await clk.nextPosedge;
-    print('unreset: ${mod.deserialized.value.bitString}, '
-        'count: ${mod.count.value.bitString}');
-    start.inject(1);
-    await clk.nextPosedge;
-    clkCount++;
-    print('$clkCount:\t${mod.deserialized.value.bitString}, '
-        'count: ${mod.count.value.bitString}');
-
-    for (var i = 0; i < 11; i++) {
-      if (i < 5) {
-        dataIn.inject(255);
-      } else {
-        dataIn.inject(0);
-      }
-      await clk.nextPosedge;
-      clkCount++;
-      print('$clkCount:\t${mod.deserialized.value.bitString}, '
-          'count: ${mod.count.value.bitString}');
-    }
-
     await Simulator.endSimulation();
   });
 
@@ -201,7 +147,6 @@ void main() {
   });
 
   test('deserializer enable', () async {
-    //TODO(desmonddak): this test is not working yet active is off
     const len = 6;
     const width = 4;
     final dataIn = Logic(width: width);
@@ -220,30 +165,37 @@ void main() {
 
     await clk.nextPosedge;
     reset.inject(0);
-    dataIn.inject(255);
+    dataIn.inject(15);
     await clk.nextPosedge;
     await clk.nextPosedge;
     await clk.nextPosedge;
-
+    var value = BigInt.from(15) << ((len - 1) * width);
     enable.inject(1);
     var clkCount = 0;
+    var nxtValue = value;
     while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
       await clk.nextPosedge;
-      print('$clkCount:\tcount: ${mod.count.value.bitString}'
-          '\t${mod.deserialized.value.bitString} '
-          '(${mod.deserialized.value.toBigInt()})');
+      final predictedClk = (clkCount + 1) % len;
+      expect(mod.count.value.toInt(), equals(predictedClk));
+      expect(mod.deserialized.value.toBigInt(), equals(nxtValue));
+      nxtValue = (value >> width) | value;
+      value = nxtValue;
       clkCount = clkCount + 1;
     }
     clkCount = 0;
     dataIn.inject(0);
     while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
       await clk.nextPosedge;
-      print('$clkCount:\tcount: ${mod.count.value.bitString}'
-          '\t${mod.deserialized.value.bitString} '
-          '(${mod.deserialized.value.toBigInt()})');
+      final predictedClk = (clkCount + 1) % len;
+      nxtValue = value >> width;
+      expect(mod.count.value.toInt(), equals(predictedClk));
+      expect(mod.deserialized.value.toBigInt(), equals(nxtValue));
+
       clkCount = clkCount + 1;
+      value = nxtValue;
     }
     var counting = true;
+    nxtValue = BigInt.from(0);
     for (var disablePos = 0; disablePos < len; disablePos++) {
       clkCount = 0;
       var activeClkCount = 0;
@@ -254,9 +206,16 @@ void main() {
           enable.inject(0);
         }
         await clk.nextPosedge;
-        print('$activeClkCount/$clkCount:\tcount: ${mod.count.value.bitString}'
-            '\t${mod.deserialized.value.bitString} '
-            '(${mod.deserialized.value.toBigInt()})');
+        final predictedClk =
+            counting ? (activeClkCount + 1) % len : activeClkCount;
+        if ((predictedClk == 1) & counting) {
+          nxtValue = BigInt.from(15) << ((len - 1) * width);
+        } else if (counting) {
+          nxtValue = (value >> width) | value;
+        }
+        expect(mod.count.value.toInt(), equals(predictedClk));
+        expect(mod.deserialized.value.toBigInt(), equals(nxtValue));
+        value = nxtValue;
         clkCount = clkCount + 1;
         activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
         enable.inject(1);
@@ -264,19 +223,26 @@ void main() {
       }
       clkCount = 0;
       activeClkCount = 0;
+      nxtValue = value;
       dataIn.inject(0);
       while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
         if (clkCount == disablePos) {
           counting = false;
           enable.inject(0);
         }
+        if (counting) {
+          nxtValue = value >> width;
+        }
+
+        final predictedClk =
+            counting ? (activeClkCount + 1) % len : activeClkCount;
         await clk.nextPosedge;
-        print('$activeClkCount/$clkCount:\tcount: ${mod.count.value.bitString}'
-            '\t${mod.deserialized.value.bitString} '
-            '(${mod.deserialized.value.toBigInt()})');
+        expect(mod.count.value.toInt(), equals(predictedClk));
+        expect(mod.deserialized.value.toBigInt(), equals(nxtValue));
         clkCount = clkCount + 1;
         activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
         enable.inject(1);
+        value = nxtValue;
         counting = true;
       }
     }
