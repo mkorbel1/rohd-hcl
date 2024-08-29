@@ -28,7 +28,7 @@ class Serializer extends Module {
   /// Return the count as an output
   Logic get count => output('count');
 
-  /// Return [done] when we have processed [deserialized] completely
+  /// Return [done] = true when we have processed [deserialized] completely
   Logic get done => output('done');
 
   /// Aggregated data to serialize out

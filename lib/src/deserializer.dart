@@ -57,7 +57,7 @@ class Deserializer extends Module {
     final cnt = Counter(
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(validIn)],
         clk: clk, reset: reset, maxValue: length - 1);
-    addOutput('count', width: cnt.width); // for debug
+    addOutput('count', width: cnt.width);
     addOutput('validOut') <= cnt.equalsMax;
     final dataOutList = [
       for (var i = 0; i < length; i++)

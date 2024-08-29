@@ -216,58 +216,61 @@ void main() {
     await clk.nextPosedge;
 
     enable.inject(1);
-    var counting = true;
-    for (var disablePos = 0; disablePos < len * 2 - 3; disablePos++) {
-      var activeClkCount = 0;
-      var clkCount = 0;
-      if (clkCount == disablePos) {
-        counting = false;
-        enable.inject(0);
-      } else {
-        counting = true;
-      }
+    var clkCount = 0;
+    while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
       await clk.nextPosedge;
-      clkCount++;
-      activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
 
-      print('$activeClkCount:\tcount: ${mod.count.value.bitString}'
+      print('$clkCount:\tcount: ${mod.count.value.bitString}'
           '\t${mod.deserialized.value.bitString} '
           '(${mod.deserialized.value.toBigInt()})');
-      var value = BigInt.from(15) << ((len - 1) * width);
-      // expect(mod.count.value.toInt(), equals(activeClkCount));
-      // expect(mod.deserialized.value.toBigInt(), equals(value));
-      for (var i = 0; i < len * 2; i++) {
+      clkCount = clkCount + 1;
+    }
+    clkCount = 0;
+    dataIn.inject(0);
+    while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
+      await clk.nextPosedge;
+      print('$clkCount:\tcount: ${mod.count.value.bitString}'
+          '\t${mod.deserialized.value.bitString} '
+          '(${mod.deserialized.value.toBigInt()})');
+      clkCount = clkCount + 1;
+    }
+    var counting = true;
+    for (var disablePos = 0; disablePos < len; disablePos++) {
+      clkCount = 0;
+      var activeClkCount = 0;
+      dataIn.inject(15);
+      while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
         if (clkCount == disablePos) {
           counting = false;
           enable.inject(0);
-        } else {
-          counting = true;
-        }
-        BigInt nxtValue;
-        if (i < len - 1) {
-          dataIn.inject(15);
-          nxtValue = (value >> width) | value;
-          if (i == len - 2) {
-            clkCount = -1;
-            activeClkCount = -1;
-          }
-        } else {
-          dataIn.inject(0);
-          nxtValue = value >> width;
         }
         await clk.nextPosedge;
-        clkCount++;
-        activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
-        // expect(mod.count.value.toInt(), equals(activeClkCount));
-        // expect(mod.deserialized.value.toBigInt(), equals(nxtValue));
-        print('$activeClkCount:\tcount: ${mod.count.value.bitString}'
+        print('$activeClkCount/$clkCount:\tcount: ${mod.count.value.bitString}'
             '\t${mod.deserialized.value.bitString} '
-            '(${mod.deserialized.value.toBigInt()})=$nxtValue');
-        value = nxtValue;
+            '(${mod.deserialized.value.toBigInt()})');
+        clkCount = clkCount + 1;
+        activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
         enable.inject(1);
+        counting = true;
+      }
+      clkCount = 0;
+      activeClkCount = 0;
+      dataIn.inject(0);
+      while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
+        if (clkCount == disablePos) {
+          counting = false;
+          enable.inject(0);
+        }
+        await clk.nextPosedge;
+        print('$activeClkCount/$clkCount:\tcount: ${mod.count.value.bitString}'
+            '\t${mod.deserialized.value.bitString} '
+            '(${mod.deserialized.value.toBigInt()})');
+        clkCount = clkCount + 1;
+        activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
+        enable.inject(1);
+        counting = true;
       }
     }
-
     await Simulator.endSimulation();
   });
 }
