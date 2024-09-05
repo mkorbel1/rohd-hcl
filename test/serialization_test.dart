@@ -26,7 +26,7 @@ void main() {
     final clk = SimpleClockGenerator(10).clk;
     final start = Logic();
     final reset = Logic();
-    final mod = Serializer(dataIn, clk: clk, reset: reset, readyIn: start);
+    final mod = Serializer(dataIn, clk: clk, reset: reset, enable: start);
 
     await mod.build();
 
@@ -95,7 +95,7 @@ void main() {
     final enable = Logic();
     final reset = Logic();
     final mod =
-        Deserializer(dataIn, len, clk: clk, reset: reset, validIn: enable);
+        Deserializer(dataIn, len, clk: clk, reset: reset, enable: enable);
 
     await mod.build();
     unawaited(Simulator.run());
@@ -115,9 +115,6 @@ void main() {
     enable.inject(1);
     await clk.nextPosedge;
     clkCount++;
-    // print('$clkCount:\tcount: ${mod.count.value.bitString}'
-    //     '\t${mod.deserialized.value.bitString} '
-    //     '(${mod.deserialized.value.toBigInt()})');
     var value = BigInt.from(15) << ((len - 1) * width);
     expect(mod.count.value.toInt(), equals(clkCount));
     expect(mod.deserialized.value.toBigInt(), equals(value));
@@ -137,9 +134,6 @@ void main() {
       clkCount++;
       expect(mod.count.value.toInt(), equals(clkCount));
       expect(mod.deserialized.value.toBigInt(), equals(nxtValue));
-      // print('$clkCount:\tcount: ${mod.count.value.bitString}'
-      //     '\t${mod.deserialized.value.bitString} '
-      //     '(${mod.deserialized.value.toBigInt()})=$nxtValue');
       value = nxtValue;
     }
 
@@ -154,7 +148,7 @@ void main() {
     final enable = Logic();
     final reset = Logic();
     final mod =
-        Deserializer(dataIn, len, clk: clk, reset: reset, validIn: enable);
+        Deserializer(dataIn, len, clk: clk, reset: reset, enable: enable);
     await mod.build();
     unawaited(Simulator.run());
 
@@ -173,7 +167,7 @@ void main() {
     enable.inject(1);
     var clkCount = 0;
     var nxtValue = value;
-    while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
+    while ((clkCount == 0) | (mod.done.value.toInt() == 0)) {
       await clk.nextPosedge;
       final predictedClk = (clkCount + 1) % len;
       expect(mod.count.value.toInt(), equals(predictedClk));
@@ -184,7 +178,7 @@ void main() {
     }
     clkCount = 0;
     dataIn.inject(0);
-    while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
+    while ((clkCount == 0) | (mod.done.value.toInt() == 0)) {
       await clk.nextPosedge;
       final predictedClk = (clkCount + 1) % len;
       nxtValue = value >> width;
@@ -200,7 +194,7 @@ void main() {
       clkCount = 0;
       var activeClkCount = 0;
       dataIn.inject(15);
-      while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
+      while ((clkCount == 0) | (mod.done.value.toInt() == 0)) {
         if (clkCount == disablePos) {
           counting = false;
           enable.inject(0);
@@ -225,7 +219,7 @@ void main() {
       activeClkCount = 0;
       nxtValue = value;
       dataIn.inject(0);
-      while ((clkCount == 0) | (mod.validOut.value.toInt() == 0)) {
+      while ((clkCount == 0) | (mod.done.value.toInt() == 0)) {
         if (clkCount == disablePos) {
           counting = false;
           enable.inject(0);
@@ -246,6 +240,40 @@ void main() {
         counting = true;
       }
     }
+    await Simulator.endSimulation();
+  });
+
+  test('deserializer value check', () async {
+    const len = 6;
+    const width = 4;
+    final dataIn = Logic(width: width);
+    final clk = SimpleClockGenerator(10).clk;
+    final enable = Logic();
+    final reset = Logic();
+    final mod =
+        Deserializer(dataIn, len, clk: clk, reset: reset, enable: enable);
+
+    await mod.build();
+    unawaited(Simulator.run());
+
+    enable.put(0);
+    reset.put(0);
+    await clk.nextPosedge;
+    reset.put(1);
+
+    var clkCount = 0;
+    await clk.nextPosedge;
+    reset.put(0);
+    dataIn.put(clkCount);
+    await clk.nextPosedge;
+    await clk.nextPosedge;
+    await clk.nextPosedge;
+    enable.put(1);
+    for (int i = 0; i < 60; i++) {
+      dataIn.put(clkCount++);
+      await clk.nextPosedge;
+    }
+
     await Simulator.endSimulation();
   });
 }

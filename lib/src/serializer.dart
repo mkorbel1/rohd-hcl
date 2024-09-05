@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // serializer.dart
-// A serialization block, serializing narrow input data onto a wide channel.
+// A serialization block, serializing wide input data onto a narrower channel.
 //
 // 2024 August 27
 // Author: desmond Kirkpatrick <desmond.a.kirkpatrick@intel.com>
@@ -21,9 +21,9 @@ class Serializer extends Module {
   @protected
   Logic get reset => input('reset');
 
-  /// Allow serialization onto the output stream when [readyIn] is true
+  /// Allow serialization onto the output stream when [enable] is true
   @protected
-  Logic get readyIn => input('readyIn');
+  Logic? get enable => input('enable');
 
   /// Return the count as an output
   Logic get count => output('count');
@@ -39,29 +39,28 @@ class Serializer extends Module {
 
   /// Build a Serializer that takes the array [dataIn] and sequences it
   /// out one element at a time on [serialized] output, one element
-  /// per clock while [readyIn]
+  /// per clock while [enable].
   Serializer(LogicArray dataIn,
       {required Logic clk,
       required Logic reset,
-      Logic? readyIn,
+      Logic? enable,
       super.name = 'Serializer'}) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
-    if (readyIn != null) {
-      readyIn = addInput('readyIn', readyIn);
+    if (enable != null) {
+      enable = addInput('enable', enable);
     } else {
-      readyIn = Const(1);
+      enable = Const(1);
     }
     dataIn = addInputArray('deserialized', dataIn,
         dimensions: dataIn.dimensions, elementWidth: dataIn.elementWidth);
     addOutput('serialized', width: dataIn.elementWidth);
-
     addOutput('count', width: log2Ceil(dataIn.dimensions[0]));
     addOutput('done');
     final length = dataIn.elements.length;
 
     final cnt = Counter(
-        [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(readyIn)],
+        [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(enable)],
         clk: clk, reset: reset, maxValue: length - 1);
     count <= cnt.count;
     final dataInFlopped = LogicArray(dataIn.dimensions, dataIn.elementWidth);
@@ -69,7 +68,7 @@ class Serializer extends Module {
 
     for (var i = 0; i < length; i++) {
       dataInFlopped.elements[i] <=
-          flop(clk, reset: reset, en: readyIn, dataIn.elements[i]);
+          flop(clk, reset: reset, en: enable, dataIn.elements[i]);
     }
     serialized <= dataInFlopped.elements.selectIndex(count);
   }
