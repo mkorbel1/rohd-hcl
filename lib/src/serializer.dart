@@ -41,7 +41,7 @@ class Serializer extends Module {
   /// onto the [serialized] output, one element per clock while [enable]
   /// is high (if connected). If [flopInput] is true, the
   /// [Serializer] is configured to latch the input data and hold it until
-  /// done.
+  /// [done] is asserted after the full [deserialized] is transferred.
   Serializer(LogicArray deserialized,
       {required Logic clk,
       required Logic reset,
@@ -67,25 +67,25 @@ class Serializer extends Module {
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(enable)],
         clk: clk, reset: reset, maxValue: length - 1);
 
-    final sampleInput = enable & ~done;
+    final latchInput = enable & ~done;
     count <=
         (flopInput
             ? flop(clk, reset: reset, en: enable, cnt.count)
             : cnt.count);
+
     final dataOutput =
         LogicArray(deserialized.dimensions, deserialized.elementWidth);
-    done <=
-        (flopInput
-            ? flop(clk, reset: reset, en: enable, cnt.equalsMax)
-            : cnt.equalsMax);
-
     for (var i = 0; i < length; i++) {
       dataOutput.elements[i] <=
           (flopInput
               ? flop(
-                  clk, reset: reset, en: sampleInput, deserialized.elements[i])
+                  clk, reset: reset, en: latchInput, deserialized.elements[i])
               : deserialized.elements[i]);
     }
     serialized <= dataOutput.elements.selectIndex(count);
+    done <=
+        (flopInput
+            ? flop(clk, reset: reset, en: enable, cnt.equalsMax)
+            : cnt.equalsMax);
   }
 }
