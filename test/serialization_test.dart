@@ -46,27 +46,32 @@ void main() {
     await clk.nextPosedge;
     await clk.nextPosedge;
     start.inject(1);
+    var predictedClk = 0;
     while (mod.done.value.toInt() != 1) {
       await clk.nextPosedge;
-      final predictedClk = (clkCount + 1) % len;
+      predictedClk = (clkCount + 1) % len;
       expect(mod.count.value.toInt(), equals(predictedClk));
       expect(mod.serialized.value.toInt(), equals(predictedClk));
       clkCount++;
     }
     clkCount = 0;
+    predictedClk = 0;
     while ((clkCount == 0) | (mod.done.value.toInt() != 1)) {
       await clk.nextPosedge;
-      final predictedClk = (clkCount + 1) % len;
       expect(mod.count.value.toInt(), equals(predictedClk));
       expect(mod.serialized.value.toInt(), equals(predictedClk));
+      predictedClk = (clkCount + 1) % len;
       clkCount++;
     }
+    await clk.nextPosedge;
+
     var counting = true;
     start.inject(0);
     for (var disablePos = 0; disablePos < len; disablePos++) {
       clkCount = 0;
+      predictedClk = 0;
       var activeClkCount = 0;
-      while ((clkCount == 0) | (mod.done.value.toInt() == 0)) {
+      while (mod.done.value.toInt() == 0) {
         if (clkCount == disablePos) {
           counting = false;
           start.inject(0);
@@ -74,15 +79,16 @@ void main() {
           start.inject(1);
         }
         await clk.nextPosedge;
-        final predictedClk =
-            (counting ? activeClkCount + 1 : activeClkCount) % len;
+        predictedClk = (counting ? activeClkCount + 1 : activeClkCount) % len;
+        activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
+        // print('pred=$predictedClk ${mod.count.value.toInt()}');
         expect(mod.count.value.toInt(), equals(predictedClk));
         expect(mod.serialized.value.toInt(), equals(predictedClk));
         clkCount = clkCount + 1;
-        activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
         start.inject(1);
         counting = true;
       }
+      await clk.nextPosedge;
     }
     await Simulator.endSimulation();
   });
