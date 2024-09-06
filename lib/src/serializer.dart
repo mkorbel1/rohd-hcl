@@ -38,9 +38,10 @@ class Serializer extends Module {
   Logic get serialized => output('serialized');
 
   /// Build a Serializer that takes the array [deserialized] and sequences it
-  /// out one element at a time on [serialized] output, one element
-  /// per clock while [enable]. If [flopInput] is true, the [Serializer] is
-  /// configured to latch the input data and hold it until done.
+  /// onto the [serialized] output, one element per clock while [enable]
+  /// is high (if connected). If [flopInput] is true, the
+  /// [Serializer] is configured to latch the input data and hold it until
+  /// done.
   Serializer(LogicArray deserialized,
       {required Logic clk,
       required Logic reset,
