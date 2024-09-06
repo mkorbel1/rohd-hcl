@@ -40,8 +40,8 @@ class Deserializer extends Module {
 
   /// Build a Deserializer that takes serialized input [serialized]
   /// and aggregates it into one wide output [deserialized], one element per
-  /// clock while [enable] is high, emitting [done] when completing the filling
-  /// of a wide output
+  /// clock while [enable] (if connected) is high, emitting [done] when
+  /// completing the filling of wide output [deserialized].
   Deserializer(Logic serialized, int length,
       {required Logic clk,
       required Logic reset,
@@ -55,19 +55,16 @@ class Deserializer extends Module {
       enable = Const(1);
     }
     serialized = addInput('serialized', serialized, width: serialized.width);
-    addOutputArray('deserialized',
-        dimensions: [length], elementWidth: serialized.width);
-
     final cnt = Counter(
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(enable)],
         clk: clk, reset: reset, maxValue: length - 1);
-    addOutput('count', width: cnt.width);
+    addOutput('count', width: cnt.width) <= cnt.count;
     addOutput('done') <= cnt.overflowed;
-    final dataOutList = [
-      for (var i = 0; i < length; i++)
-        flop(clk, reset: reset, en: enable & count.eq(i), serialized)
-    ];
-    deserialized <= dataOutList.swizzle();
-    count <= cnt.count;
+    addOutputArray('deserialized',
+            dimensions: [length], elementWidth: serialized.width) <=
+        [
+          for (var i = 0; i < length; i++)
+            flop(clk, reset: reset, en: enable & count.eq(i), serialized)
+        ].swizzle();
   }
 }

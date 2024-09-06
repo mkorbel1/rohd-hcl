@@ -61,11 +61,10 @@ class Serializer extends Module {
     addOutput('serialized', width: deserialized.elementWidth);
     addOutput('count', width: log2Ceil(deserialized.dimensions[0]));
     addOutput('done');
-    final length = deserialized.elements.length;
 
     final cnt = Counter(
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(enable)],
-        clk: clk, reset: reset, maxValue: length - 1);
+        clk: clk, reset: reset, maxValue: deserialized.elements.length - 1);
 
     final latchInput = enable & ~done;
     count <=
@@ -75,7 +74,7 @@ class Serializer extends Module {
 
     final dataOutput =
         LogicArray(deserialized.dimensions, deserialized.elementWidth);
-    for (var i = 0; i < length; i++) {
+    for (var i = 0; i < deserialized.elements.length; i++) {
       dataOutput.elements[i] <=
           (flopInput
               ? flop(

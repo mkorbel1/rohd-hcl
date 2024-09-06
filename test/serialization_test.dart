@@ -81,7 +81,6 @@ void main() {
         await clk.nextPosedge;
         predictedClk = (counting ? activeClkCount + 1 : activeClkCount) % len;
         activeClkCount = counting ? activeClkCount + 1 : activeClkCount;
-        // print('pred=$predictedClk ${mod.count.value.toInt()}');
         expect(mod.count.value.toInt(), equals(predictedClk));
         expect(mod.serialized.value.toInt(), equals(predictedClk));
         clkCount = clkCount + 1;
@@ -249,40 +248,6 @@ void main() {
     await Simulator.endSimulation();
   });
 
-  test('deserializer value check', () async {
-    const len = 6;
-    const width = 4;
-    final dataIn = Logic(width: width);
-    final clk = SimpleClockGenerator(10).clk;
-    final enable = Logic();
-    final reset = Logic();
-    final mod =
-        Deserializer(dataIn, len, clk: clk, reset: reset, enable: enable);
-
-    await mod.build();
-    unawaited(Simulator.run());
-
-    enable.put(0);
-    reset.put(0);
-    await clk.nextPosedge;
-    reset.put(1);
-
-    var clkCount = 0;
-    await clk.nextPosedge;
-    reset.put(0);
-    dataIn.put(clkCount);
-    await clk.nextPosedge;
-    await clk.nextPosedge;
-    await clk.nextPosedge;
-    enable.put(1);
-    for (int i = 0; i < 60; i++) {
-      dataIn.put(clkCount++);
-      await clk.nextPosedge;
-    }
-
-    await Simulator.endSimulation();
-  });
-
   test('serializer timing', () async {
     const len = 10;
     const width = 8;
@@ -291,7 +256,7 @@ void main() {
     final start = Logic();
     final reset = Logic();
     unawaited(Simulator.run());
-    for (final testFlopped in [true, false]) {
+    for (final testFlopped in [false, true]) {
       final mod = Serializer(dataIn,
           clk: clk, reset: reset, enable: start, flopInput: testFlopped);
 
@@ -313,31 +278,31 @@ void main() {
       await clk.nextPosedge;
       start.put(1);
       var predictedClk = 0;
-      while (mod.done.value.toInt() != 1) {
+      if (testFlopped) {
         await clk.nextPosedge;
-        if (!testFlopped) {
-          predictedClk = (clkCount + 1) % len;
-        }
+      }
+      while (mod.done.value.toInt() != 1) {
         expect(mod.count.value.toInt(), equals(predictedClk));
         expect(mod.serialized.value.toInt(), equals(predictedClk));
-        if (testFlopped) {
-          predictedClk = (clkCount + 1) % len;
-        }
-        clkCount++;
-      }
-      clkCount = 0;
-
-      while ((clkCount <= 0) | (mod.done.value.toInt() != 1)) {
         await clk.nextPosedge;
-        if (!testFlopped) {
-          predictedClk = (clkCount + 1) % len;
-        }
-
-        if (testFlopped) {
-          predictedClk = (clkCount + 1) % len;
-        }
+        predictedClk = (clkCount + 1) % len;
         clkCount++;
       }
+      expect(mod.count.value.toInt(), equals(predictedClk));
+      expect(mod.serialized.value.toInt(), equals(predictedClk));
+      clkCount = 0;
+      predictedClk = 0;
+      await clk.nextPosedge;
+
+      while ((clkCount == 0) | (mod.done.value.toInt() != 1)) {
+        expect(mod.count.value.toInt(), equals(predictedClk));
+        expect(mod.serialized.value.toInt(), equals(predictedClk));
+        predictedClk = (clkCount + 1) % len;
+        await clk.nextPosedge;
+        clkCount++;
+      }
+      expect(mod.count.value.toInt(), equals(predictedClk));
+      expect(mod.serialized.value.toInt(), equals(predictedClk));
     }
 
     await clk.nextPosedge;
