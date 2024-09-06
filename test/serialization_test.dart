@@ -276,4 +276,66 @@ void main() {
 
     await Simulator.endSimulation();
   });
+
+  test('serializer timing', () async {
+    const len = 10;
+    const width = 8;
+    final dataIn = LogicArray([len], width);
+    final clk = SimpleClockGenerator(10).clk;
+    final start = Logic();
+    final reset = Logic();
+    unawaited(Simulator.run());
+    for (final testFlopped in [true, false]) {
+      final mod = Serializer(dataIn,
+          clk: clk, reset: reset, enable: start, flopInput: testFlopped);
+
+      await mod.build();
+
+      start.put(0);
+      reset.put(0);
+      var clkCount = testFlopped ? 0 : 0;
+      for (var i = 0; i < len; i++) {
+        dataIn.elements[i].put(i);
+      }
+      await clk.nextPosedge;
+
+      reset.put(1);
+      await clk.nextPosedge;
+      reset.inject(0);
+      await clk.nextPosedge;
+      await clk.nextPosedge;
+      await clk.nextPosedge;
+      start.put(1);
+      var predictedClk = 0;
+      while (mod.done.value.toInt() != 1) {
+        await clk.nextPosedge;
+        if (!testFlopped) {
+          predictedClk = (clkCount + 1) % len;
+        }
+        expect(mod.count.value.toInt(), equals(predictedClk));
+        expect(mod.serialized.value.toInt(), equals(predictedClk));
+        if (testFlopped) {
+          predictedClk = (clkCount + 1) % len;
+        }
+        clkCount++;
+      }
+      clkCount = 0;
+
+      while ((clkCount <= 0) | (mod.done.value.toInt() != 1)) {
+        await clk.nextPosedge;
+        if (!testFlopped) {
+          predictedClk = (clkCount + 1) % len;
+        }
+
+        if (testFlopped) {
+          predictedClk = (clkCount + 1) % len;
+        }
+        clkCount++;
+      }
+    }
+
+    await clk.nextPosedge;
+    await clk.nextPosedge;
+    await Simulator.endSimulation();
+  });
 }

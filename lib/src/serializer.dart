@@ -37,13 +37,15 @@ class Serializer extends Module {
   /// Serialized output, one data item per clock
   Logic get serialized => output('serialized');
 
-  /// Build a Serializer that takes the array [dataIn] and sequences it
+  /// Build a Serializer that takes the array [deserialized] and sequences it
   /// out one element at a time on [serialized] output, one element
-  /// per clock while [enable].
-  Serializer(LogicArray dataIn,
+  /// per clock while [enable]. If [flopInput] is true, the [Serializer] is
+  /// configured to latch the input data and hold it until done.
+  Serializer(LogicArray deserialized,
       {required Logic clk,
       required Logic reset,
       Logic? enable,
+      bool flopInput = false,
       super.name = 'Serializer'}) {
     clk = addInput('clk', clk);
     reset = addInput('reset', reset);
@@ -52,24 +54,37 @@ class Serializer extends Module {
     } else {
       enable = Const(1);
     }
-    dataIn = addInputArray('deserialized', dataIn,
-        dimensions: dataIn.dimensions, elementWidth: dataIn.elementWidth);
-    addOutput('serialized', width: dataIn.elementWidth);
-    addOutput('count', width: log2Ceil(dataIn.dimensions[0]));
+    deserialized = addInputArray('deserialized', deserialized,
+        dimensions: deserialized.dimensions,
+        elementWidth: deserialized.elementWidth);
+    addOutput('serialized', width: deserialized.elementWidth);
+    addOutput('count', width: log2Ceil(deserialized.dimensions[0]));
     addOutput('done');
-    final length = dataIn.elements.length;
+    final length = deserialized.elements.length;
 
     final cnt = Counter(
         [SumInterface(fixedAmount: 1, hasEnable: true)..enable!.gets(enable)],
         clk: clk, reset: reset, maxValue: length - 1);
-    count <= cnt.count;
-    final dataInFlopped = LogicArray(dataIn.dimensions, dataIn.elementWidth);
-    done <= cnt.overflowed;
+
+    final sampleInput = enable & ~done;
+    count <=
+        (flopInput
+            ? flop(clk, reset: reset, en: enable, cnt.count)
+            : cnt.count);
+    final dataOutput =
+        LogicArray(deserialized.dimensions, deserialized.elementWidth);
+    done <=
+        (flopInput
+            ? flop(clk, reset: reset, en: enable, cnt.equalsMax)
+            : cnt.equalsMax);
 
     for (var i = 0; i < length; i++) {
-      dataInFlopped.elements[i] <=
-          flop(clk, reset: reset, en: enable, dataIn.elements[i]);
+      dataOutput.elements[i] <=
+          (flopInput
+              ? flop(
+                  clk, reset: reset, en: sampleInput, deserialized.elements[i])
+              : deserialized.elements[i]);
     }
-    serialized <= dataInFlopped.elements.selectIndex(count);
+    serialized <= dataOutput.elements.selectIndex(count);
   }
 }
