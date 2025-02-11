@@ -15,8 +15,10 @@ import 'package:rohd_hcl/rohd_hcl.dart';
 /// (Texas Instruments)[https://www.ti.com/lit/ug/spru565b/spru565b.pdf].
 /// Infinities and NaN's are not supported. Conversion is lossless.
 /// The output is in two's complement and in Qm.n format where:
+/// ```
 /// m = e_max - bias + 1
 /// n = mantissa + bias - 1
+/// ```
 class FloatToFixed extends Module {
   /// Width of output integer part.
   late final int m;
@@ -34,7 +36,7 @@ class FloatToFixed extends Module {
   FloatToFixed(FloatingPoint float, {super.name = 'FloatToFixed'}) {
     float = float.clone()..gets(addInput('float', float, width: float.width));
 
-    final bias = FloatingPointValue.computeBias(float.exponent.width);
+    final bias = float.floatingPointValue.bias;
     // E4M3 expands the max exponent by 1.
     m = ((float.exponent.width == 4) & (float.mantissa.width == 3))
         ? bias + 1
