@@ -12,6 +12,10 @@ class FloatingPointValuePopulator<FpvType extends FloatingPointValue> {
   int get exponentWidth => _unpopulated.exponentWidth;
   int get mantissaWidth => _unpopulated.mantissaWidth;
 
+  int get bias => _unpopulated.bias;
+  int get minExponent => _unpopulated.minExponent;
+  int get maxExponent => _unpopulated.maxExponent;
+
   bool _hasPopulated = false;
 
   FloatingPointValuePopulator(this._unpopulated);
@@ -110,8 +114,7 @@ class FloatingPointValuePopulator<FpvType extends FloatingPointValue> {
 
   /// Creates a new [FloatingPointValue] represented by the given
   /// [constantFloatingPoint].
-  FpvType ofFloatingPointConstant(
-      FloatingPointConstants constantFloatingPoint) {
+  FpvType ofConstant(FloatingPointConstants constantFloatingPoint) {
     final components =
         // ignore: invalid_use_of_protected_member
         _unpopulated.getConstantComponents(constantFloatingPoint);
@@ -125,30 +128,28 @@ class FloatingPointValuePopulator<FpvType extends FloatingPointValue> {
   /// Creates a new [FloatingPointValue] representing
   /// [FloatingPointConstants.positiveInfinity].
   FpvType get positiveInfinity =>
-      ofFloatingPointConstant(FloatingPointConstants.positiveInfinity);
+      ofConstant(FloatingPointConstants.positiveInfinity);
 
   /// Creates a new [FloatingPointValue] representing
   /// [FloatingPointConstants.negativeInfinity].
   FpvType get negativeInfinity =>
-      ofFloatingPointConstant(FloatingPointConstants.negativeInfinity);
+      ofConstant(FloatingPointConstants.negativeInfinity);
 
   /// Creates a new [FloatingPointValue] representing
   /// [FloatingPointConstants.nan].
-  FpvType get nan => ofFloatingPointConstant(FloatingPointConstants.nan);
+  FpvType get nan => ofConstant(FloatingPointConstants.nan);
 
   /// Creates a new [FloatingPointValue] representing
   /// [FloatingPointConstants.one].
-  FpvType get one => ofFloatingPointConstant(FloatingPointConstants.one);
+  FpvType get one => ofConstant(FloatingPointConstants.one);
 
   /// Creates a new [FloatingPointValue] representing
   /// [FloatingPointConstants.positiveZero].
-  FpvType get positiveZero =>
-      ofFloatingPointConstant(FloatingPointConstants.positiveZero);
+  FpvType get positiveZero => ofConstant(FloatingPointConstants.positiveZero);
 
   /// Creates a new [FloatingPointValue] representing
   /// [FloatingPointConstants.negativeZero].
-  FpvType get negativeZero =>
-      ofFloatingPointConstant(FloatingPointConstants.negativeZero);
+  FpvType get negativeZero => ofConstant(FloatingPointConstants.negativeZero);
 
   /// Convert from double using its native binary representation
   FpvType ofDouble(double inDouble,
@@ -159,7 +160,7 @@ class FloatingPointValuePopulator<FpvType extends FloatingPointValue> {
     }
 
     if (inDouble.isInfinite) {
-      return ofFloatingPointConstant(
+      return ofConstant(
         inDouble < 0.0
             ? FloatingPointConstants.negativeInfinity
             : FloatingPointConstants.positiveInfinity,
@@ -229,7 +230,7 @@ class FloatingPointValuePopulator<FpvType extends FloatingPointValue> {
       sign = LogicValue.zero;
     }
     if (inDouble.isInfinite) {
-      return ofFloatingPointConstant(
+      return ofConstant(
         inDouble < 0.0
             ? FloatingPointConstants.negativeInfinity
             : FloatingPointConstants.positiveInfinity,
@@ -274,7 +275,7 @@ class FloatingPointValuePopulator<FpvType extends FloatingPointValue> {
         : _unpopulated.minExponent;
 
     if (e > _unpopulated.maxExponent + 1) {
-      return ofFloatingPointConstant(sign.toBool()
+      return ofConstant(sign.toBool()
           ? FloatingPointConstants.negativeInfinity
           : FloatingPointConstants.positiveInfinity);
     }
