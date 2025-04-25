@@ -33,6 +33,17 @@ class RegisterFile extends Memory {
   /// A testbench hook to access data at a given address.
   LogicValue? getData(LogicValue addr) => _storageBank[addr.toInt()].value;
 
+  /// Direct access to the [entryIndex]th entry in this register file.
+  ///
+  /// This API will create a new [output] port for the entry if it does not
+  /// already exist.
+  Logic entry(int entryIndex) => _entryOutputs.putIfAbsent(
+        entryIndex,
+        () => addOutput('entry_$entryIndex')..gets(_storageBank[entryIndex]),
+      );
+
+  late final Map<int, Logic> _entryOutputs = {};
+
   /// Flop-based storage of all memory.
   late final List<Logic> _storageBank;
 
