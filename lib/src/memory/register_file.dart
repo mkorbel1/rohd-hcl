@@ -39,7 +39,8 @@ class RegisterFile extends Memory {
   /// already exist.
   Logic entry(int entryIndex) => _entryOutputs.putIfAbsent(
         entryIndex,
-        () => addOutput('entry_$entryIndex')..gets(_storageBank[entryIndex]),
+        () => addOutput('entry_$entryIndex', width: dataWidth)
+          ..gets(_storageBank[entryIndex]),
       );
 
   late final Map<int, Logic> _entryOutputs = {};
