@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the Csr constructor from Class Csr from the rohd_hcl library, for the Dart programming language.">
-  <title>Csr constructor - Csr - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the Csr.new constructor from Class Csr from the rohd_hcl library, for the Dart programming language.">
+  <title>Csr.new constructor - Csr - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/Csr-class.html">Csr</a></li>
-    <li class="self-crumb">Csr factory constructor</li>
+    <li class="self-crumb">Csr.new factory constructor</li>
   </ol>
-  <div class="self-name">Csr</div>
+  <div class="self-name">Csr.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -63,9 +60,9 @@
     
 <section class="desc markdown">
   <p>Factory constructor for <a href="../../rohd_hcl/Csr-class.html">Csr</a>.</p>
-<p>Because LogicStructure requires a List<logic> upon construction,
-the factory method assists in creating the List upfront before
-the LogicStructure constructor is called.</logic></p>
+<p>Because <a href="https://pub.dev/documentation/rohd/0.6.5/rohd/LogicStructure-class.html">LogicStructure</a> requires a <a href="https://api.dart.dev/stable/3.8.2/dart-core/List-class.html">List&lt;Logic&gt;</a> upon construction,
+the factory method assists in creating the <a href="https://api.dart.dev/stable/3.8.2/dart-core/List-class.html">List</a> upfront before
+the <a href="https://pub.dev/documentation/rohd/0.6.5/rohd/LogicStructure-class.html">LogicStructure</a> constructor is called.</p>
 </section>
 
 
@@ -83,27 +80,24 @@ the LogicStructure constructor is called.</logic></p>
   &#47;&#47; semantically a register with no fields means that
   &#47;&#47; there is one read&#47;write field that is the entire register
   if (config.fields.isEmpty) {
-    fields.add(Logic(name: &#39;${config.name}_data&#39;, width: config.width));
+    fields.add(Logic(name: &#39;data&#39;, width: config.width));
   }
   &#47;&#47; there is at least one field explicitly defined so
   &#47;&#47; process them individually
   else {
     for (final field in config.fields) {
       if (field.start &gt; currIdx) {
-        fields.add(Logic(
-            name: &#39;${config.name}_rsvd_$rsvdCount&#39;,
-            width: field.start - currIdx));
+        fields.add(
+            Logic(name: &#39;rsvd_$rsvdCount&#39;, width: field.start - currIdx));
         rsvds.add(fields.length - 1);
         rsvdCount++;
       }
-      fields.add(
-          Logic(name: &#39;${config.name}_${field.name}&#39;, width: field.width));
+      fields.add(Logic(name: field.name, width: field.width));
       currIdx = field.start + field.width;
     }
     if (currIdx &lt; config.width) {
-      fields.add(Logic(
-          name: &#39;${config.name}_rsvd_$rsvdCount&#39;,
-          width: config.width - currIdx));
+      fields
+          .add(Logic(name: &#39;rsvd_$rsvdCount&#39;, width: config.width - currIdx));
       rsvds.add(fields.length - 1);
     }
   }
@@ -126,9 +120,9 @@ the LogicStructure constructor is called.</logic></p>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/Csr-class.html">Csr</a></li>
-    <li class="self-crumb">Csr factory constructor</li>
+    <li class="self-crumb">Csr.new factory constructor</li>
 </ol>
 
     <h5>Csr class</h5>
@@ -140,7 +134,7 @@ the LogicStructure constructor is called.</logic></p>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

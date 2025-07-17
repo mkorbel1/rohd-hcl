@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the OnesComplementAdder constructor from Class OnesComplementAdder from the rohd_hcl library, for the Dart programming language.">
-  <title>OnesComplementAdder constructor - OnesComplementAdder - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the OnesComplementAdder.new constructor from Class OnesComplementAdder from the rohd_hcl library, for the Dart programming language.">
+  <title>OnesComplementAdder.new constructor - OnesComplementAdder - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/OnesComplementAdder-class.html">OnesComplementAdder</a></li>
-    <li class="self-crumb">OnesComplementAdder constructor</li>
+    <li class="self-crumb">OnesComplementAdder.new constructor</li>
   </ol>
-  <div class="self-name">OnesComplementAdder</div>
+  <div class="self-name">OnesComplementAdder.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,28 +54,38 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">OnesComplementAdder</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
-<li><span class="parameter" id="-param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, {</span></li>
-<li><span class="parameter" id="-param-adderGen"><span class="type-annotation"><a href="../../rohd_hcl/Adder-class.html">Adder</a></span> <span class="parameter-name">adderGen</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span>, </span></li>
-<li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span>, {</span></li>
-<li><span class="parameter" id="param-carryIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">carryIn</span>, </span></li>
-</ol>}) = <span class="default-value">ParallelPrefixAdder.new</span>, </span></li>
-<li><span class="parameter" id="-param-subtractIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">subtractIn</span>, </span></li>
-<li><span class="parameter" id="-param-carryOut"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">carryOut</span>, </span></li>
-<li><span class="parameter" id="-param-carryIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">carryIn</span>, </span></li>
-<li><span class="parameter" id="-param-subtract"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">subtract</span>, </span></li>
-<li><span class="parameter" id="-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span> = <span class="default-value">&#39;ones_complement_adder&#39;</span>, </span></li>
+      <span class="name ">OnesComplementAdder</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
+<li><span class="parameter" id="-param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, {</span></li>
+<li><span class="parameter" id="-param-adderGen"><span class="type-annotation"><a href="../../rohd_hcl/Adder-class.html">Adder</a></span> <span class="parameter-name">adderGen</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span>, </span></li>
+<li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span>, {</span></li>
+<li><span class="parameter" id="param-carryIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">carryIn</span>, </span></li>
+</ol>}) = <span class="default-value">NativeAdder.new</span>, </span></li>
+<li><span class="parameter" id="-param-subtractIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">subtractIn</span>, </span></li>
+<li><span class="parameter" id="-param-generateEndAroundCarry"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">generateEndAroundCarry</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-carryIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">carryIn</span>, </span></li>
+<li><span class="parameter" id="-param-subtract"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">subtract</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-chainable"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">chainable</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-definitionName"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">definitionName</span>, </span></li>
+<li><span class="parameter" id="-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span> = <span class="default-value">&#39;ones_complement_adder&#39;</span>, </span></li>
 </ol>})
     </section>
     
 <section class="desc markdown">
   <p><a href="../../rohd_hcl/OnesComplementAdder-class.html">OnesComplementAdder</a> constructor with an adder functor <code>adderGen</code>.</p>
 <ul>
-<li>Either an optional Logic <code>subtractIn</code> or a boolean <code>subtract</code> can enable
-subtraction, but providing both non-null will result in an exception.</li>
-<li>If Logic <code>carryOut</code> is provided as not null, then the end-around carry
- is not performed and is provided as value on <code>carryOut</code>.</li>
+<li>A subtractor is created if <code>subtract</code> is set to <code>true</code>.  Alternatively,
+if <code>subtract</code> configuration is <code>false</code>, and a Lgic control signal
+<code>subtractIn</code> is provided, then subtraction can be dynamically selected.
+Otherwise an adder is constructed.</li>
+<li>If <code>generateEndAroundCarry</code> is <code>true</code>, then the end-around
+carry is not performed and is provided as output <a href="../../rohd_hcl/OnesComplementAdder/endAroundCarry.html">endAroundCarry</a>. If
+<code>generateEndAroundCarry</code> is <code>false</code>, extra hardware takes care of adding
+the
+end-around carry to <a href="../../rohd_hcl/Adder/sum.html">sum</a>.</li>
 <li><code>carryIn</code> allows for another adder to chain into this one.</li>
+<li><code>chainable</code> tells this adder to not store the <a href="../../rohd_hcl/OnesComplementAdder/endAroundCarry.html">endAroundCarry</a> in the
+sign bit as well, but to zero that to allow adders to be chained such as
+for use in the <a href="../../rohd_hcl/CarrySelectCompoundAdder-class.html">CarrySelectCompoundAdder</a>.</li>
 </ul>
 </section>
 
@@ -88,30 +95,32 @@ subtraction, but providing both non-null will result in an exception.</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">OnesComplementAdder(super.a, super.b,
     {Adder Function(Logic, Logic, {Logic? carryIn}) adderGen =
-        ParallelPrefixAdder.new,
+        NativeAdder.new,
     Logic? subtractIn,
-    Logic? carryOut,
-    Logic? carryIn,
-    bool? subtract,
+    this.generateEndAroundCarry = false,
+    super.carryIn,
+    bool subtract = false,
+    bool chainable = false,
+    String? definitionName,
     super.name = &#39;ones_complement_adder&#39;})
-    : super(definitionName: &#39;OnesComplementAdder_W${a.width}&#39;) {
-  if (subtractIn != null) {
-    subtractIn = addInput(&#39;subtractIn&#39;, subtractIn);
+    : super(
+          definitionName:
+              definitionName ?? &#39;OnesComplementAdder_W${a.width}&#39;) {
+  if (generateEndAroundCarry) {
+    addOutput(&#39;endAroundCarry&#39;);
   }
-  _sign = addOutput(&#39;sign&#39;);
-  if (carryOut != null) {
-    addOutput(&#39;carryOut&#39;);
-    carryOut &lt;= this.carryOut!;
-  }
-  if ((subtractIn != null) &amp; (subtract != null)) {
+  if ((subtractIn != null) &amp; subtract) {
     throw RohdHclException(
         &quot;either provide a Logic signal &#39;subtractIn&#39; for runtime &quot;
         &quot; configuration, or a boolean parameter &#39;subtract&#39; for &quot;
         &#39;generation time configuration, but not both.&#39;);
   }
+  this.subtractIn =
+      (subtractIn != null) ? addInput(&#39;subtractIn&#39;, subtractIn) : null;
+  _sign = addOutput(&#39;sign&#39;);
 
   final doSubtract =
-      (subtractIn ?? (subtract != null ? Const(subtract) : Const(0)))
+      (this.subtractIn ?? (subtract ? Const(subtract) : Const(0)))
           .named(&#39;dosubtract&#39;, naming: Naming.mergeable);
 
   final adderSum =
@@ -119,24 +128,29 @@ subtraction, but providing both non-null will result in an exception.</li>
           .sum
           .named(&#39;adderSum&#39;, naming: Naming.mergeable);
 
-  if (this.carryOut != null) {
-    this.carryOut! &lt;= adderSum[-1];
+  if (generateEndAroundCarry) {
+    endAroundCarry! &lt;= adderSum[-1];
   }
   final endAround = adderSum[-1].named(&#39;endaround&#39;);
   final magnitude = adderSum.slice(a.width - 1, 0).named(&#39;magnitude&#39;);
-
-  final incrementer = ParallelPrefixIncr(magnitude);
-  final magnitudep1 = incrementer.out.named(&#39;magnitude_plus1&#39;);
-
+  final Logic magnitudep1;
+  if (!generateEndAroundCarry) {
+    final incrementer = ParallelPrefixIncr(magnitude);
+    magnitudep1 = incrementer.out.named(&#39;magnitude_plus1&#39;);
+  } else {
+    magnitudep1 = Const(0);
+  }
   sum &lt;=
       mux(
           doSubtract,
-          mux(
-                  endAround,
-                  [if (this.carryOut != null) magnitude else magnitudep1]
-                      .first,
-                  ~magnitude)
-              .zeroExtend(sum.width),
+          [
+            if (chainable) endAround else Const(0),
+            mux(
+                [if (chainable) Const(0) else endAround].first,
+                [if (generateEndAroundCarry) magnitude else magnitudep1]
+                    .first,
+                ~magnitude)
+          ].swizzle(),
           adderSum);
   _sign &lt;= mux(doSubtract, ~endAround, Const(0));
 }</code></pre>
@@ -153,9 +167,9 @@ subtraction, but providing both non-null will result in an exception.</li>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/OnesComplementAdder-class.html">OnesComplementAdder</a></li>
-    <li class="self-crumb">OnesComplementAdder constructor</li>
+    <li class="self-crumb">OnesComplementAdder.new constructor</li>
 </ol>
 
     <h5>OnesComplementAdder class</h5>
@@ -167,7 +181,7 @@ subtraction, but providing both non-null will result in an exception.</li>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

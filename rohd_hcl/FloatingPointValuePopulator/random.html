@@ -25,7 +25,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/FloatingPointValuePopulator-class.html">FloatingPointValuePopulator<span class="signature">&lt;<wbr><span class="type-parameter">FpvType extends FloatingPointValue</span>&gt;</span></a></li>
     <li class="self-crumb">random method</li>
   </ol>
@@ -33,17 +33,14 @@
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
 <div
@@ -58,8 +55,8 @@
     <section class="multi-line-signature">
       
 <span class="returntype">FpvType</span>
-<span class="name ">random</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="random-param-rv"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-math/Random-class.html">Random</a></span> <span class="parameter-name">rv</span>, {</span></li>
-<li><span class="parameter" id="random-param-normal"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">normal</span> = <span class="default-value">false</span>, </span></li>
+<span class="name ">random</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="random-param-rv"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-math/Random-class.html">Random</a></span> <span class="parameter-name">rv</span>, {</span></li>
+<li><span class="parameter" id="random-param-normal"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">normal</span> = <span class="default-value">false</span>, </span></li>
 </ol>})
 
       
@@ -70,7 +67,7 @@
   <p>Generate a random <a href="../../rohd_hcl/FloatingPointValue-class.html">FloatingPointValue</a>, supplying random seed <code>rv</code>.</p>
 <p>This generates a valid <a href="../../rohd_hcl/FloatingPointValue-class.html">FloatingPointValue</a> anywhere in the range it can
 represent:a general <a href="../../rohd_hcl/FloatingPointValue-class.html">FloatingPointValue</a> has a mantissa in <code>[0,2)</code> with <code>0 &lt;= exponent &lt;= maxExponent()</code>.</p>
-<p>If <code>normal</code> is true, This routine will only generate mantissas in the
+<p>If <code>normal</code> is <code>true</code>, This routine will only generate mantissas in the
 range of <code>[1,2)</code> and <code>minExponent() &lt;= exponent &lt;= maxExponent().</code></p>
 </section>
 
@@ -79,9 +76,12 @@ range of <code>[1,2)</code> and <code>minExponent() &lt;= exponent &lt;= maxExpo
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">FpvType random(Random rv, {bool normal = false}) {
+  if (explicitJBit) {
+    return ofFloatingPointValue(FloatingPointValue.populator(
+            exponentWidth: exponentWidth, mantissaWidth: mantissaWidth - 1)
+        .random(rv, normal: normal)) as FpvType;
+  }
   final sign = rv.nextLogicValue(width: 1);
-
-  final mantissa = rv.nextLogicValue(width: mantissaWidth);
 
   final largestExponent = bias + maxExponent;
   final LogicValue exponent;
@@ -92,6 +92,9 @@ range of <code>[1,2)</code> and <code>minExponent() &lt;= exponent &lt;= maxExpo
   } else {
     exponent = rv.nextLogicValue(width: exponentWidth, max: largestExponent);
   }
+  final mantissa = (subNormalAsZero &amp; (exponent == LogicValue.zero))
+      ? LogicValue.zero.zeroExtend(mantissaWidth)
+      : rv.nextLogicValue(width: mantissaWidth);
 
   return populate(sign: sign, exponent: exponent, mantissa: mantissa);
 }</code></pre>
@@ -108,7 +111,7 @@ range of <code>[1,2)</code> and <code>minExponent() &lt;= exponent &lt;= maxExpo
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/FloatingPointValuePopulator-class.html">FloatingPointValuePopulator<span class="signature">&lt;<wbr><span class="type-parameter">FpvType extends FloatingPointValue</span>&gt;</span></a></li>
     <li class="self-crumb">random method</li>
 </ol>
@@ -122,7 +125,7 @@ range of <code>[1,2)</code> and <code>minExponent() &lt;= exponent &lt;= maxExpo
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

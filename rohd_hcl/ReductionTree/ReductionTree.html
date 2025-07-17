@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the ReductionTree constructor from Class ReductionTree from the rohd_hcl library, for the Dart programming language.">
-  <title>ReductionTree constructor - ReductionTree - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the ReductionTree.new constructor from Class ReductionTree from the rohd_hcl library, for the Dart programming language.">
+  <title>ReductionTree.new constructor - ReductionTree - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/ReductionTree-class.html">ReductionTree</a></li>
-    <li class="self-crumb">ReductionTree constructor</li>
+    <li class="self-crumb">ReductionTree.new constructor</li>
   </ol>
-  <div class="self-name">ReductionTree</div>
+  <div class="self-name">ReductionTree.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,40 +54,44 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">ReductionTree</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-sequence"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span>&gt;</span></span> <span class="parameter-name">sequence</span>, </span></li>
-<li><span class="parameter" id="-param-operation"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">operation</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-inputs"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span>&gt;</span></span> <span class="parameter-name">inputs</span>, {</span></li>
-<li><span class="parameter" id="param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span>, </span></li>
+      <span class="name ">ReductionTree</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-sequence"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span>&gt;</span></span> <span class="parameter-name">sequence</span>, </span></li>
+<li><span class="parameter" id="-param-operation"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">operation</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-inputs"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span>&gt;</span></span> <span class="parameter-name">inputs</span>, {</span></li>
+<li><span class="parameter" id="param-control"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">control</span>, </span></li>
+<li><span class="parameter" id="param-depth"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a></span> <span class="parameter-name">depth</span>, </span></li>
+<li><span class="parameter" id="param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span>, </span></li>
 </ol>}), {</span></li>
-<li><span class="parameter" id="-param-radix"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/int-class.html">int</a></span> <span class="parameter-name">radix</span> = <span class="default-value">2</span>, </span></li>
-<li><span class="parameter" id="-param-signExtend"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">signExtend</span> = <span class="default-value">false</span>, </span></li>
-<li><span class="parameter" id="-param-depthToFlop"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">depthToFlop</span>, </span></li>
-<li><span class="parameter" id="-param-clk"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">clk</span>, </span></li>
-<li><span class="parameter" id="-param-enable"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">enable</span>, </span></li>
-<li><span class="parameter" id="-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">reset</span>, </span></li>
-<li><span class="parameter" id="-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span> = <span class="default-value">&#39;reduction_tree&#39;</span>, </span></li>
+<li><span class="parameter" id="-param-radix"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a></span> <span class="parameter-name">radix</span> = <span class="default-value">2</span>, </span></li>
+<li><span class="parameter" id="-param-signExtend"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">signExtend</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-depthBetweenFlops"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">depthBetweenFlops</span>, </span></li>
+<li><span class="parameter" id="-param-control"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">control</span>, </span></li>
+<li><span class="parameter" id="-param-clk"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">clk</span>, </span></li>
+<li><span class="parameter" id="-param-enable"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">enable</span>, </span></li>
+<li><span class="parameter" id="-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">reset</span>, </span></li>
+<li><span class="parameter" id="-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span> = <span class="default-value">&#39;reduction_tree&#39;</span>, </span></li>
 </ol>})
     </section>
     
 <section class="desc markdown">
   <p>Generate a tree based on dividing the input <code>sequence</code> of a node into
-segments, recursively constructing <code>radix</code> child nodes to operate
-on each segment.</p>
+segments, recursively constructing <code>radix</code> child nodes to operate on each
+segment.</p>
 <ul>
 <li><code>sequence</code> is the input sequence to be reduced using the tree of
 operations.</li>
-<li>Logic Function(List<logic> inputs, {String name}) <code>operation</code>
-is the operation to be
-performed at each node. Note that <code>operation</code> can widen the output. The
-logic function must support the operation for 2 to radix inputs.</logic></li>
+<li><code>operation</code> is the operation to be performed at each node. Note that
+<code>operation</code> can widen the output. The logic function must support the
+operation for (2 to <code>radix</code>) inputs.</li>
 <li><code>radix</code> is the width of reduction at each node in the tree (e.g.,
 binary: radix=2).</li>
-<li><code>signExtend</code> if true, use sign-extension to widen <a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a> values as
+<li><code>signExtend</code> if <code>true</code>, use sign-extension to widen <a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a> values as
 needed in the tree, otherwise use zero-extension (default).</li>
+<li><code>control</code> is an optional input that is passed along with the data being
+reduced and passed into the operation.</li>
 </ul>
 <p>Optional parameters to be used for creating a pipelined computation tree:</p>
 <ul>
 <li><code>clk</code>, <code>reset</code>, <code>enable</code> are optionally provided to allow for flopping.</li>
-<li><code>depthToFlop</code> specifies how many nodes deep separate flops.</li>
+<li><code>depthBetweenFlops</code> specifies how many nodes deep separate flops.</li>
 </ul>
 </section>
 
@@ -101,26 +102,37 @@ needed in the tree, otherwise use zero-extension (default).</li>
   <pre class="language-dart"><code class="language-dart">ReductionTree(List&lt;Logic&gt; sequence, this.operation,
     {this.radix = 2,
     this.signExtend = false,
-    this.depthToFlop,
+    this.depthBetweenFlops,
+    Logic? control,
     Logic? clk,
     Logic? enable,
     Logic? reset,
     super.name = &#39;reduction_tree&#39;})
-    : super(definitionName: &#39;ReductionTree_R${radix}_L${sequence.length}}&#39;) {
+    : super(
+          definitionName: &#39;ReductionTreeNode_R${radix}_L${sequence.length}&#39;) {
   if (sequence.isEmpty) {
     throw RohdHclException(&quot;Don&#39;t use ReductionTree &quot;
         &#39;with an empty sequence&#39;);
   }
-  sequence = [
+  if (radix &lt; 2) {
+    throw RohdHclException(&#39;Radix must be at least 2, got $radix&#39;);
+  }
+  _sequence = [
     for (var i = 0; i &lt; sequence.length; i++)
       addInput(&#39;seq$i&#39;, sequence[i], width: sequence[i].width)
   ];
-  this.clk = (clk != null) ? addInput(&#39;clk&#39;, clk) : null;
-  this.enable = (enable != null) ? addInput(&#39;enable&#39;, enable) : null;
-  this.reset = (reset != null) ? addInput(&#39;reset&#39;, reset) : null;
+  _control = (control != null
+      ? addInput(&#39;control&#39;, control, width: control.width)
+      : null);
+  _clk = (clk != null) ? addInput(&#39;clk&#39;, clk) : null;
+  _enable = (enable != null) ? addInput(&#39;enable&#39;, enable) : null;
+  _reset = (reset != null) ? addInput(&#39;reset&#39;, reset) : null;
 
-  _computed = reductionTreeRecurse(sequence);
-  addOutput(&#39;out&#39;, width: _computed.value.width) &lt;= _computed.value;
+  _controlOut = (control != null
+      ? addOutput(&#39;controlOut&#39;, width: control.width)
+      : null);
+
+  _buildLogic();
 }</code></pre>
 </section>
 
@@ -135,9 +147,9 @@ needed in the tree, otherwise use zero-extension (default).</li>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/ReductionTree-class.html">ReductionTree</a></li>
-    <li class="self-crumb">ReductionTree constructor</li>
+    <li class="self-crumb">ReductionTree.new constructor</li>
 </ol>
 
     <h5>ReductionTree class</h5>
@@ -149,7 +161,7 @@ needed in the tree, otherwise use zero-extension (default).</li>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

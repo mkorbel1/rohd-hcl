@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the FloatingPointValue constructor from Class FloatingPointValue from the rohd_hcl library, for the Dart programming language.">
-  <title>FloatingPointValue constructor - FloatingPointValue - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the FloatingPointValue.new constructor from Class FloatingPointValue from the rohd_hcl library, for the Dart programming language.">
+  <title>FloatingPointValue.new constructor - FloatingPointValue - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/FloatingPointValue-class.html">FloatingPointValue</a></li>
-    <li class="self-crumb">FloatingPointValue factory constructor</li>
+    <li class="self-crumb">FloatingPointValue.new factory constructor</li>
   </ol>
-  <div class="self-name">FloatingPointValue</div>
+  <div class="self-name">FloatingPointValue.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,9 +54,11 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">FloatingPointValue</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="-param-sign"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/LogicValue-class.html">LogicValue</a></span> <span class="parameter-name">sign</span>, </span></li>
-<li><span class="parameter" id="-param-exponent"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/LogicValue-class.html">LogicValue</a></span> <span class="parameter-name">exponent</span>, </span></li>
-<li><span class="parameter" id="-param-mantissa"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/LogicValue-class.html">LogicValue</a></span> <span class="parameter-name">mantissa</span>, </span></li>
+      <span class="name ">FloatingPointValue</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="-param-sign"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/LogicValue-class.html">LogicValue</a></span> <span class="parameter-name">sign</span>, </span></li>
+<li><span class="parameter" id="-param-exponent"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/LogicValue-class.html">LogicValue</a></span> <span class="parameter-name">exponent</span>, </span></li>
+<li><span class="parameter" id="-param-mantissa"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/LogicValue-class.html">LogicValue</a></span> <span class="parameter-name">mantissa</span>, </span></li>
+<li><span class="parameter" id="-param-explicitjBit"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">explicitjBit</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-subNormalAsZero"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">subNormalAsZero</span> = <span class="default-value">false</span>, </span></li>
 </ol>})
     </section>
     
@@ -75,8 +74,14 @@
   <pre class="language-dart"><code class="language-dart">factory FloatingPointValue(
         {required LogicValue sign,
         required LogicValue exponent,
-        required LogicValue mantissa}) =&gt;
-    populator(exponentWidth: exponent.width, mantissaWidth: mantissa.width)
+        required LogicValue mantissa,
+        bool explicitjBit = false,
+        bool subNormalAsZero = false}) =&gt;
+    populator(
+            exponentWidth: exponent.width,
+            mantissaWidth: mantissa.width,
+            explicitJBit: explicitjBit,
+            subNormalAsZero: subNormalAsZero)
         .populate(sign: sign, exponent: exponent, mantissa: mantissa);</code></pre>
 </section>
 
@@ -91,9 +96,9 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/FloatingPointValue-class.html">FloatingPointValue</a></li>
-    <li class="self-crumb">FloatingPointValue factory constructor</li>
+    <li class="self-crumb">FloatingPointValue.new factory constructor</li>
 </ol>
 
     <h5>FloatingPointValue class</h5>
@@ -105,7 +110,7 @@
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
-    <li><a href="../../rohd_hcl/FloatingPointMultiplier-class.html">FloatingPointMultiplier<span class="signature">&lt;<wbr><span class="type-parameter">FpInType extends FloatingPoint</span>&gt;</span></a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/FloatingPointMultiplier-class.html">FloatingPointMultiplier<span class="signature">&lt;<wbr><span class="type-parameter">FpTypeIn extends FloatingPoint</span>, <span class="type-parameter">FpTypeOut extends FloatingPoint</span>&gt;</span></a></li>
     <li class="self-crumb">internalProduct property</li>
   </ol>
   <div class="self-name">internalProduct</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
 <div
@@ -58,20 +55,27 @@
     
       <section class="multi-line-signature">
         
-        <a href="../../rohd_hcl/FloatingPoint-class.html">FloatingPoint</a>
+  <div>
+    <ol class="annotation-list">
+        <li>@<a href="https://pub.dev/documentation/meta/1.17.0/meta/protected-constant.html">protected</a></li>
+    </ol>
+  </div>
+        FpTypeOut
         <span class="name ">internalProduct</span>
         <div class="features"><span class="feature">late</span><span class="feature">final</span></div>
 
       </section>
       
 <section class="desc markdown">
-  <p>The internal FloatingPoint logic to set</p>
+  <p>The internal <a href="../../rohd_hcl/FloatingPoint-class.html">FloatingPoint</a> logic in which to store the product of the
+multiplication.</p>
 </section>
 
       
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">late final FloatingPoint internalProduct;</code></pre>
+  <pre class="language-dart"><code class="language-dart">@protected
+late final FpTypeOut internalProduct;</code></pre>
 </section>
 
 
@@ -86,8 +90,8 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl/FloatingPointMultiplier-class.html">FloatingPointMultiplier<span class="signature">&lt;<wbr><span class="type-parameter">FpInType extends FloatingPoint</span>&gt;</span></a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/FloatingPointMultiplier-class.html">FloatingPointMultiplier<span class="signature">&lt;<wbr><span class="type-parameter">FpTypeIn extends FloatingPoint</span>, <span class="type-parameter">FpTypeOut extends FloatingPoint</span>&gt;</span></a></li>
     <li class="self-crumb">internalProduct property</li>
 </ol>
 
@@ -100,7 +104,7 @@
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

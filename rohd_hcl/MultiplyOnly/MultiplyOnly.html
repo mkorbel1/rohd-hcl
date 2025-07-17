@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the MultiplyOnly constructor from Class MultiplyOnly from the rohd_hcl library, for the Dart programming language.">
-  <title>MultiplyOnly constructor - MultiplyOnly - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the MultiplyOnly.new constructor from Class MultiplyOnly from the rohd_hcl library, for the Dart programming language.">
+  <title>MultiplyOnly.new constructor - MultiplyOnly - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/MultiplyOnly-class.html">MultiplyOnly</a></li>
-    <li class="self-crumb">MultiplyOnly constructor</li>
+    <li class="self-crumb">MultiplyOnly.new constructor</li>
   </ol>
-  <div class="self-name">MultiplyOnly</div>
+  <div class="self-name">MultiplyOnly.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,25 +54,22 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">MultiplyOnly</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
-<li><span class="parameter" id="-param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, </span></li>
-<li><span class="parameter" id="-param-c"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">c</span>, </span></li>
-<li><span class="parameter" id="-param-mulGen"><span class="type-annotation"><a href="../../rohd_hcl/Multiplier-class.html">Multiplier</a></span> <span class="parameter-name">mulGen</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
-<li><span class="parameter" id="param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, {</span></li>
-<li><span class="parameter" id="param-selectSignedMultiplicand"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">selectSignedMultiplicand</span>, </span></li>
-<li><span class="parameter" id="param-selectSignedMultiplier"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">selectSignedMultiplier</span>, </span></li>
+      <span class="name ">MultiplyOnly</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
+<li><span class="parameter" id="-param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, </span></li>
+<li><span class="parameter" id="-param-c"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">c</span>, </span></li>
+<li><span class="parameter" id="-param-mulGen"><span class="type-annotation"><a href="../../rohd_hcl/Multiplier-class.html">Multiplier</a></span> <span class="parameter-name">mulGen</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
+<li><span class="parameter" id="param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, {</span></li>
+<li><span class="parameter" id="param-signedMultiplicand"><span class="type-annotation">dynamic</span> <span class="parameter-name">signedMultiplicand</span>, </span></li>
+<li><span class="parameter" id="param-signedMultiplier"><span class="type-annotation">dynamic</span> <span class="parameter-name">signedMultiplier</span>, </span></li>
 </ol>}), {</span></li>
-<li><span class="parameter" id="-param-signedMultiplicand"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">signedMultiplicand</span> = <span class="default-value">false</span>, </span></li>
-<li><span class="parameter" id="-param-signedMultiplier"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">signedMultiplier</span> = <span class="default-value">false</span>, </span></li>
-<li><span class="parameter" id="-param-signedAddend"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">signedAddend</span> = <span class="default-value">false</span>, </span></li>
-<li><span class="parameter" id="-param-selectSignedMultiplicand"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">selectSignedMultiplicand</span>, </span></li>
-<li><span class="parameter" id="-param-selectSignedMultiplier"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">selectSignedMultiplier</span>, </span></li>
-<li><span class="parameter" id="-param-selectSignedAddend"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">selectSignedAddend</span>, </span></li>
+<li><span class="parameter" id="-param-signedMultiplicand"><span class="type-annotation">dynamic</span> <span class="parameter-name">signedMultiplicand</span>, </span></li>
+<li><span class="parameter" id="-param-signedMultiplier"><span class="type-annotation">dynamic</span> <span class="parameter-name">signedMultiplier</span>, </span></li>
+<li><span class="parameter" id="-param-signedAddend"><span class="type-annotation">dynamic</span> <span class="parameter-name">signedAddend</span>, </span></li>
 </ol>})
     </section>
     
 <section class="desc markdown">
-  <p>Construct a MultiplyAccumulate that only multiplies to enable
+  <p>Construct a <a href="../../rohd_hcl/MultiplyAccumulate-class.html">MultiplyAccumulate</a> that only multiplies to enable
 using the same tester with zero accumulate addend <code>c</code>.</p>
 </section>
 
@@ -88,28 +82,41 @@ using the same tester with zero accumulate addend <code>c</code>.</p>
   super.b,
   super.c,
   Multiplier Function(Logic a, Logic b,
-          {Logic? selectSignedMultiplicand, Logic? selectSignedMultiplier})
+          {dynamic signedMultiplicand, dynamic signedMultiplier})
       mulGen, {
-  super.signedMultiplicand = false,
-  super.signedMultiplier = false,
-  super.signedAddend = false,
-  super.selectSignedMultiplicand,
-  super.selectSignedMultiplier,
-  super.selectSignedAddend,
+  super.signedMultiplicand,
+  super.signedMultiplier,
+  super.signedAddend,
 }) &#47;&#47; Will be overrwridden by multiplyGenerator
 : super(
           &#47;&#47; ignore: prefer_interpolation_to_compose_strings
-          name: &#39;Multiply Only: &#39; +
-              _genName(mulGen, a, b, selectSignedMultiplicand,
-                  selectSignedMultiplier)) {
-  final accumulate = addOutput(&#39;accumulate&#39;, width: a.width + b.width + 1);
+          name: &#39;multiply_only_&#39; +
+              _genName(mulGen, a, b, signedMultiplicand, signedMultiplier)) {
+  &#47;&#47; Here we need to copy the Config and make sure we access our module&#39;s
+  &#47;&#47; input by calling .logic(this) on the runtimeConfig.
 
+  &#47;&#47; TODO(desmonddak): try using tryRuntimeInput instead of getLogic.
   final multiply = mulGen(a, b,
-      selectSignedMultiplicand: selectSignedMultiplicand,
-      selectSignedMultiplier: selectSignedMultiplier);
+      signedMultiplicand: StaticOrRuntimeParameter(
+          name: &#39;selectSignedMultiplicand&#39;,
+          runtimeConfig: signedMultiplicandParameter.runtimeConfig != null
+              ? signedMultiplicandParameter.getLogic(this)
+              : null,
+          staticConfig: signedMultiplicandParameter.runtimeConfig == null
+              ? signedMultiplicandParameter.staticConfig
+              : null),
+      signedMultiplier: StaticOrRuntimeParameter(
+          name: &#39;selectSignedMultiplier&#39;,
+          runtimeConfig: signedMultiplierParameter.runtimeConfig != null
+              ? signedMultiplierParameter.getLogic(this)
+              : null,
+          staticConfig: signedMultiplierParameter.runtimeConfig == null
+              ? signedMultiplierParameter.staticConfig
+              : null));
 
   accumulate &lt;=
       mux(
+          &#47;&#47; ignore: invalid_use_of_protected_member
           multiply.isProductSigned,
           multiply.product.signExtend(accumulate.width),
           multiply.product.zeroExtend(accumulate.width));
@@ -127,9 +134,9 @@ using the same tester with zero accumulate addend <code>c</code>.</p>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/MultiplyOnly-class.html">MultiplyOnly</a></li>
-    <li class="self-crumb">MultiplyOnly constructor</li>
+    <li class="self-crumb">MultiplyOnly.new constructor</li>
 </ol>
 
     <h5>MultiplyOnly class</h5>
@@ -141,7 +148,7 @@ using the same tester with zero accumulate addend <code>c</code>.</p>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

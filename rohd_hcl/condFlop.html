@@ -25,24 +25,21 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">rohd_hcl</a></li>
-    <li><a href="../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../rohd_hcl/">rohd_hcl.dart</a></li>
     <li class="self-crumb">condFlop function</li>
   </ol>
   <div class="self-name">condFlop</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,13 +54,13 @@
 
     <section class="multi-line-signature">
         
-<span class="returntype"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span>
-<span class="name ">condFlop</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="condFlop-param-clk"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">clk</span>, </span></li>
-<li><span class="parameter" id="condFlop-param-d"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">d</span>, {</span></li>
-<li><span class="parameter" id="condFlop-param-en"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">en</span>, </span></li>
-<li><span class="parameter" id="condFlop-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">reset</span>, </span></li>
+<span class="returntype"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span>
+<span class="name ">condFlop</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="condFlop-param-clk"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">clk</span>, </span></li>
+<li><span class="parameter" id="condFlop-param-d"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">d</span>, {</span></li>
+<li><span class="parameter" id="condFlop-param-en"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">en</span>, </span></li>
+<li><span class="parameter" id="condFlop-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">reset</span>, </span></li>
 <li><span class="parameter" id="condFlop-param-resetValue"><span class="type-annotation">dynamic</span> <span class="parameter-name">resetValue</span>, </span></li>
-<li><span class="parameter" id="condFlop-param-asyncReset"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">asyncReset</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="condFlop-param-asyncReset"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">asyncReset</span> = <span class="default-value">false</span>, </span></li>
 </ol>})
 
         
@@ -72,7 +69,7 @@
     
 <section class="desc markdown">
   <p>Conditionally constructs a positive edge triggered flip condFlop on <code>clk</code>.</p>
-<p>It returns either <a href="https://pub.dev/documentation/rohd/0.6.3/rohd/FlipFlop/q.html">FlipFlop.q</a> if <code>clk</code> is non-null or <code>d</code> if not.</p>
+<p>It returns either <a href="https://pub.dev/documentation/rohd/0.6.5/rohd/FlipFlop/q.html">FlipFlop.q</a> if <code>clk</code> is non-null or <code>d</code> if not.</p>
 <p>When the optional <code>en</code> is provided, an additional input will be created for
 condFlop. If optional <code>en</code> is high or not provided, output will vary as per
 input<code>d</code>. For low <code>en</code>, output remains frozen irrespective of input <code>d</code>.</p>
@@ -81,9 +78,9 @@ input<code>d</code>. For low <code>en</code>, output remains frozen irrespective
 (active-high).</li>
 <li>If no <code>resetValue</code> is provided, the reset value is always <code>0</code>. Otherwise,
 it will reset to the provided <code>resetValue</code>.</li>
-<li>If <code>asyncReset</code> is true, the <code>reset</code> signal (if provided) will be treated
-as an async reset. If <code>asyncReset</code> is false, the reset signal will be
-treated as synchronous.</li>
+<li>If <code>asyncReset</code> is <code>true</code>, the <code>reset</code> signal (if provided) will be
+treated as an async reset. If <code>asyncReset</code> is <code>false</code>, the reset signal
+will be treated as synchronous.</li>
 </ul>
 </section>
 
@@ -120,7 +117,7 @@ treated as synchronous.</li>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">rohd_hcl</a></li>
-    <li><a href="../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../rohd_hcl/">rohd_hcl</a></li>
     <li class="self-crumb">condFlop function</li>
 </ol>
 
@@ -133,7 +130,7 @@ treated as synchronous.</li>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

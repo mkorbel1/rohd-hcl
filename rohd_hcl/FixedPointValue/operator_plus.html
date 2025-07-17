@@ -25,7 +25,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/FixedPointValue-class.html">FixedPointValue</a></li>
     <li class="self-crumb">operator + method</li>
   </ol>
@@ -33,17 +33,14 @@
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
 <div
@@ -66,7 +63,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>Addition operation that returns a FixedPointValue.
+  <p>Addition operation that returns a <a href="../../rohd_hcl/FixedPointValue-class.html">FixedPointValue</a>.
 The result is signed if one of the operands is signed.
 The result integer has the max integer width of the operands plus one.
 The result fraction has the max fractional width of the operands.</p>
@@ -81,11 +78,19 @@ The result fraction has the max fractional width of the operands.</p>
     throw RohdHclException(&#39;Inputs must be valid.&#39;);
   }
   final s = signed | other.signed;
-  final nr = max(n, other.n);
-  final mr = max(m, other.m) + 1;
-  final val1 = expandWidth(sign: s, m: mr, n: nr);
-  final val2 = other.expandWidth(sign: s, m: mr, n: nr);
-  return FixedPointValue(value: val1 + val2, signed: s, m: mr, n: nr);
+  final nr = max(fractionWidth, other.fractionWidth);
+  final mr = max(integerWidth, other.integerWidth) + 1;
+  final val1 = FixedPointValue.populator(
+          integerWidth: mr, fractionWidth: nr, signed: s)
+      .widen(this)
+      .value;
+  final val2 = FixedPointValue.populator(
+          integerWidth: mr, fractionWidth: nr, signed: s)
+      .widen(other)
+      .value;
+  return FixedPointValue.populator(
+          integerWidth: mr, fractionWidth: nr, signed: s)
+      .ofLogicValue(val1 + val2);
 }</code></pre>
 </section>
 
@@ -100,7 +105,7 @@ The result fraction has the max fractional width of the operands.</p>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/FixedPointValue-class.html">FixedPointValue</a></li>
     <li class="self-crumb">operator + method</li>
 </ol>
@@ -114,7 +119,7 @@ The result fraction has the max fractional width of the operands.</p>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the CsrTop constructor from Class CsrTop from the rohd_hcl library, for the Dart programming language.">
-  <title>CsrTop constructor - CsrTop - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the CsrTop.new constructor from Class CsrTop from the rohd_hcl library, for the Dart programming language.">
+  <title>CsrTop.new constructor - CsrTop - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/CsrTop-class.html">CsrTop</a></li>
-    <li class="self-crumb">CsrTop factory constructor</li>
+    <li class="self-crumb">CsrTop.new constructor</li>
   </ol>
-  <div class="self-name">CsrTop</div>
+  <div class="self-name">CsrTop.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,37 +54,83 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">CsrTop</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-config"><span class="type-annotation"><a href="../../rohd_hcl/CsrTopConfig-class.html">CsrTopConfig</a></span> <span class="parameter-name">config</span>, </span></li>
-<li><span class="parameter" id="-param-clk"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">clk</span>, </span></li>
-<li><span class="parameter" id="-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">reset</span>, </span></li>
-<li><span class="parameter" id="-param-fdw"><span class="type-annotation"><a href="../../rohd_hcl/DataPortInterface-class.html">DataPortInterface</a></span> <span class="parameter-name">fdw</span>, </span></li>
-<li><span class="parameter" id="-param-fdr"><span class="type-annotation"><a href="../../rohd_hcl/DataPortInterface-class.html">DataPortInterface</a></span> <span class="parameter-name">fdr</span>, {</span></li>
-<li><span class="parameter" id="-param-allowLargerRegisters"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">allowLargerRegisters</span> = <span class="default-value">false</span>, </span></li>
-<li><span class="parameter" id="-param-logicalRegisterIncrement"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/int-class.html">int</a></span> <span class="parameter-name">logicalRegisterIncrement</span> = <span class="default-value">1</span>, </span></li>
+      <span class="name ">CsrTop</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="-param-config"><span>required</span> <span class="type-annotation"><a href="../../rohd_hcl/CsrTopConfig-class.html">CsrTopConfig</a></span> <span class="parameter-name">config</span>, </span></li>
+<li><span class="parameter" id="-param-clk"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">clk</span>, </span></li>
+<li><span class="parameter" id="-param-reset"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">reset</span>, </span></li>
+<li><span class="parameter" id="-param-frontWrite"><span>required</span> <span class="type-annotation"><a href="../../rohd_hcl/DataPortInterface-class.html">DataPortInterface</a>?</span> <span class="parameter-name">frontWrite</span>, </span></li>
+<li><span class="parameter" id="-param-frontRead"><span>required</span> <span class="type-annotation"><a href="../../rohd_hcl/DataPortInterface-class.html">DataPortInterface</a>?</span> <span class="parameter-name">frontRead</span>, </span></li>
+<li><span class="parameter" id="-param-allowLargerRegisters"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">allowLargerRegisters</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-logicalRegisterIncrement"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a></span> <span class="parameter-name">logicalRegisterIncrement</span> = <span class="default-value">1</span>, </span></li>
 </ol>})
     </section>
     
 <section class="desc markdown">
-  <p>create the CsrBlock from a configuration</p>
+  <p>Create the <a href="../../rohd_hcl/CsrBlock-class.html">CsrBlock</a> from a configuration.</p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">factory CsrTop(CsrTopConfig config, Logic clk, Logic reset,
-        DataPortInterface fdw, DataPortInterface fdr,
-        {bool allowLargerRegisters = false,
-        int logicalRegisterIncrement = 1}) =&gt;
-    CsrTop._(
-      config: config,
-      clk: clk,
-      reset: reset,
-      fdw: fdw,
-      fdr: fdr,
-      allowLargerRegisters: allowLargerRegisters,
-      logicalRegisterIncrement: logicalRegisterIncrement,
-    );</code></pre>
+  <pre class="language-dart"><code class="language-dart">CsrTop({
+  required CsrTopConfig super.config,
+  required super.clk,
+  required super.reset,
+  required super.frontWrite,
+  required super.frontRead,
+  super.allowLargerRegisters,
+  this.logicalRegisterIncrement = 1,
+}) {
+  _validate();
+
+  for (final block in config.blocks) {
+    DataPortInterface? blockFdWrite;
+    DataPortInterface? blockFdRead;
+
+    if (frontWritePresent) {
+      blockFdWrite =
+          DataPortInterface(frontWrite!.dataWidth, blockOffsetWidth);
+      _fdWrites.add(blockFdWrite);
+    }
+
+    if (frontReadPresent) {
+      blockFdRead = DataPortInterface(frontRead!.dataWidth, blockOffsetWidth);
+      _fdReads.add(blockFdRead);
+    }
+
+    _blocks.add(CsrBlock(
+        config: block,
+        clk: clk,
+        reset: reset,
+        frontWrite: blockFdWrite,
+        frontRead: blockFdRead,
+        allowLargerRegisters: allowLargerRegisters));
+  }
+
+  for (var i = 0; i &lt; blocks.length; i++) {
+    _backdoorInterfaces.add([]);
+    backdoorInterfaces.add([]);
+    _backdoorIndexMaps.add({});
+    for (var j = 0; j &lt; blocks[i].registers.length; j++) {
+      if (blocks[i].registers[j].backdoorAccessible) {
+        _backdoorInterfaces[i]
+            .add(CsrBackdoorInterface(config: blocks[i].registers[j]));
+        backdoorInterfaces[i]
+            .add(CsrBackdoorInterface(config: blocks[i].registers[j]));
+        _backdoorInterfaces[i].last.connectIO(
+            this, backdoorInterfaces[i].last,
+            outputTags: {CsrBackdoorPortGroup.read},
+            inputTags: {CsrBackdoorPortGroup.write},
+            uniquify: (original) =&gt;
+                &#39;${name}_${blocks[i].name}_${blocks[i].registers[j].name}&#39;
+                &#39;_backdoor_$original&#39;);
+        _backdoorIndexMaps[i][j] = _backdoorInterfaces[i].length - 1;
+      }
+    }
+  }
+
+  _buildLogic();
+}</code></pre>
 </section>
 
 
@@ -101,9 +144,9 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/CsrTop-class.html">CsrTop</a></li>
-    <li class="self-crumb">CsrTop factory constructor</li>
+    <li class="self-crumb">CsrTop.new constructor</li>
 </ol>
 
     <h5>CsrTop class</h5>
@@ -115,7 +158,7 @@
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

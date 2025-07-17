@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the ShiftRegister constructor from Class ShiftRegister from the rohd_hcl library, for the Dart programming language.">
-  <title>ShiftRegister constructor - ShiftRegister - rohd_hcl library - Dart API</title>
+  <meta name="description" content="API docs for the ShiftRegister.new constructor from Class ShiftRegister from the rohd_hcl library, for the Dart programming language.">
+  <title>ShiftRegister.new constructor - ShiftRegister - rohd_hcl library - Dart API</title>
 
 
   
@@ -25,25 +25,22 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/ShiftRegister-class.html">ShiftRegister</a></li>
-    <li class="self-crumb">ShiftRegister constructor</li>
+    <li class="self-crumb">ShiftRegister.new constructor</li>
   </ol>
-  <div class="self-name">ShiftRegister</div>
+  <div class="self-name">ShiftRegister.new</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -57,24 +54,24 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">ShiftRegister</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-dataIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">dataIn</span>, {</span></li>
-<li><span class="parameter" id="-param-clk"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">clk</span>, </span></li>
-<li><span class="parameter" id="-param-depth"><span>required</span> <span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/int-class.html">int</a></span> <span class="parameter-name">depth</span>, </span></li>
-<li><span class="parameter" id="-param-enable"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">enable</span>, </span></li>
-<li><span class="parameter" id="-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.3/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">reset</span>, </span></li>
-<li><span class="parameter" id="-param-asyncReset"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">asyncReset</span> = <span class="default-value">false</span>, </span></li>
+      <span class="name ">ShiftRegister</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-dataIn"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">dataIn</span>, {</span></li>
+<li><span class="parameter" id="-param-clk"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">clk</span>, </span></li>
+<li><span class="parameter" id="-param-depth"><span>required</span> <span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a></span> <span class="parameter-name">depth</span>, </span></li>
+<li><span class="parameter" id="-param-enable"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">enable</span>, </span></li>
+<li><span class="parameter" id="-param-reset"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a>?</span> <span class="parameter-name">reset</span>, </span></li>
+<li><span class="parameter" id="-param-asyncReset"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">asyncReset</span> = <span class="default-value">false</span>, </span></li>
 <li><span class="parameter" id="-param-resetValue"><span class="type-annotation">dynamic</span> <span class="parameter-name">resetValue</span>, </span></li>
-<li><span class="parameter" id="-param-dataName"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.7.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">dataName</span> = <span class="default-value">&#39;data&#39;</span>, </span></li>
+<li><span class="parameter" id="-param-dataName"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a></span> <span class="parameter-name">dataName</span> = <span class="default-value">&#39;data&#39;</span>, </span></li>
 </ol>})
     </section>
     
 <section class="desc markdown">
   <p>Creates a new shift register with specified <code>depth</code> which is only active
-when <code>enable</code>d. If <code>reset</code> is provided, it will reset synchronously with
-<code>clk</code> or aynchronously if <code>asyncReset</code> is true. The <code>reset</code> will reset all
-stages to a default of <code>0</code> or to the provided <code>resetValue</code>.
-If <code>resetValue</code> is a <a href="https://api.dart.dev/stable/3.7.1/dart-core/List-class.html">List</a> the stages will reset to the corresponding
-value in the list.</p>
+when <code>enable</code>d.</p>
+<p>If <code>reset</code> is provided, it will reset synchronously with <code>clk</code> or
+aynchronously if <code>asyncReset</code> is <code>true</code>. The <code>reset</code> will reset all stages
+to a default of <code>0</code> or to the provided <code>resetValue</code>. If <code>resetValue</code> is a
+<a href="https://api.dart.dev/stable/3.8.2/dart-core/List-class.html">List</a> the stages will reset to the corresponding value in the list.</p>
 </section>
 
 
@@ -118,6 +115,8 @@ value in the list.</p>
               &#39;ResetValue list length must equal shift register depth.&#39;);
         }
 
+        resetValue = List.of(resetValue);
+
         for (var i = 0; i &lt; resetValue.length; i++) {
           final element = resetValue[i];
           if (element is Logic) {
@@ -149,9 +148,10 @@ value in the list.</p>
   }
 
   Sequential.multi(
-    [clk, if (asyncReset &amp;&amp; reset != null) reset],
+    [clk],
     reset: reset,
     resetValues: resetValues,
+    asyncReset: asyncReset,
     conds,
   );
 
@@ -170,9 +170,9 @@ value in the list.</p>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/ShiftRegister-class.html">ShiftRegister</a></li>
-    <li class="self-crumb">ShiftRegister constructor</li>
+    <li class="self-crumb">ShiftRegister.new constructor</li>
 </ol>
 
     <h5>ShiftRegister class</h5>
@@ -184,7 +184,7 @@ value in the list.</p>
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>

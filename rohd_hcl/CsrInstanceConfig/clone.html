@@ -25,7 +25,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl.dart</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl.dart</a></li>
     <li><a href="../../rohd_hcl/CsrInstanceConfig-class.html">CsrInstanceConfig</a></li>
     <li class="self-crumb">clone method</li>
   </ol>
@@ -33,17 +33,14 @@
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
 <div
@@ -58,24 +55,46 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="../../rohd_hcl/CsrInstanceConfig-class.html">CsrInstanceConfig</a></span>
-<span class="name ">clone</span>(<wbr>)
+<span class="name ">clone</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="clone-param-arch"><span class="type-annotation"><a href="../../rohd_hcl/CsrConfig-class.html">CsrConfig</a>?</span> <span class="parameter-name">arch</span>, </span></li>
+<li><span class="parameter" id="clone-param-addr"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">addr</span>, </span></li>
+<li><span class="parameter" id="clone-param-width"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">width</span>, </span></li>
+<li><span class="parameter" id="clone-param-resetValue"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">resetValue</span>, </span></li>
+<li><span class="parameter" id="clone-param-isFrontdoorReadable"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">isFrontdoorReadable</span>, </span></li>
+<li><span class="parameter" id="clone-param-isFrontdoorWritable"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">isFrontdoorWritable</span>, </span></li>
+<li><span class="parameter" id="clone-param-isBackdoorReadable"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">isBackdoorReadable</span>, </span></li>
+<li><span class="parameter" id="clone-param-isBackdoorWritable"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">isBackdoorWritable</span>, </span></li>
+</ol>})
 
       
 
     </section>
     
 <section class="desc markdown">
-  <p>Deep clone method.</p>
+  <p>Clone the register configuration with optional overrides.</p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">CsrInstanceConfig clone() =&gt; CsrInstanceConfig(
-      arch: arch.clone(),
-      addr: addr,
-      width: width,
+  <pre class="language-dart"><code class="language-dart">CsrInstanceConfig clone(
+        {CsrConfig? arch,
+        int? addr,
+        int? width,
+        int? resetValue,
+        bool? isFrontdoorReadable,
+        bool? isFrontdoorWritable,
+        bool? isBackdoorReadable,
+        bool? isBackdoorWritable}) =&gt;
+    CsrInstanceConfig(
+      arch: arch ?? this.arch,
+      addr: addr ?? this.addr,
+      width: width ?? this.width,
+      resetValue: resetValue ?? this.resetValue,
+      isFrontdoorReadable: isFrontdoorReadable ?? this.isFrontdoorReadable,
+      isFrontdoorWritable: isFrontdoorWritable ?? this.isFrontdoorWritable,
+      isBackdoorReadable: isBackdoorReadable ?? this.isBackdoorReadable,
+      isBackdoorWritable: isBackdoorWritable ?? this.isBackdoorWritable,
     );</code></pre>
 </section>
 
@@ -90,7 +109,7 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">rohd_hcl</a></li>
-    <li><a href="../../rohd_hcl">rohd_hcl</a></li>
+    <li><a href="../../rohd_hcl/">rohd_hcl</a></li>
     <li><a href="../../rohd_hcl/CsrInstanceConfig-class.html">CsrInstanceConfig</a></li>
     <li class="self-crumb">clone method</li>
 </ol>
@@ -104,7 +123,7 @@
 <footer>
   <span class="no-break">
     rohd_hcl
-      0.1.0
+      0.2.0
   </span>
   
 </footer>
