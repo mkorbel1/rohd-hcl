@@ -54,10 +54,10 @@
 
     <section class="multi-line-signature">
       
-      <span class="name ">LeadingDigitAnticipate</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
-<li><span class="parameter" id="-param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.5/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, {</span></li>
-<li><span class="parameter" id="-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span> = <span class="default-value">&#39;leading_digit_anticipate&#39;</span>, </span></li>
-<li><span class="parameter" id="-param-definitionName"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.2/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">definitionName</span>, </span></li>
+      <span class="name ">LeadingDigitAnticipate</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="-param-a"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.6/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">a</span>, </span></li>
+<li><span class="parameter" id="-param-b"><span class="type-annotation"><a href="https://pub.dev/documentation/rohd/0.6.6/rohd/Logic-class.html">Logic</a></span> <span class="parameter-name">b</span>, {</span></li>
+<li><span class="parameter" id="-param-name"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.3/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span> = <span class="default-value">&#39;leading_digit_anticipate&#39;</span>, </span></li>
+<li><span class="parameter" id="-param-definitionName"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.3/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">definitionName</span>, </span></li>
 </ol>})
     </section>
     
@@ -81,15 +81,21 @@ negative sum).</li>
     : super(definitionName: definitionName ?? &#39;LeadingDigitAnticipate&#39;) {
   a = addInput(&#39;a&#39;, a, width: a.width);
   b = addInput(&#39;b&#39;, b, width: b.width);
-  final pA = a.reversed;
-  final pB = b.reversed;
-  final g = pA &amp; pB.named(&#39;g&#39;);
+  final pA = a.reversed.named(&#39;revA&#39;);
+  final pB = b.reversed.named(&#39;revB&#39;);
+  final g = (pA &amp; pB).named(&#39;g&#39;);
   final t = (pA ^ pB).named(&#39;t&#39;);
   final z = (~pA &amp; ~pB).named(&#39;z&#39;);
 
+  final zBarShift = (~z &gt;&gt;&gt; 1).named(&#39;zBarShift&#39;);
+  final gBarShift = (~g &gt;&gt;&gt; 1).named(&#39;gBarShift&#39;);
+  final tShift = (t &lt;&lt; 1).named(&#39;tShift&#39;);
+  final tBarShift = (~t &lt;&lt; 1).named(&#39;tBarShift&#39;);
+
   final findFromMSB = Logic(name: &#39;findFromMSB&#39;, width: t.width - 1);
-  final lowBits = ((t &lt;&lt; 1) &amp; ((g &amp; (~z &gt;&gt;&gt; 1)) | (z &amp; (~g &gt;&gt;&gt; 1))) |
-          (~t &lt;&lt; 1) &amp; ((z &amp; (~z &gt;&gt;&gt; 1)) | (g &amp; (~g &gt;&gt;&gt; 1))))
+  final lowBits = (tShift &amp; ((g &amp; zBarShift) | (z &amp; gBarShift)) |
+          tBarShift &amp; ((z &amp; zBarShift) | (g &amp; gBarShift)))
+      .named(&#39;lowBitsWide&#39;)
       .slice(t.width - 2, 1);
 
   findFromMSB &lt;= [lowBits, ~t[0] &amp; t[1]].swizzle();
