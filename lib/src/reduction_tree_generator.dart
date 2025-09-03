@@ -112,7 +112,8 @@ class ReductionTreeGenerator {
     if (radix < 2) {
       throw RohdHclException('Radix must be at least 2, got $radix');
     }
-    signExtensionParameter = StaticOrRuntimeParameter.ofDynamic(signExtend);
+    signExtensionParameter = StaticOrRuntimeParameter.ofDynamic(signExtend,
+        name: 'sign_extend', defaultConfig: false)!;
 
     controlOut = control != null ? Logic(width: control!.width) : null;
     _computed = _reductionTreeRecurse(sequence);
@@ -202,13 +203,8 @@ class ReductionTreeGenerator {
       }
 
       final alignWidth = results.map((c) => c.value.width).reduce(max);
-      final resultsExtend = floppedResults.map((r) =>
-          signExtensionParameter.runtimeConfig == null
-              ? signExtensionParameter.staticConfig
-                  ? r.signExtend(alignWidth)
-                  : r.zeroExtend(alignWidth)
-              : mux(signExtensionParameter.runtimeConfig!,
-                  r.signExtend(alignWidth), r.zeroExtend(alignWidth)));
+      final resultsExtend = floppedResults.map((r) => signExtensionParameter
+          .boolSelect(r.signExtend(alignWidth), r.zeroExtend(alignWidth)));
 
       final value = operation(resultsExtend.toList(),
           control: stageControlOut, depth: depth + 1);

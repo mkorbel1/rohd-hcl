@@ -259,44 +259,50 @@ void main() {
     final a = Logic(width: width);
     final b = Logic(width: width);
 
-    for (final selectSignedMultiplicand in [null, Const(0), Const(1)]) {
-      for (final signedMultiplicand
-          in (selectSignedMultiplicand == null) ? [false, true] : [false]) {
-        for (final selectSignedMultiplier in [null, Const(0), Const(1)]) {
-          for (final signedMultiplier
-              in (selectSignedMultiplier == null) ? [false, true] : [false]) {
-            final signedMultiplicandConfig = StaticOrRuntimeParameter(
-                name: 'signedMultiplicand',
-                runtimeConfig: selectSignedMultiplicand,
-                staticConfig: signedMultiplicand);
-            final signedMultiplierConfig = StaticOrRuntimeParameter(
-                name: 'signedMultiplier',
-                runtimeConfig: selectSignedMultiplier,
-                staticConfig: signedMultiplier);
-            final mod = NativeMultiplier(a, b,
-                signedMultiplicand: signedMultiplicandConfig,
-                signedMultiplier: signedMultiplierConfig,
-                name: 'NativeMultiplier_W${a.width}x${b.width}'
-                    '_${Multiplier.signedMD(signedMultiplicandConfig)}_'
-                    '${Multiplier.signedML(signedMultiplierConfig)}');
+    for (final selectSignedMultiplicand in [
+      null,
+      Const(0),
+      Const(1),
+      true,
+      false
+    ]) {
+      for (final selectSignedMultiplier in [
+        null,
+        Const(0),
+        Const(1),
+        true,
+        false
+      ]) {
+        final signedMultiplicandConfig = StaticOrRuntimeParameter.ofDynamic(
+          name: 'signedMultiplicand',
+          selectSignedMultiplicand,
+        )!;
+        final signedMultiplierConfig = StaticOrRuntimeParameter.ofDynamic(
+          name: 'signedMultiplier',
+          selectSignedMultiplier,
+        )!;
+        final mod = NativeMultiplier(a, b,
+            signedMultiplicand: signedMultiplicandConfig.config,
+            signedMultiplier: signedMultiplierConfig.config,
+            name: 'NativeMultiplier_W${a.width}x${b.width}'
+                '_${Multiplier.signedMD(signedMultiplicandConfig)}_'
+                '${Multiplier.signedML(signedMultiplierConfig)}');
 
-            for (var i = 0; i < pow(2, width); i++) {
-              for (var j = 0; j < pow(2, width); j++) {
-                final ai = signedMultiplicandConfig.value
-                    ? BigInt.from(i).toSigned(width)
-                    : BigInt.from(i).toUnsigned(width);
-                final bi = signedMultiplierConfig.value
-                    ? BigInt.from(j).toSigned(width)
-                    : BigInt.from(j).toUnsigned(width);
-                a.put(ai);
-                b.put(bi);
-                final expected = ai * bi;
-                final product = mod.isSignedResult()
-                    ? mod.product.value.toBigInt().toSigned(width * 2)
-                    : mod.product.value.toBigInt();
-                expect(product, equals(expected));
-              }
-            }
+        for (var i = 0; i < pow(2, width); i++) {
+          for (var j = 0; j < pow(2, width); j++) {
+            final ai = signedMultiplicandConfig!.value.toBool()
+                ? BigInt.from(i).toSigned(width)
+                : BigInt.from(i).toUnsigned(width);
+            final bi = signedMultiplierConfig!.value.toBool()
+                ? BigInt.from(j).toSigned(width)
+                : BigInt.from(j).toUnsigned(width);
+            a.put(ai);
+            b.put(bi);
+            final expected = ai * bi;
+            final product = mod.isSignedResult()
+                ? mod.product.value.toBigInt().toSigned(width * 2)
+                : mod.product.value.toBigInt();
+            expect(product, equals(expected));
           }
         }
       }
@@ -307,37 +313,35 @@ void main() {
   // really curry unless the enclosing module reads them off the passed in
   // multiplier.
   group('Native multiplier check', () {
-    for (final selectSignedMultiplicand in [null, Const(0), Const(1)]) {
-      // for (final selectSignedMultiplicand in [null]) {
-      for (final signedMultiplicand
-          in (selectSignedMultiplicand == null) ? [false, true] : [false]) {
-        for (final selectSignedMultiplier in [null, Const(0), Const(1)]) {
-          // for (final selectSignedMultiplier in [null]) {
-          for (final signedMultiplier
-              in (selectSignedMultiplier == null) ? [false, true] : [false]) {
-            testMultiplyAccumulateExhaustive(
-                5,
-                (a, b, c) => MultiplyOnly(
-                    a,
-                    b,
-                    c,
-                    signedMultiplicand: selectSignedMultiplicand != null
-                        ? RuntimeConfig(selectSignedMultiplicand,
-                            name: 'selectSignedMultiplicand')
-                        : BooleanConfig(staticConfig: signedMultiplicand),
-                    signedMultiplier: selectSignedMultiplier != null
-                        ? RuntimeConfig(selectSignedMultiplier,
-                            name: 'selectSignedMultiplier')
-                        : BooleanConfig(staticConfig: signedMultiplier),
-                    (a, b, {signedMultiplicand, signedMultiplier}) =>
-                        NativeMultiplier(a, b,
-                            signedMultiplicand: signedMultiplicand,
-                            signedMultiplier: signedMultiplier,
-                            name: 'NativeMultiplier_W${a.width}x${b.width}'
-                                '_${Multiplier.signedMD(signedMultiplicand)}_'
-                                '${Multiplier.signedML(signedMultiplier)}')));
-          }
-        }
+    for (final selectSignedMultiplicand in [
+      null,
+      Const(0),
+      Const(1),
+      true,
+      false
+    ]) {
+      for (final selectSignedMultiplier in [
+        null,
+        Const(0),
+        Const(1),
+        true,
+        false
+      ]) {
+        testMultiplyAccumulateExhaustive(
+            5,
+            (a, b, c) => MultiplyOnly(
+                a,
+                b,
+                c,
+                signedMultiplicand: selectSignedMultiplicand,
+                signedMultiplier: selectSignedMultiplier,
+                (a, b, {signedMultiplicand, signedMultiplier}) =>
+                    NativeMultiplier(a, b,
+                        signedMultiplicand: signedMultiplicand,
+                        signedMultiplier: signedMultiplier,
+                        name: 'NativeMultiplier_W${a.width}x${b.width}'
+                            '_${Multiplier.signedMD(signedMultiplicand)}_'
+                            '${Multiplier.signedML(signedMultiplier)}')));
       }
     }
   });

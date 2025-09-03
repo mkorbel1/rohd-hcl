@@ -79,10 +79,14 @@ class DotProductBase extends Module {
           '${multiplicands.length - operandWidthMiss} width mismatches.');
     }
 
-    signedMultiplicandParameter =
-        StaticOrRuntimeParameter.ofDynamic(signedMultiplicand);
-    signedMultiplierParameter =
-        StaticOrRuntimeParameter.ofDynamic(signedMultiplier);
+    signedMultiplicandParameter = StaticOrRuntimeParameter.ofDynamic(
+        signedMultiplicand,
+        name: 'signed_multiplicand',
+        defaultConfig: false)!;
+    signedMultiplierParameter = StaticOrRuntimeParameter.ofDynamic(
+        signedMultiplier,
+        name: 'signed_multiplier',
+        defaultConfig: false)!;
 
     this.multiplicands = multiplicands
         .mapIndexed((i, multiplicand) => addInput(
@@ -120,8 +124,11 @@ class CompressionTreeDotProduct extends DotProductBase {
       for (var i = 0; i < multipliers.length; i++)
         PartialProductGenerator(
             multiplicands[i], multipliers[i], RadixEncoder(productRadix),
-            signedMultiplicand: signedMultiplicandParameter.staticConfig,
-            signedMultiplier: signedMultiplierParameter.staticConfig,
+            signedMultiplicand:
+                signedMultiplicandParameter is StaticConfig<bool> &&
+                    signedMultiplicandParameter.configInContext(this) as bool,
+            signedMultiplier: signedMultiplierParameter is StaticConfig<bool> &&
+                signedMultiplierParameter.configInContext(this) as bool,
             selectSignedMultiplicand:
                 signedMultiplicandParameter.getRuntimeInput(this),
             selectSignedMultiplier:

@@ -122,7 +122,8 @@ class ReductionTree extends Module {
       throw RohdHclException('Radix must be at least 2, got $radix');
     }
 
-    signExtensionParameter = StaticOrRuntimeParameter.ofDynamic(signExtend);
+    signExtensionParameter = StaticOrRuntimeParameter.ofDynamic(signExtend,
+        name: 'sign_extend', defaultConfig: false)!;
     _sequence = [
       for (var i = 0; i < sequence.length; i++)
         addInput('seq$i', sequence[i], width: sequence[i].width)
@@ -212,13 +213,8 @@ class ReductionTree extends Module {
       final alignWidth =
           results.map((c) => c._computed.value.width).reduce(max);
 
-      final resultsExtend = floppedResults.map((r) =>
-          signExtensionParameter.runtimeConfig == null
-              ? signExtensionParameter.staticConfig
-                  ? r.signExtend(alignWidth)
-                  : r.zeroExtend(alignWidth)
-              : mux(signExtensionParameter.getLogic(this),
-                  r.signExtend(alignWidth), r.zeroExtend(alignWidth)));
+      final resultsExtend = floppedResults.map((r) => signExtensionParameter
+          .boolSelect(r.signExtend(alignWidth), r.zeroExtend(alignWidth)));
 
       final value = operation(resultsExtend.toList(),
           control: controlOut, depth: depth + 1, name: 'reduce_d$depth');
