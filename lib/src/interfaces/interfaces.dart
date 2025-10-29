@@ -9,4 +9,5 @@ export 'amba4/axi4_s.dart';
 export 'amba5/amba5.dart';
 export 'apb.dart';
 export 'ready_valid_interface.dart';
+export 'request_response_channel_base.dart';
 export 'spi.dart';

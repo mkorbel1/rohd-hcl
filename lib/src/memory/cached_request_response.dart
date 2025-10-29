@@ -91,11 +91,12 @@ class ResponseData extends LogicStructure {
 /// // Multi-ported cache with custom configuration
 /// final cached2 = CachedRequestResponse(
 ///   cacheBuilder: (clk, reset, fills, reads) =>
-///     MultiPortedReadCache(clk, reset, fills, reads,
+///     SetAssociativeCache(clk, reset, fills, reads,
 ///       ways: 4, lines: 16, replacement: PseudoLRUReplacement.new),
 ///   ...
 /// );
 /// ```
+
 class CachedRequestResponse extends Module {
   /// The width of request/response IDs.
   final int idWidth;
