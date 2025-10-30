@@ -14,7 +14,7 @@ export 'src/exceptions.dart';
 export 'src/extrema.dart';
 export 'src/find.dart';
 export 'src/find_pattern.dart';
-export 'src/gaskets/spi/spi_gaskets.dart';
+export 'src/gaskets/gaskets.dart';
 export 'src/interfaces/interfaces.dart';
 export 'src/memory/memories.dart';
 export 'src/models/models.dart';
