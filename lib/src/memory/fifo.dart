@@ -276,8 +276,8 @@ class Fifo<LogicType extends Logic> extends Module {
   /// Optionally, the increment can be conditional on [condition].
   Logic _incrWithWrap(Logic original, [Logic? condition]) {
     final maxValue = depth - 1;
-    final wrapped = mux(
-        original.eq(maxValue), Const(0, width: original.width), original + 1);
+    final wrapped = mux(original.eq(maxValue), Const(0, width: original.width),
+        (original + 1).named('${original.name}Increment'));
     return condition != null ? mux(condition, wrapped, original) : wrapped;
   }
 }
@@ -320,7 +320,6 @@ class FifoChecker extends Component {
   }) : super(name, parent ?? Test.instance) {
     var hasReset = false;
 
-    // ignore: invalid_use_of_protected_member
     final fifoPortSignals = [...fifo.inputs.values, ...fifo.outputs.values]
         // data can be invalid since it's not control
         .where((e) => !e.name.contains('Data'));
