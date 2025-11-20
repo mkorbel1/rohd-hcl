@@ -7,6 +7,10 @@ The `Module` class is the base class used in ROHD to build components, and
 calling the constructor the `Module` instantiates the component and connects it
 to signals passed into the constructor.
 
+Since ROHD is written in Dart, you should use the Dart best practices, such as
+camel-case variable naming, commenting patterns for all public APIs, and take
+advantage of dart format and dart analyze tools.
+
 ## Port Construction and Connection
 
 A `Module` constructor takes `Logic` arguments and parameters to generate a
@@ -142,13 +146,14 @@ void main() {
 }
 ```
 
-Prefer using `waitCycles` instead of `nextPosEdge` and use `inject` instead of
+Prefer using `waitCycles` instead of `nextPosedge` and use `inject` instead of
 `put` when working with sequential tests.
 
 When testing a combinational path, and you `inject` inputs after a positive
-clock edge, use `nextNegEdge` to look at the value mid-way through the clock
-cycle, because if you wait for the next positive edge, then you will miss this
-output as it will be whatever is triggered by the next clk edge.
+clock edge, if you sample at the next clock edge, you will miss the
+combinational value.  Instead, use the output `previousValue` at the next clock
+edge, or sample the output at `nextNegEdge` to look at the value mid-way through
+the clock cycle.
 
 While creating unit tests, you can just run the tests for your component instead
 of running the entire suite of ROHD-HCL tests.  The entire regression suite

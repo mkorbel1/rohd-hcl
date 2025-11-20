@@ -4,11 +4,11 @@ ROHD-HCL provides a generic `abstract` [`Memory`](https://intel.github.io/rohd-h
 
 ## Masks
 
-A sub-class of `DataPortInterface` is the[`MaskedDataPortInterface`](https://intel.github.io/rohd-hcl/rohd_hcl/MaskedDataPortInterface-class.html), which adds `mask` to the `data` group of signals.  The `mask` signal is a byte-enable signal, where each bit of `mask` controls one byte of `data`.
+A subclass of `DataPortInterface` is the[`MaskedDataPortInterface`](https://intel.github.io/rohd-hcl/rohd_hcl/MaskedDataPortInterface-class.html), which adds `mask` to the `data` group of signals.  The `mask` signal is a byte-enable signal, where each bit of `mask` controls one byte of `data`.
 
 ## Register Files
 
-A sub-class of `Memory` is the [`RegisterFile`](https://intel.github.io/rohd-hcl/rohd_hcl/RegisterFile-class.html), which inherits the same flexible interface from `Memory`.  It has a configurable number of entries via `numEntries`.
+A subclass of `Memory` is the [`RegisterFile`](https://intel.github.io/rohd-hcl/rohd_hcl/RegisterFile-class.html), which inherits the same flexible interface from `Memory`.  It has a configurable number of entries via `numEntries`.
 
 The `RegisterFile` accepts masks on writes, but not on reads.
 
@@ -76,11 +76,28 @@ Cache ports are all `ValidDataPortInterface`s, where a `valid` signal is used on
 
  The eviction ports provide address and data for evicted cache elements, where eviction happens on a fill that needs to find space in the cache. Note that means the number of eviction ports, if supplied, must match the number of fill ports.
 
+### Fill + Eviction composite interface
+
+The fill side of `Cache` groups two `ValidDataPortInterface`s, one for filling together with an optional one for eviction forming `FillEvictInterface` type. If any `FillEvictInterface` provides an eviction interface, then all entries must provide an eviction (all-or-none).
+
+Example (manual construction):
+
+```dart
+final f1 = ValidDataPortInterface(dataWidth: 32, addrWidth: 8);
+final e1 = ValidDataPortInterface(dataWidth: 32, addrWidth: 8);
+
+final fills = [FillEvictInterface(f1, e1)];
+
+final cache = FullyAssociativeCache(clk, reset, fills, [readPort], ways: 8);
+```
+
+For convenience, there is a `CachePorts` helper class which can optionally attach eviction ports to each fill entry. Use `CachePorts.fresh(..., attachEvictionsToFills: true)` when the test needs eviction outputs. When `attachEvictionsToFills` is false (the default) the fill entries will not carry eviction sub-interfaces.
+
 ### Read-with-Invalidate Feature
 
-The `Cache` supports an advanced read-with-invalidate operation that allows atomic read and invalidation of cache entries. This feature is particularly useful for implementing request/response tracking systems where you need to read data and immediately mark the entry as invalid.
+The `Cache` supports an advanced read-with-invalidate operation that allows atomic read and invalidation of cache entries.
 
-The read-with-invalidate functionality is enabled automatically when using `ValidDataPortInterface` with the `readWithInvalidate` extension:
+The read-with-invalidate functionality is enabled automatically when using `ValidDataPortInterface` with the `readWithInvalidate` option enabled:
 
 ```dart
 // Create read port with read-with-invalidate capability
@@ -125,13 +142,15 @@ Here, the `AccessInterface` simply carries the `access` flag and the `way` that 
 
 A pseudo-LRU `ReplacementPolicy` called `PseudoLRUReplacement` is provided as default for use in set-associative caches.
 
-### DirectMappedCache
+Another `ReplacementPolicy` is `AvailableInvalidate` which only works if the cache is using invalidation and is never full.  This is useful with the `FullyAssociativeCache` with occupancy turned on so that the user can avoid filling when the cache is full and wait for an invalidate to free up space.  If the cache becomes full, `AvailableInvalidate` does not fall back on another replacement policy, it currently returns way 0 for every fill request while full.
+
+### Direct-Mapped Cache
 
 The [`DirectMappedCache`] provides a direct-mapped cache with multiple read and fill ports.
 
 ### Fully Associative Cache
 
-ROHD-HCL provides fully-associative cache implementations that enable lookup by content rather than address. This is useful for building efficient caches, translation lookaside buffers (TLBs), and request tracking systems.
+ROHD-HCL provides fully-associative cache implementations that enable lookup by content rather than address. This is useful for building efficient caches, translation look-aside buffers (TLBs), and request tracking systems.
 
 The [`FullyAssociativeCache`] implements eviction if the eviction ports (parallel to the fill ports) are provided. Note that there is only 1 line in a fully-associative cache as every way stores a unique tag.
 
@@ -185,7 +204,7 @@ final isFull = cache.full!;                 // High when all ways are occupied
 final isEmpty = cache.empty!;               // High when no entries are valid
 ```
 
-This is particularly useful for flow control and backpressure management in systems that need to track cache utilization.
+This is particularly useful for flow control and back-pressure management in systems that need to track cache utilization.
 
 ### Set Associative Cache
 
